@@ -1,0 +1,8 @@
+project exaremple
+    : requirements
+        <include>../include
+	<include>../../safefloat/include
+;
+
+
+exe clock : main-clock.cpp ;

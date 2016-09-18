@@ -27,3 +27,13 @@
 *.exe
 *.out
 *.app
+
+# QtCreator project files
+cadmium.config
+cadmium.creator
+cadmium.creator.user
+cadmium.files
+cadmium.includes
+
+# Build files
+build
