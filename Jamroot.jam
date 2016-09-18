@@ -1,0 +1,18 @@
+import os ;
+
+# Note: we require tha BOOST_ROOT be defined with a valid path
+BOOST_ROOT = [ os.environ BOOST_ROOT ] ;
+ECHO Boost include path is: $(BOOST_ROOT) ;
+
+project simulation
+    : usage-requirements <include>include
+    : requirements
+        <include>$(BOOST_ROOT)
+	<cxxflags>-pedantic
+        <cxxflags>-std=c++14
+    : build-dir ./build
+;
+
+# Examples are not being built yet
+#build-project example ;
+build-project test ;
