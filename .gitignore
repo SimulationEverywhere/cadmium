@@ -35,5 +35,9 @@ cadmium.creator.user
 cadmium.files
 cadmium.includes
 
+#idea
+.idea
+CMakeLists.txt
+
 # Build files
 build
