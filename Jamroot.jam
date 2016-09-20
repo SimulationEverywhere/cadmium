@@ -16,7 +16,7 @@ project cadmium
 ;
 
 build-project test ;
-build-project test-compile ;
+#build-project test-compile ;
 
 # Examples are not being built yet
 #build-project example ;
