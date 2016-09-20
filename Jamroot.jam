@@ -1,18 +1,23 @@
 import os ;
+using testing ;
 
 # Note: we require tha BOOST_ROOT be defined with a valid path
 BOOST_ROOT = [ os.environ BOOST_ROOT ] ;
 ECHO Boost include path is: $(BOOST_ROOT) ;
 
-project simulation
+project cadmium
     : usage-requirements <include>include
     : requirements
         <include>$(BOOST_ROOT)
+        <include>include
 	<cxxflags>-pedantic
         <cxxflags>-std=c++14
     : build-dir ./build
 ;
 
+build-project test ;
+#build-project test-compile ;
+
 # Examples are not being built yet
 #build-project example ;
-build-project test ;
+
