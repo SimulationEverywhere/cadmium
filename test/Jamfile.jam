@@ -1,4 +1,3 @@
 using testing ;
 lib boost_unit_test_framework ;
 unit-test test : main-test.cpp [ glob *_test.cpp ] boost_unit_test_framework ;
-
