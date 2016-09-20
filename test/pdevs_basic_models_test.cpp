@@ -74,8 +74,6 @@ BOOST_AUTO_TEST_CASE( it_throws_on_call_to_output_function_test )
     BOOST_CHECK_MESSAGE( is_inf_ta, "Passive model is not in passive state"  );
 }
 
-
-
 BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE_END()
