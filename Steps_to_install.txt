@@ -25,3 +25,8 @@ The following directory should be added to linker library paths:
 
 8 - sudo ./b2 install  --prefix=path/to/project/folder
 //Sudo is need if you are not root. To check type in the terminal "whoami"
+9 - /boost_1_61_0/tools/build$ sudo ./bootstrap.sh 
+10 - ~/boost_1_61_0/tools/build$ ./bootstrap.sh
+11 - boost_1_61_0/tools/build$ sudo ./b2 install --prefix=usr/local
+12 - PATH=/usr/local/bin:$PATH
+
