@@ -18,5 +18,10 @@ tar --bzip2 -xf /path/to/boost_1_61_0.tar.bz2
 5 - sudo apt-get install build-essential g++ python-dev autotools-dev libicu-dev build-essential libbz2-dev libboost-all-dev
 6 - sudo ./bootstrap.sh --prefix=/usr/local
 7 - sudo ./b2
+//The following directory should be added to compiler include paths:
+    /home/cris/boost_1_61_0
+The following directory should be added to linker library paths:
+    /home/cris/boost_1_61_0/stage/lib
+
 8 - sudo ./b2 install  --prefix=path/to/project/folder
 //Sudo is need if you are not root. To check type in the terminal "whoami"
