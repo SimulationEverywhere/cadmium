@@ -62,7 +62,7 @@ struct passive
 
     // state definition
     using state_type=int; //A type has to be declared and void is not allowed for variables
-    state_type state;
+    state_type state=0;
 
     // ports definition
     using input_ports=std::tuple<in>;
@@ -89,7 +89,7 @@ struct passive
 
     // time_advance should always return infinity
     TIME time_advance() const{
-        //we assume default constructor of time is 0 and infinity is defined in numeric_limits
+        //we assume default constructor of TIME is 0 and infinity is defined in numeric_limits
         return (std::numeric_limits<TIME>::infinity());
     }
 };
