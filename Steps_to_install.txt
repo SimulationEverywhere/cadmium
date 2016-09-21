@@ -1,0 +1,32 @@
+Download and install gcc -4.9
+
+1 - gcc -v // Comprueba la version. Si es 4.9 No hacer nada 
+2 - sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+3 - sudo apt-get update
+4 - sudo apt-get install gcc-4.9 g++-4.9
+5 - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.9 60 --slave /usr/bin/g++ g++ /usr/bin/g++-4.9
+6- gcc -v // Asegurarme de que tengo la versión instalada
+
+
+Install boost & B2
+
+1 - Download "boost_1_61_0.tar.bz2" from http://www.boost.org/users/history/version_1_61_0.html
+2 - In the directory where you want to put the Boost installation, execute
+tar --bzip2 -xf /path/to/boost_1_61_0.tar.bz2
+3 - On the command line, go to the root of the unpacked tree.
+4 - sudo apt-get update
+5 - sudo apt-get install build-essential g++ python-dev autotools-dev libicu-dev build-essential libbz2-dev libboost-all-dev
+6 - sudo ./bootstrap.sh --prefix=/usr/local
+7 - sudo ./b2
+//The following directory should be added to compiler include paths:
+    /home/cris/boost_1_61_0
+The following directory should be added to linker library paths:
+    /home/cris/boost_1_61_0/stage/lib
+
+8 - sudo ./b2 install  --prefix=path/to/project/folder
+//Sudo is need if you are not root. To check type in the terminal "whoami"
+9 - /boost_1_61_0/tools/build$ sudo ./bootstrap.sh 
+10 - ~/boost_1_61_0/tools/build$ ./bootstrap.sh
+11 - boost_1_61_0/tools/build$ sudo ./b2 install --prefix=usr/local
+12 - PATH=/usr/local/bin:$PATH
+
