@@ -65,12 +65,12 @@ BOOST_AUTO_TEST_CASE( it_throws_on_call_to_output_function_test )
     BOOST_AUTO_TEST_CASE( call_to_external_transition_keeps_infinite_time_advance_test )
 {
     auto p = floating_passive();
-    bool is_inf_ta = isinf(p.time_advance());
+    bool is_inf_ta = std::isinf(p.time_advance());
     BOOST_CHECK_MESSAGE( is_inf_ta, "Passive model is not in passive state");
     typename cadmium::make_message_bags<floating_passive::input_ports>::type bags;
     cadmium::get_messages<floating_passive::in>(bags).push_back(1);
     BOOST_CHECK_NO_THROW( p.external_transition(5.0, bags));
-    is_inf_ta =isinf(p.time_advance());
+    is_inf_ta = std::isinf(p.time_advance());
     BOOST_CHECK_MESSAGE( is_inf_ta, "Passive model is not in passive state"  );
 }
 
