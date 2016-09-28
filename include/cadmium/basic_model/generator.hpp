@@ -33,7 +33,7 @@
 #include<limits>
 
 namespace cadmium {
-namespace basic_models {
+    namespace basic_models {
 
 /**
  * @brief Generator PDEVS Model
@@ -49,56 +49,57 @@ namespace basic_models {
 */
 
 //This is a meta-model, it should be overloaded for declaring the tick time and tick values in the generator
-template<typename TYPE, typename TIME> //TYPE is the type of Y
-struct generator {
-    // port definition helpers can be defined here
-    struct out : public out_port<TYPE> {};
+        template<typename TYPE, typename TIME> //TYPE is the type of Y
+        struct generator {
+            // port definition helpers can be defined here
+            struct out : public out_port<TYPE> {
+            };
 
-private:
-    //these functions need to be overriden to define the generator behavior
-    virtual TIME period() const=0; // time between consecutive messages
-    virtual TYPE output_message() const=0; // message to be output
-public:
-    // required definitions start here
-    // default constructor
-    constexpr generator() noexcept {}
+        private:
+            //these functions need to be overriden to define the generator behavior
+            virtual TIME period() const =0; // time between consecutive messages
+            virtual TYPE output_message() const =0; // message to be output
+        public:
+            // required definitions start here
+            // default constructor
+            constexpr generator() noexcept {}
 
-    // state definition
-    using state_type=int;
-    state_type state=0;
+            // state definition
+            using state_type=int;
+            state_type state = 0;
 
-    // ports definition
-    using input_ports=std::tuple<>;
-    using output_ports=std::tuple<out>;
+            // ports definition
+            using input_ports=std::tuple<>;
+            using output_ports=std::tuple<out>;
 
-    // internal transition
-    void internal_transition() {}
+            // internal transition
+            void internal_transition() {}
 
-    // external transition
-    void external_transition(TIME e, typename make_message_bags<input_ports>::type mbs) {
-        throw std::logic_error("External transition called in a model with no input ports");
+            // external transition
+            void external_transition(TIME e, typename make_message_bags<input_ports>::type mbs) {
+                throw std::logic_error("External transition called in a model with no input ports");
+            }
+
+            // confluence transition
+            void confluence_transition(TIME e, typename make_message_bags<input_ports>::type mbs) {
+                throw std::logic_error("Confluence transition called in a model with no input ports");
+            }
+
+            // output function
+            typename make_message_bags<output_ports>::type output() const {
+                typename make_message_bags<output_ports>::type bags;
+                cadmium::get_messages<out>(bags).push_back(output_message());
+                return bags;
+            }
+
+            // time_advance function
+            TIME time_advance() const {
+                //we assume default constructor of TIME is 0 and infinity is defined in numeric_limits
+                return period();
+            }
+        };
+
     }
-
-    // confluence transition
-    void confluence_transition(TIME e, typename make_message_bags<input_ports>::type mbs) {
-        throw std::logic_error("Confluence transition called in a model with no input ports");
-    }
-
-    // output function
-    typename make_message_bags<output_ports>::type output() const {
-        typename make_message_bags<output_ports>::type bags;
-        cadmium::get_messages<out>(bags).push_back(output_message());
-        return bags;
-    }
-
-    // time_advance function
-    TIME time_advance() const {
-        //we assume default constructor of TIME is 0 and infinity is defined in numeric_limits
-        return period();
-    }
-};
-
-}
 }
 
 #endif //CADMIUM_GENERATOR_HPP
