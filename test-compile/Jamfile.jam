@@ -1,0 +1,22 @@
+using testing ;
+
+#Tests that should compile
+compile valid_atomic_check_test.cpp ;
+compile generator_atomic_check_test.cpp ;
+compile passive_atomic_check_test.cpp ;
+compile valid_atomic_with_multiple_ports_check_test.cpp ;
+
+#Tests that should fail compilation
+compile-fail missing_input_ports_fails_compile_test.cpp ;
+compile-fail missing_output_ports_fails_compile_test.cpp ;
+compile-fail missing_internal_transition_fails_compile_test.cpp ;
+compile-fail missing_output_function_fails_compile_test.cpp ;
+compile-fail missing_confluence_transition_fails_compile_test.cpp ;
+compile-fail missing_external_transition_fails_compile_test.cpp ;
+compile-fail missing_time_advance_function_fails_compile_test.cpp ;
+compile-fail missing_state_type_fails_compile_test.cpp ;
+compile-fail missing_state_variable_fails_compile_test.cpp ;
+compile-fail repeated_input_ports_fail_compile_test.cpp ;
+compile-fail repeated_output_ports_fail_compile_test.cpp ;
+compile-fail inports_not_a_tuple_fail_compile.cpp ;
+compile-fail outports_not_a_tuple_fail_compile.cpp ;
