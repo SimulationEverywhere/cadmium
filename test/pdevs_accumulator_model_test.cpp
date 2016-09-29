@@ -47,7 +47,7 @@ BOOST_AUTO_TEST_SUITE( pdevs_basic_models_suite )
         {
             auto g = floating_accumulator();
             //setting state
-            g.state = {1.0f, true}; //accumulated one and running a reset
+            g.state = std::make_tuple(1.0f, true); //accumulated one and running a reset
             //checking time_advance before and after internal transition
             BOOST_CHECK_EQUAL(0.0f, g.time_advance());
             g.internal_transition();
@@ -61,7 +61,7 @@ BOOST_AUTO_TEST_SUITE( pdevs_basic_models_suite )
         {
             auto g = floating_accumulator();
             //setting state
-            g.state = {1.0f, false}; //accumulated one and not running a reset
+            g.state = std::make_tuple(1.0f, false); //accumulated one and not running a reset
             BOOST_CHECK(std::isinf(g.time_advance()));
 
             BOOST_CHECK_THROW( g.internal_transition(), std::logic_error);
@@ -71,7 +71,7 @@ BOOST_AUTO_TEST_SUITE( pdevs_basic_models_suite )
         {
             auto g = floating_accumulator();
             //setting state
-            g.state = {1.0f, true}; //accumulated one and running a reset
+            g.state = std::make_tuple(1.0f, true); //accumulated one and running a reset
             //checking time_advance before and after internal transition
             BOOST_CHECK_EQUAL(0.0f, g.time_advance());
 
@@ -84,7 +84,7 @@ BOOST_AUTO_TEST_SUITE( pdevs_basic_models_suite )
         {
             auto g = floating_accumulator();
             //setting state
-            g.state = {1.0f, false}; //accumulated one and not running a reset
+            g.state = std::make_tuple(1.0f, false); //accumulated one and not running a reset
             BOOST_CHECK_THROW( g.output(), std::logic_error);
         }
 
@@ -92,7 +92,7 @@ BOOST_AUTO_TEST_SUITE( pdevs_basic_models_suite )
         {
             auto g = floating_accumulator();
             //setting state
-            g.state = {10.0f, false}; //accumulated one and not running a reset
+            g.state = std::make_tuple(10.0f, false); //accumulated one and not running a reset
             //introducing 3 new values, and setting
             typename cadmium::make_message_bags<floating_accumulator::input_ports>::type bags_one;
             cadmium::get_messages<typename floating_accumulator::add>(bags_one).push_back(5.0f);

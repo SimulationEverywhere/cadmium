@@ -72,7 +72,7 @@ namespace cadmium {
             //required definitions start here
             //state
             using state_type=std::tuple<VALUE, on_reset>;
-            state_type state = {VALUE{0}, false};
+            state_type state = std::make_tuple(VALUE{}, false);
 
             //default constructor
             constexpr accumulator() noexcept {}
