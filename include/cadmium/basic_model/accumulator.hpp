@@ -107,7 +107,7 @@ namespace cadmium {
                 //process internal transition first
                 internal_transition();
                 //then external transition
-                external_transition(std::move(e), std::move(mbs));
+                external_transition(0, std::move(mbs));
             }
 
             typename make_message_bags<output_ports>::type output() {
