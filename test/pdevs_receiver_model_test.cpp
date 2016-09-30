@@ -63,9 +63,9 @@ BOOST_AUTO_TEST_SUITE( pdevs_basic_models_suite )
             g.state.active = false;
             g.state.ackNum = 0;
             typename cadmium::make_message_bags<int_receiver::input_ports>::type bags;
-            //cadmium::get_messages<typename int_receiver::in>(bags).push_back(5);
-            //cadmium::get_messages<typename int_receiver::in>(bags).push_back(10);
-            //BOOST_CHECK_THROW( g.external_transition(1.0f, bags), std::logic_error);
+            cadmium::get_messages<typename int_receiver::in>(bags).push_back(5);
+            cadmium::get_messages<typename int_receiver::in>(bags).push_back(10);
+            BOOST_CHECK_THROW( g.external_transition(1.0f, bags), std::logic_error);
         }
 
         BOOST_AUTO_TEST_CASE( state_after_external )
@@ -74,8 +74,8 @@ BOOST_AUTO_TEST_SUITE( pdevs_basic_models_suite )
             g.state.active = false;
             g.state.ackNum = 0;
             typename cadmium::make_message_bags<int_receiver::input_ports>::type bags;
-            //cadmium::get_messages<typename int_receiver::in>(bags).push_back(5.0f);
-            //g.external_transition(1.0f, bags);
+            cadmium::get_messages<typename int_receiver::in>(bags).push_back(5.0f);
+            g.external_transition(1.0f, bags);
             BOOST_CHECK_EQUAL( true, g.state.active);
             BOOST_CHECK_EQUAL( 5.0f, g.state.ackNum);
         }
@@ -86,18 +86,17 @@ BOOST_AUTO_TEST_SUITE( pdevs_basic_models_suite )
             g.state.active = false;
             g.state.ackNum = 0;
             typename cadmium::make_message_bags<int_receiver::input_ports>::type bags;
-            //cadmium::get_messages<typename int_receiver::in>(bags).push_back(5.0f);
-            //g.external_transition(1.0f, bags);
+            cadmium::get_messages<typename int_receiver::in>(bags).push_back(5.0f);
+            g.external_transition(1.0f, bags);
             BOOST_CHECK_EQUAL( true, g.state.active);
             BOOST_CHECK_EQUAL( 5.0f, g.state.ackNum);
 
             //validate output
-            typename cadmium::make_message_bags<int_receiver::output_ports>::type outmb1;
-            //outmb1 = g.output();
+            auto outmb1 = g.output();
             typename cadmium::make_message_bags<int_receiver::output_ports>::type outmb_expected;
-            //cadmium::get_messages<typename int_receiver::out>(outmb_expected).push_back(g.state.ackNum % 10);
-            //BOOST_CHECK_EQUAL(1, cadmium::get_messages<typename int_receiver::out>(outmb1).size());
-            //BOOST_CHECK_EQUAL(cadmium::get_messages<typename int_receiver::out>(outmb_expected)[0], cadmium::get_messages<typename int_receiver::out>(outmb_expected)[0]);
+            cadmium::get_messages<typename int_receiver::out>(outmb_expected).push_back(g.state.ackNum % 10);
+            BOOST_CHECK_EQUAL(1, cadmium::get_messages<typename int_receiver::out>(outmb1).size());
+            BOOST_CHECK_EQUAL(cadmium::get_messages<typename int_receiver::out>(outmb_expected)[0], cadmium::get_messages<typename int_receiver::out>(outmb_expected)[0]);
         }
 
     BOOST_AUTO_TEST_SUITE_END()

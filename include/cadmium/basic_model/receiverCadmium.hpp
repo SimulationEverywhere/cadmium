@@ -76,8 +76,8 @@ namespace cadmium {
       constexpr receiver() noexcept {}
 
       //ports_definition
-      using input_ports=std::tuple<out>;
-      using output_ports=std::tuple<in>;
+      using input_ports=std::tuple<in>;
+      using output_ports=std::tuple<out>;
   
       // PDEVS functions
       void internal_transition() {
@@ -85,8 +85,11 @@ namespace cadmium {
       }
   
       void external_transition(TIME e, typename make_message_bags<input_ports>::type mbs) {
-                  
-        assert(get_messages<in>(mbs).size()==1 && "Only one message at a time");
+        
+        if(get_messages<in>(mbs).size()!=1){
+          throw std::logic_error("Only one message at a time");
+        }         
+        
         state.ackNum = static_cast < int > (get_messages<in>(mbs)[0]);
         state.active = true;
       }
