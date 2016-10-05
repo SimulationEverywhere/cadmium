@@ -28,6 +28,7 @@
 #define MESSAGE_BAG_HPP
 
 #include <vector>
+#include <tuple>
 
 namespace cadmium {
 template<typename T>
