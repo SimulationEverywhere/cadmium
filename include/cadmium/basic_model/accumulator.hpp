@@ -107,7 +107,8 @@ namespace cadmium {
                 //process internal transition first
                 internal_transition();
                 //then external transition
-                external_transition(0, std::move(mbs));
+		//we assume the default constructor of TIME produces a zero
+                external_transition(TIME{}, std::move(mbs));
             }
 
             typename make_message_bags<output_ports>::type output() {

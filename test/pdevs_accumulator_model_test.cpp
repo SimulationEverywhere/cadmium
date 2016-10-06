@@ -117,13 +117,12 @@ BOOST_AUTO_TEST_SUITE( pdevs_basic_models_suite )
             BOOST_CHECK_EQUAL(true, std::get<bool>(g.state));
 
             //validate output
-            typename cadmium::make_message_bags<floating_accumulator::output_ports>::type outmb1;
-            outmb1 = g.output();
+            auto outmb1 = g.output();
             typename cadmium::make_message_bags<floating_accumulator::output_ports>::type outmb_expected;
             cadmium::get_messages<typename floating_accumulator::sum>(outmb_expected).push_back(28.0f);
-            BOOST_CHECK_EQUAL(1, cadmium::get_messages<typename floating_accumulator::sum>(outmb_expected).size());
             BOOST_CHECK_EQUAL(1, cadmium::get_messages<typename floating_accumulator::sum>(outmb1).size());
-            BOOST_CHECK_EQUAL(cadmium::get_messages<typename floating_accumulator::sum>(outmb_expected)[0], cadmium::get_messages<typename floating_accumulator::sum>(outmb1)[0]);
+            BOOST_CHECK_EQUAL(cadmium::get_messages<typename floating_accumulator::sum>(outmb_expected)[0], 
+                              cadmium::get_messages<typename floating_accumulator::sum>(outmb1)[0]);
 
 
             //running confluence, because waiting for an internal here
