@@ -24,38 +24,54 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * Test that a valid atomic model does not stop compilation on atomic_model_assert.
- */
+#define BOOST_TEST_DYN_LINK
+#include <boost/test/unit_test.hpp>
+#include <cadmium/concept/atomic_model_assert.hpp>
+#include <cadmium/modeling/coupled_model.hpp>
+#include <cadmium/basic_model/accumulator.hpp>
 
-#include<cadmium/modeling/ports.hpp>
-#include<cadmium/concept/atomic_model_assert.hpp>
-#include<tuple>
-#include<cadmium/modeling/message_bag.hpp>
-#include<vector>
 
-/**
- * This model has no logic, only used for structural validation tests
- */
-template<typename TIME>
-struct atomic_model_with_outputs_as_vector
+//using empty_tuple=std::tuple<>;
+
+//template<typename TIME>
+//using int_accumulator=cadmium::basic_models::accumulator<int, TIME>;
+//
+//
+//using empty_models=cadmium::modeling::models_tuple<>;
+//
+//template<typename T>
+//using C1=cadmium::modeling::coupled_model<T, empty_tuple, empty_tuple, empty_models, empty_tuple, empty_tuple, empty_tuple>;
+
+
+//this test suite has a concept check per each concept check defined using the archetypes
+BOOST_AUTO_TEST_SUITE( pdevs_coupling_suite )
+
+BOOST_AUTO_TEST_CASE( pdevs_single_model_no_ports_test )
 {
-    struct in : public cadmium::in_port<int>{};
-    struct out : public cadmium::out_port<int>{};
-
-    constexpr atomic_model_with_outputs_as_vector() noexcept {}
-    using state_type=int;
-    state_type state=0;
-    using input_ports=std::tuple<in>;
-    using output_ports=std::vector<out>;
-
-    void internal_transition(){}
-    void external_transition(TIME e, typename cadmium::make_message_bags<input_ports>::type mbs){}
-    void confluence_transition(TIME e, typename cadmium::make_message_bags<input_ports>::type mbs){}
-    typename cadmium::make_message_bags<output_ports>::type output() const{}
-    TIME time_advance() const{}
-};
-
-int main(){
-    cadmium::concept::atomic_model_assert<atomic_model_with_outputs_as_vector>();
+    BOOST_FAIL("Unimplemented");
 }
+
+BOOST_AUTO_TEST_CASE( pdevs_generators_to_outputs)
+{
+    BOOST_FAIL("Unimplemented");
+}
+
+BOOST_AUTO_TEST_CASE( pdevs_inputs_to_null )
+{
+    BOOST_FAIL("Unimplemented");
+}
+
+
+BOOST_AUTO_TEST_CASE( pdevs_inputs_to_null_and_generators_to_outputs )
+{
+    BOOST_FAIL("Unimplemented");
+}
+
+BOOST_AUTO_TEST_CASE( pdevs_inputs_to_accumulator_generator_to_acumulator_acumulator_to_output )
+{
+    BOOST_FAIL("Unimplemented");
+}
+
+
+BOOST_AUTO_TEST_SUITE_END()
+

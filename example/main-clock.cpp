@@ -29,17 +29,87 @@
 #include <iostream>
 #include <chrono>
 #include <algorithm>
-
+#include <cadmium/basic_model/generator.hpp>
+#include <cadmium/modeling/coupled_model.hpp>
+#include <cadmium/modeling/ports.hpp>
 using namespace std;
 
 using hclock=chrono::high_resolution_clock;
 
-//This example is the simulation of a clock with 3 needles (H,M,S)
+/**
+ * This example is the simulation of a super simplified clock with 3 needles (H,M,S)
+ * Each needle is a generator with a period of 1s, 1m, 1h.
+ * The generators are connected to 3 ports (H, M, S)
+ *
+ * The experiment runtime is measured using the chrono library.
+ */
+
+
+//message representing ticks
+struct tick{};
+
+
+//generators for tick definition
+using out_p = cadmium::basic_models::generator_defs::out<tick>;
+const float init_output_message = 1.0f;
+template <typename TIME>
+using tick_generator_base=cadmium::basic_models::generator<tick, TIME>;
+
+template<typename TIME>
+struct hour_generator : public tick_generator_base {
+    float period() const override {
+        return 3600.0f; //using float for time in this example
+    }
+    float output_message() const override {
+        return tick();
+    }
+};
+
+template<typename TIME>
+struct minute_generator : public tick_generator_base {
+    float period() const override {
+        return 60.0f; //using float for time in this example
+    }
+    float output_message() const override {
+        return tick();
+    }
+};
+
+template<typename TIME>
+struct second_generator : public tick_generator_base {
+    float period() const override {
+        return 1.0f; //using float for time in this example
+    }
+    float output_message() const override {
+        return tick();
+    }
+};
+
+//clock coupled model definition
+using iports = std::tuple<>;
+struct H_port : public out_port<tick>{};
+struct M_port : public out_port<tick>{};
+struct S_port : public out_port<tick>{};
+using oports = std::tuple<H_port, M_port, S_port>;
+using submodels=cadmium::modeling::models_tuple<hour_generator, minute_generator, second_generator>;
+
+using eics=std::tuple<>;
+using eocs=std::tuple<
+    cadmium::modeling::EOC<H_port, hour_generator, out_p>,
+    cadmium::modeling::EOC<M_port, minute_generator, out_p>,
+    cadmium::modeling::EOC<S_port, second_generator, out_p>
+>;
+using ics=std::tuple<>;
+using clock=cadmium::modeling::coupled_model<iports, oports, submodels, eics, eocs, ics>;
 
 int main(){
     auto start = hclock::now(); //to measure simulation execution time
 
-    
+
+    //TODO: enable the run when the runner is implemented to complete the example
+    //runmodel<clock>();
+
+
     auto elapsed = std::chrono::duration_cast<std::chrono::duration<double, std::ratio<1>>>
                                                                                           (hclock::now() - start).count();
     cout << "Simulation took:" << elapsed << "sec" << endl;

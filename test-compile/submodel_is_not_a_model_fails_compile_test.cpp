@@ -25,38 +25,32 @@
  */
 
 /**
- * Test that a valid atomic model does not stop compilation on atomic_model_assert.
+ * Test that failing to declare valid submodels in a coupled model fails compilation
  */
-
-#include<cadmium/modeling/ports.hpp>
-#include<cadmium/concept/atomic_model_assert.hpp>
-#include<tuple>
-#include<cadmium/modeling/message_bag.hpp>
-
-/**
- * Test that when an atomic model has duplicated input ports, atomic_model_assert fails compilation
- */
-template<typename TIME>
-struct atomic_model_with_repeated_input_ports
-{
-    struct in_one : public cadmium::in_port<int>{};
-    struct in_two : public cadmium::in_port<int>{};
-
-    struct out : public cadmium::out_port<int>{};
-
-    constexpr atomic_model_with_repeated_input_ports() noexcept {}
-    using state_type=int;
-    state_type state=0;
-    using input_ports=std::tuple<in_one, in_two, in_one>;
-    using output_ports=std::tuple<out>;
-
-    void internal_transition(){}
-    void external_transition(TIME e, typename cadmium::make_message_bags<input_ports>::type mbs){}
-    void confluence_transition(TIME e, typename cadmium::make_message_bags<input_ports>::type mbs){}
-    typename cadmium::make_message_bags<output_ports>::type output() const{}
-    TIME time_advance() const{}
-};
+#include<cadmium/modeling/coupled_model.hpp>
+#include<cadmium/concept/coupled_model_assert.hpp>
 
 int main(){
-    cadmium::concept::atomic_model_assert<atomic_model_with_repeated_input_ports>();
+
+    using input_ports_c1=std::tuple<>;
+    using output_ports_c1=std::tuple<>;
+    using submodels_c1 = cadmium::modeling::models_tuple<>;
+    using EICs_c1 = std::tuple<>;
+    using EOCs_c1 = std::tuple<>;
+    using ICs_c1 = std::tuple<int>; //C1 is not a valid coupled model
+    using C1=cadmium::modeling::coupled_model<input_ports_c1, output_ports_c1, submodels_c1, EICs_c1, EOCs_c1, ICs_c1>;
+
+    //C2 has C1 as submodel
+    using input_ports=std::tuple<>;
+    using output_ports=std::tuple<>;
+
+    using submodels = cadmium::modeling::models_tuple<C1>;
+    using EICs = std::tuple<>;
+    using EOCs = std::tuple<>;
+    using ICs = std::tuple<>;
+    using C2=cadmium::modeling::coupled_model<input_ports, output_ports, submodels, EICs, EOCs, ICs>;
+
+    cadmium::concept::coupled_model_assert<C2>();
+
+    return 0;
 }

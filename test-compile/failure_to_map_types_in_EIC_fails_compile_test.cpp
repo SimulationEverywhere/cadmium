@@ -25,38 +25,28 @@
  */
 
 /**
- * Test that a valid atomic model does not stop compilation on atomic_model_assert.
+ * Test that failing to declare the right EIC specification in a coupled model fails compilation when asserted
  */
+#include <cadmium/basic_model/passive.hpp>
+#include <cadmium/modeling/coupled_model.hpp>
+#include <cadmium/modeling/ports.hpp>
+#include <cadmium/concept/coupled_model_assert.hpp>
 
-#include<cadmium/modeling/ports.hpp>
-#include<cadmium/concept/atomic_model_assert.hpp>
-#include<tuple>
-#include<cadmium/modeling/message_bag.hpp>
-
-/**
- * Test that when an atomic model has duplicated input ports, atomic_model_assert fails compilation
- */
 template<typename TIME>
-struct atomic_model_with_repeated_input_ports
-{
-    struct in_one : public cadmium::in_port<int>{};
-    struct in_two : public cadmium::in_port<int>{};
-
-    struct out : public cadmium::out_port<int>{};
-
-    constexpr atomic_model_with_repeated_input_ports() noexcept {}
-    using state_type=int;
-    state_type state=0;
-    using input_ports=std::tuple<in_one, in_two, in_one>;
-    using output_ports=std::tuple<out>;
-
-    void internal_transition(){}
-    void external_transition(TIME e, typename cadmium::make_message_bags<input_ports>::type mbs){}
-    void confluence_transition(TIME e, typename cadmium::make_message_bags<input_ports>::type mbs){}
-    typename cadmium::make_message_bags<output_ports>::type output() const{}
-    TIME time_advance() const{}
-};
+using passive = cadmium::basic_models::passive<int, TIME>;
+using passive_in = cadmium::basic_models::passive_defs<int>::in;
 
 int main(){
-    cadmium::concept::atomic_model_assert<atomic_model_with_repeated_input_ports>();
+    struct in : public cadmium::in_port<float>{};
+    using input_ports=std::tuple<in>;
+    using output_ports=std::tuple<>;
+
+    using submodels = cadmium::modeling::models_tuple<passive>;
+    using EICs = std::tuple<cadmium::modeling::EIC<in, passive, passive_in>>;
+    using EOCs = std::tuple<>;
+    using ICs = std::tuple<>;
+    using C1=cadmium::modeling::coupled_model<input_ports, output_ports, submodels, EICs, EOCs, ICs>;
+
+    cadmium::concept::coupled_model_assert<C1>();
+    return 0;
 }

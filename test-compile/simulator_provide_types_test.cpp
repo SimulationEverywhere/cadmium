@@ -25,7 +25,7 @@
  */
 
 /**
- * Test that a valid atomic model does not stop compilation on atomic_model_assert.
+ * Test that a simulator of a valid atomic model provides the model type
  */
 
 #include<cadmium/modeling/ports.hpp>

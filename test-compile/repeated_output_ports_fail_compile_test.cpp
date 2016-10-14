@@ -34,8 +34,7 @@
 #include<cadmium/modeling/message_bag.hpp>
 
 /**
- * This model has no logic, only used for structural validation tests
- */
+* Test that when an atomic model has duplicated output ports, atomic_model_assert fails compilation */
 template<typename TIME>
 struct atomic_model_with_repeated_output_ports
 {
