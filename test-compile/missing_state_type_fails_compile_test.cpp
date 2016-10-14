@@ -25,7 +25,7 @@
  */
 
 /**
- * Test that a valid atomic model does not stop compilation on atomic_model_assert.
+ * Test that an atomic model with undefined state type fails compilation on atomic_model_assert
  */
 
 #include<cadmium/modeling/ports.hpp>

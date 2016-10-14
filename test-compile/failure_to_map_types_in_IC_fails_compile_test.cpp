@@ -25,37 +25,45 @@
  */
 
 /**
-* Test that an atomic model with no output_ports transition fails compilation on atomic_model_assert
- * This is different to say that it has an empty tuple of ports, which is a valid model definition
+ * Test that failing to declare the right IC specification in a coupled model fails compilation
  */
 
-#include<cadmium/modeling/ports.hpp>
-#include<cadmium/concept/atomic_model_assert.hpp>
-#include<tuple>
-#include<cadmium/modeling/message_bag.hpp>
+#include<cadmium/basic_model/generator.hpp>
+#include<cadmium/basic_model/passive.hpp>
+#include<cadmium/modeling/coupled_model.hpp>
+#include<cadmium/concept/coupled_model_assert.hpp>
 
-/**
- * This model has no logic, only used for structural validation tests.
- * In this case it is missing the declaration of input_ports type
- * For external and confluence transition fuctions defined input as empty tuple of ports
- */
+// a generator using floating point messages
+const float init_period = 0.1f;
+const float init_output_message = 1.0f;
 template<typename TIME>
-struct atomic_model_with_no_output_ports
-{
-    struct in : public cadmium::in_port<int>{};
-
-    constexpr atomic_model_with_no_output_ports() noexcept {}
-    using state_type=int;
-    state_type state=0;
-    using input_ports=std::tuple<in>;
-
-    void internal_transition(){}
-    void external_transition(TIME e, typename cadmium::make_message_bags<input_ports>::type mbs){}
-    void confluence_transition(TIME e, typename cadmium::make_message_bags<input_ports>::type mbs){}
-    typename cadmium::make_message_bags<std::tuple<>>::type output() const{}
-    TIME time_advance() const{}
+using floating_generator_base=cadmium::basic_models::generator<float, TIME>;
+using floating_generator_defs=cadmium::basic_models::generator_defs<float>;
+template<typename TIME>
+struct floating_generator : public floating_generator_base<TIME> {
+    float period() const override {
+        return init_period;
+    }
+    float output_message() const override {
+        return init_output_message;
+    }
 };
 
+//a passive model
+template<typename TIME>
+using passive = cadmium::basic_models::passive<int, TIME>;
+using passive_in = cadmium::basic_models::passive_defs<int>::in;
+
 int main(){
-    cadmium::concept::atomic_model_assert<atomic_model_with_no_output_ports>();
+    using input_ports=std::tuple<>;
+    using output_ports=std::tuple<>;
+
+    using submodels = cadmium::modeling::models_tuple<passive, floating_generator>;
+    using EICs = std::tuple<>;
+    using EOCs = std::tuple<>;
+    using ICs = std::tuple<cadmium::modeling::IC<floating_generator, floating_generator_defs::out, passive, passive_in>>;
+    using C1=cadmium::modeling::coupled_model<input_ports, output_ports, submodels, EICs, EOCs, ICs>;
+
+    cadmium::concept::coupled_model_assert<C1>();
+    return 0;
 }

@@ -25,7 +25,8 @@
  */
 
 /**
- * Test that a valid atomic model does not stop compilation on atomic_model_assert.
+ * Test that an atomic model with no input_ports transition fails compilation on atomic_model_assert
+ * This is different to say that it has an empty tuple of ports, which is a valid model definition
  */
 
 #include<cadmium/modeling/ports.hpp>

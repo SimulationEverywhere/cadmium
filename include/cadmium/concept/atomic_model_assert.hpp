@@ -27,10 +27,6 @@
 #ifndef ATOMIC_MODEL_ASSERT_HPP
 #define ATOMIC_MODEL_ASSERT_HPP
 
-//#include <pdevs_ports.hpp>
-//#include <message_bag.hpp>
-//#include <tuple>
-
 #include<cadmium/concept/concept_helper_functions.hpp>
 #include<cadmium/modeling/message_bag.hpp>
 

@@ -53,11 +53,37 @@ namespace cadmium {
                 }
             };
 
-
             template<typename T>
             struct check_unique_elem_types {
                 static constexpr bool value() {
                     return check_unique_elem_types_impl<T, std::tuple_size<T>::value>::value();
+                }
+            };
+
+
+
+            template<typename PORT, typename TUPLE, int S>
+            struct has_port_in_tuple_impl{
+                static constexpr bool value(){
+                    if (std::is_same<PORT, typename std::tuple_element<S-1, TUPLE>::type>()){
+                        return true;
+                    } else {
+                        return has_port_in_tuple_impl<PORT, TUPLE, S-1>::value();
+                    }
+                }
+            };
+
+            template<typename PORT, typename TUPLE>
+            struct has_port_in_tuple_impl<PORT, TUPLE, 0>{
+                static constexpr bool value(){
+                    return false;
+                }
+            };
+
+            template<typename PORT, typename TUPLE>
+            struct has_port_in_tuple{
+                static constexpr bool value(){
+                    return has_port_in_tuple_impl<PORT, TUPLE, std::tuple_size<TUPLE>::value>::value();
                 }
             };
 
