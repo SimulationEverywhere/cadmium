@@ -52,23 +52,23 @@ BOOST_AUTO_TEST_CASE( accumulator_model_simulation_test )
     typename cadmium::make_message_bags<input_ports>::type input_bags;
     typename cadmium::make_message_bags<input_ports>::type empty_input;
     //insert values to add port and reset to empty
-    cadmium::get_messages<model_t::add>(input_bags).assign(std::initializer_list<int>{1, 2, 3, 4});
-    cadmium::get_messages<model_t::reset>(input_bags).clear();
+    cadmium::get_messages<model_t::defs::add>(input_bags).assign(std::initializer_list<int>{1, 2, 3, 4});
+    cadmium::get_messages<model_t::defs::reset>(input_bags).clear();
     
     //advance simulator
     s.advance_simulation(3.0f, input_bags);
     BOOST_CHECK(s.next() == std::numeric_limits<float>::infinity());
 
     //external input in reset triggers a reset
-    cadmium::get_messages<model_t::add>(input_bags).clear();
-    cadmium::get_messages<model_t::reset>(input_bags).emplace_back();
+    cadmium::get_messages<model_t::defs::add>(input_bags).clear();
+    cadmium::get_messages<model_t::defs::reset>(input_bags).emplace_back();
     s.advance_simulation(4.0f, input_bags); //here time is referring to absolute chronology, we are in simulation context.
     BOOST_CHECK(s.next() == 4.0f );
 
     //out provides the accumulated result
     auto o = s.collect_outputs(4.0f);
-    BOOST_REQUIRE(cadmium::get_messages<model_t::sum>(o).size() == 1);
-    BOOST_CHECK(cadmium::get_messages<model_t::sum>(o).at(0) == 10);
+    BOOST_REQUIRE(cadmium::get_messages<model_t::defs::sum>(o).size() == 1);
+    BOOST_CHECK(cadmium::get_messages<model_t::defs::sum>(o).at(0) == 10);
     s.advance_simulation(4.0f, empty_input);
     BOOST_CHECK(s.next() == std::numeric_limits<float>::infinity());
 
@@ -76,18 +76,18 @@ BOOST_AUTO_TEST_CASE( accumulator_model_simulation_test )
     s.advance_simulation(5.0f, input_bags);
     BOOST_CHECK(s.next() == 5.0f);
     o = s.collect_outputs(5.0f);
-    BOOST_REQUIRE(cadmium::get_messages<model_t::sum>(o).size() == 1);
-    BOOST_CHECK(cadmium::get_messages<model_t::sum>(o).at(0) == 0);
+    BOOST_REQUIRE(cadmium::get_messages<model_t::defs::sum>(o).size() == 1);
+    BOOST_CHECK(cadmium::get_messages<model_t::defs::sum>(o).at(0) == 0);
     s.advance_simulation(5.0f, empty_input);
     BOOST_CHECK(s.next() == std::numeric_limits<float>::infinity());
 
     //simultaneous external input in both ports increments and schedules reset
-    cadmium::get_messages<model_t::add>(input_bags).assign(std::initializer_list<int>{1, 2, 3, 4});
+    cadmium::get_messages<model_t::defs::add>(input_bags).assign(std::initializer_list<int>{1, 2, 3, 4});
     s.advance_simulation(6.0f, input_bags);
     BOOST_CHECK(s.next() == 6.0f);
     o = s.collect_outputs(6.0f);
-    BOOST_REQUIRE(cadmium::get_messages<model_t::sum>(o).size() == 1);
-    BOOST_CHECK(cadmium::get_messages<model_t::sum>(o).at(0) == 10);
+    BOOST_REQUIRE(cadmium::get_messages<model_t::defs::sum>(o).size() == 1);
+    BOOST_CHECK(cadmium::get_messages<model_t::defs::sum>(o).at(0) == 10);
     s.advance_simulation(6.0f, empty_input);
     BOOST_CHECK(s.next() == std::numeric_limits<float>::infinity());
 }
@@ -103,8 +103,8 @@ BOOST_AUTO_TEST_CASE( accumulator_simulation_throws_test ){
     typename cadmium::make_message_bags<model_t::input_ports>::type input_bags;
     typename cadmium::make_message_bags<model_t::input_ports>::type empty_input;
     //insert values to add port and reset to empty
-    cadmium::get_messages<model_t::add>(input_bags).assign(std::initializer_list<int>{1, 2, 3, 4});
-    cadmium::get_messages<model_t::reset>(input_bags).emplace_back();
+    cadmium::get_messages<model_t::defs::add>(input_bags).assign(std::initializer_list<int>{1, 2, 3, 4});
+    cadmium::get_messages<model_t::defs::reset>(input_bags).emplace_back();
 
     //try to obtain output when no internal transition is scheduled
     BOOST_CHECK_THROW(s.collect_outputs(6.0f), std::domain_error);
