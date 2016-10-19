@@ -52,15 +52,14 @@ namespace cadmium {
  *   time_advance({total, false}) = infinite
 */
 
-        struct reset_tick {
-        };
+    //definitions used for defining the accumulator that need to be accessed by externals resources before instantiate the models
+    //This includes Ports referenced by couplings, and
+        template<typename VALUE>
+        struct accumulator_defs{
+            struct reset_tick {
+            };
 
-        template<typename VALUE, typename TIME> //value is the type of accumulated values
-        struct accumulator {
-            //local definitions
-            using value_type=VALUE;
             using on_reset=bool;
-
             //ports
             struct sum : public out_port<VALUE> {
             };
@@ -68,62 +67,66 @@ namespace cadmium {
             };
             struct reset : public in_port<reset_tick> {
             };
+        };
 
-            //required definitions start here
+        template<typename VALUE, typename TIME> //value is the type of accumulated values
+        struct accumulator {
+            using value_type=VALUE;
+            using defs=accumulator_defs<VALUE>;// putting definitions in context
             //state
-            using state_type=std::tuple<VALUE, on_reset>;
+            using state_type=std::tuple<VALUE, typename defs::on_reset>;
             state_type state = std::make_tuple(VALUE{}, false);
 
             //default constructor
             constexpr accumulator() noexcept {}
 
             //ports_definition
-            using input_ports=std::tuple<add, reset>;
-            using output_ports=std::tuple<sum>;
+            using input_ports=std::tuple<typename defs::add, typename defs::reset>;
+            using output_ports=std::tuple<typename defs::sum>;
 
             // PDEVS functions
             void internal_transition() {
-                if(!std::get<on_reset>(state)) {
+                if (!std::get<typename defs::on_reset>(state)) {
                     throw std::logic_error("Internal transition called while not on reset state");
                 }
                 std::get<VALUE>(state) = VALUE{0};
-                std::get<on_reset>(state) = false;
+                std::get<typename defs::on_reset>(state) = false;
             }
 
             void external_transition(TIME e, typename make_message_bags<input_ports>::type mbs) {
-                if(std::get<on_reset>(state)) {
+                if (std::get<typename defs::on_reset>(state)) {
                     throw std::logic_error("External transition called while on reset state");
                 }
 
                 //one message bag parameter for each port is received
-                for (const auto &x : get_messages<add>(mbs)) {
+                for (const auto &x : get_messages<typename defs::add>(mbs)) {
                     std::get<VALUE>(state) += x;
                 }
-                if (!get_messages<reset>(mbs).empty())
-                    std::get<on_reset>(state) = true; //multiple call equal one call
+                if (!get_messages<typename defs::reset>(mbs).empty())
+                    std::get<typename defs::on_reset>(state) = true; //multiple call equal one call
             }
 
             void confluence_transition(TIME e, typename make_message_bags<input_ports>::type mbs) {
                 //process internal transition first
                 internal_transition();
                 //then external transition
-		//we assume the default constructor of TIME produces a zero
+                //we assume the default constructor of TIME produces a zero
                 external_transition(TIME{}, std::move(mbs));
             }
 
             typename make_message_bags<output_ports>::type output() {
-                if(!std::get<on_reset>(state)) {
+                if (!std::get<typename defs::on_reset>(state)) {
                     throw std::logic_error("Output function called while not on reset state");
                 }
 
                 typename make_message_bags<output_ports>::type outmb;
-                get_messages<sum>(outmb).emplace_back(std::get<VALUE>(state));
+                get_messages<typename defs::sum>(outmb).emplace_back(std::get<VALUE>(state));
                 return outmb;
             }
 
             TIME time_advance() {
                 //we assume default constructor of time is 0 and infinity is defined in numeric_limits
-                return (std::get<on_reset>(state) ? TIME{} : std::numeric_limits<TIME>::infinity());
+                return (std::get<typename defs::on_reset>(state) ? TIME{} : std::numeric_limits<TIME>::infinity());
             }
         };
 
