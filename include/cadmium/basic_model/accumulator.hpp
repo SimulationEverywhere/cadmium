@@ -56,11 +56,10 @@ namespace cadmium {
     //This includes Ports referenced by couplings, and
         template<typename VALUE>
         struct accumulator_defs{
+            //custom messages
             struct reset_tick {
             };
-
-            using on_reset=bool;
-            //ports
+            //custom ports
             struct sum : public out_port<VALUE> {
             };
             struct add : public in_port<VALUE> {
@@ -70,11 +69,12 @@ namespace cadmium {
         };
 
         template<typename VALUE, typename TIME> //value is the type of accumulated values
-        struct accumulator {
-            using value_type=VALUE;
+        class accumulator {
             using defs=accumulator_defs<VALUE>;// putting definitions in context
+        public:
             //state
-            using state_type=std::tuple<VALUE, typename defs::on_reset>;
+            using on_reset=bool;
+            using state_type=std::tuple<VALUE, on_reset>;
             state_type state = std::make_tuple(VALUE{}, false);
 
             //default constructor
@@ -86,15 +86,15 @@ namespace cadmium {
 
             // PDEVS functions
             void internal_transition() {
-                if (!std::get<typename defs::on_reset>(state)) {
+                if (!std::get<on_reset>(state)) {
                     throw std::logic_error("Internal transition called while not on reset state");
                 }
                 std::get<VALUE>(state) = VALUE{0};
-                std::get<typename defs::on_reset>(state) = false;
+                std::get<on_reset>(state) = false;
             }
 
             void external_transition(TIME e, typename make_message_bags<input_ports>::type mbs) {
-                if (std::get<typename defs::on_reset>(state)) {
+                if (std::get<on_reset>(state)) {
                     throw std::logic_error("External transition called while on reset state");
                 }
 
@@ -103,7 +103,7 @@ namespace cadmium {
                     std::get<VALUE>(state) += x;
                 }
                 if (!get_messages<typename defs::reset>(mbs).empty())
-                    std::get<typename defs::on_reset>(state) = true; //multiple call equal one call
+                    std::get<on_reset>(state) = true; //multiple call equal one call
             }
 
             void confluence_transition(TIME e, typename make_message_bags<input_ports>::type mbs) {
@@ -115,7 +115,7 @@ namespace cadmium {
             }
 
             typename make_message_bags<output_ports>::type output() {
-                if (!std::get<typename defs::on_reset>(state)) {
+                if (!std::get<on_reset>(state)) {
                     throw std::logic_error("Output function called while not on reset state");
                 }
 
@@ -126,7 +126,7 @@ namespace cadmium {
 
             TIME time_advance() {
                 //we assume default constructor of time is 0 and infinity is defined in numeric_limits
-                return (std::get<typename defs::on_reset>(state) ? TIME{} : std::numeric_limits<TIME>::infinity());
+                return (std::get<on_reset>(state) ? TIME{} : std::numeric_limits<TIME>::infinity());
             }
         };
 
