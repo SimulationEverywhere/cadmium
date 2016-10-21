@@ -36,6 +36,7 @@ BOOST_AUTO_TEST_SUITE( pdevs_basic_models_suite )
 BOOST_AUTO_TEST_SUITE( pdevs_passive_suite )
 
 using floating_passive=cadmium::basic_models::passive<float, float>;
+using floating_passive_defs=cadmium::basic_models::passive_defs<float>;
 
 BOOST_AUTO_TEST_CASE( it_is_constructable_test )
 {
@@ -52,7 +53,7 @@ BOOST_AUTO_TEST_CASE( it_throws_on_call_to_confluece_transition_test )
 {
     auto p = floating_passive();
     typename cadmium::make_message_bags<floating_passive::input_ports>::type bags;
-    cadmium::get_messages<floating_passive::in>(bags).push_back(1);
+    cadmium::get_messages<typename floating_passive_defs::in>(bags).push_back(1);
     BOOST_CHECK_THROW( p.confluence_transition(5.0, bags), std::logic_error);
 }
 
@@ -68,7 +69,7 @@ BOOST_AUTO_TEST_CASE( it_throws_on_call_to_output_function_test )
     bool is_inf_ta = std::isinf(p.time_advance());
     BOOST_CHECK_MESSAGE( is_inf_ta, "Passive model is not in passive state");
     typename cadmium::make_message_bags<floating_passive::input_ports>::type bags;
-    cadmium::get_messages<floating_passive::in>(bags).push_back(1);
+    cadmium::get_messages<typename floating_passive_defs::in>(bags).push_back(1);
     BOOST_CHECK_NO_THROW( p.external_transition(5.0, bags));
     is_inf_ta = std::isinf(p.time_advance());
     BOOST_CHECK_MESSAGE( is_inf_ta, "Passive model is not in passive state"  );
