@@ -50,12 +50,20 @@ namespace cadmium {
  * - time_advance(.) = infinite
 */
 
-        template<typename TYPE, typename TIME> //TYPE is the type of X
-        struct passive {
-            // port definition helper
-            struct in : public in_port<TYPE> {
+    //definitions used for defining the accumulator that need to be accessed by externals resources before instantiate the models
+    //This includes Ports referenced by couplings, and
+        template<typename VALUE>
+        struct passive_defs{
+            //custom ports
+            struct in : public in_port<VALUE> {
             };
+        };
 
+
+        template<typename VALUE, typename TIME> //VALUE is the type of X
+        class passive {
+            using defs=passive_defs<VALUE>;// putting definitions in context
+        public:
             // required definitions start here
             // default constructor
             constexpr passive() noexcept {}
@@ -65,7 +73,7 @@ namespace cadmium {
             state_type state = 0;
 
             // ports definition
-            using input_ports=std::tuple<in>;
+            using input_ports=std::tuple<typename defs::in>;
             using output_ports=std::tuple<>; //no output ports;
 
             // internal transition should never be run
