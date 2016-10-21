@@ -38,6 +38,7 @@ BOOST_AUTO_TEST_SUITE( pdevs_basic_models_suite )
         const float init_period = 0.1f;
         const float init_output_message = 1.0f;
         using floating_generator_base=cadmium::basic_models::generator<float, float>;
+        using floating_generator_defs=cadmium::basic_models::generator_defs<float>;
         struct floating_generator : public floating_generator_base {
             float period() const override {
                 return init_period;
@@ -78,7 +79,7 @@ BOOST_AUTO_TEST_SUITE( pdevs_basic_models_suite )
         {
             auto g = floating_generator();
             auto o = g.output();
-            auto o_m =cadmium::get_messages<floating_generator::out>(o);
+            auto o_m =cadmium::get_messages<typename floating_generator_defs::out>(o);
             BOOST_CHECK_EQUAL( o_m.size(), 1);
             BOOST_CHECK_EQUAL( o_m.at(0), init_output_message);
         }

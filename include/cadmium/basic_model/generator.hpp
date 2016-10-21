@@ -48,18 +48,24 @@ namespace cadmium {
  * - advance(phase, t) = period - t
 */
 
-//This is a meta-model, it should be overloaded for declaring the tick time and tick values in the generator
-        template<typename TYPE, typename TIME> //TYPE is the type of Y
-        struct generator {
-            // port definition helpers can be defined here
-            struct out : public out_port<TYPE> {
+    //definitions used for defining the accumulator that need to be accessed by externals resources before instantiate the models
+    //This includes Ports referenced by couplings, and
+        template<typename VALUE>
+        struct generator_defs{
+            //custom ports
+            struct out : public out_port<VALUE> {
             };
+        };
 
-        private:
+
+    //This is a meta-model, it should be overloaded for declaring the tick time and tick values in the generator
+        template<typename VALUE, typename TIME> //VALUE is the type of Y
+        class generator {
+            using defs=generator_defs<VALUE>;// putting definitions in context
+        public:
             //these functions need to be overriden to define the generator behavior
             virtual TIME period() const =0; // time between consecutive messages
-            virtual TYPE output_message() const =0; // message to be output
-        public:
+            virtual VALUE output_message() const =0; // message to be output
             // required definitions start here
             // default constructor
             constexpr generator() noexcept {}
@@ -70,7 +76,7 @@ namespace cadmium {
 
             // ports definition
             using input_ports=std::tuple<>;
-            using output_ports=std::tuple<out>;
+            using output_ports=std::tuple<typename defs::out>;
 
             // internal transition
             void internal_transition() {}
@@ -88,7 +94,7 @@ namespace cadmium {
             // output function
             typename make_message_bags<output_ports>::type output() const {
                 typename make_message_bags<output_ports>::type bags;
-                cadmium::get_messages<out>(bags).push_back(output_message());
+                cadmium::get_messages<typename defs::out>(bags).push_back(output_message());
                 return bags;
             }
 
