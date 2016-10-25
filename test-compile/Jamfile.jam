@@ -6,6 +6,9 @@ compile generator_atomic_check_test.cpp ;
 compile passive_atomic_check_test.cpp ;
 compile valid_atomic_with_multiple_ports_check_test.cpp ;
 compile simulator_provide_types_test.cpp ;
+compile coupled_of_all_atomics_test.cpp ;
+compile coupled_of_all_coupleds_test.cpp ;
+compile coupled_of_mixed_models_test.cpp ;
 
 #Tests that should fail compilation
 compile-fail missing_input_ports_fails_compile_test.cpp ;
@@ -23,8 +26,8 @@ compile-fail inports_not_a_tuple_in_atomic_model_fail_compile_test.cpp ;
 compile-fail inports_not_a_tuple_in_coupled_model_fail_compile_test.cpp ;
 compile-fail outports_not_a_tuple_in_atomic_model_fail_compile_test.cpp ;
 compile-fail outports_not_a_tuple_in_coupled_model_fail_compile_test.cpp ;
-#compile-fail missing_atomic_model_simulator_fails_compile_test.cpp ;
-compile-fail submodel_is_not_a_model_fails_compile_test.cpp ;
+compile-fail missing_atomic_model_simulator_fails_compile_test.cpp ;
+#compile-fail submodel_is_not_a_model_fails_compile_test.cpp ;
 compile-fail failure_to_map_types_in_EIC_fails_compile_test.cpp ;
 compile-fail failure_to_map_types_in_EOC_fails_compile_test.cpp ;
 compile-fail failure_to_map_types_in_IC_fails_compile_test.cpp ;
