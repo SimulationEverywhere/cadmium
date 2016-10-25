@@ -90,12 +90,12 @@ namespace cadmium {
          * EOCs is a tuple of EOC coupling output ports in submodels to output ports of the coupled model
          * ICs is a tuple IC coupling output ports in submodels to input ports in submodels
          */
-        template<typename IP, typename OP, class Ms, typename EICs, typename EOCs, typename ICs>
+        template<typename TIME, typename IP, typename OP, class Ms, typename EICs, typename EOCs, typename ICs>
         struct coupled_model {
             using input_ports=IP;
             using output_ports=OP;
-            template<typename TIME>
-            using models=typename Ms::template type<TIME>;
+            template<typename T>
+            using models=typename Ms::template type<T>;
             using external_input_couplings=EICs;
             using external_output_couplings=EOCs;
             using internal_couplings=ICs;
