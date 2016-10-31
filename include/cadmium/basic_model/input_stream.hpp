@@ -45,13 +45,18 @@ namespace cadmium {
      * The input format is "time output and a custom parser can be defined."
      *
     */
+
+    template<typename MSG>
+      struct input_stream_defs{
+        struct out : public out_port<MSG> {
+        };
+    
+        };
     
     template<typename TIME, typename MSG, typename T=int, typename M=int > //T and M are the type expected to be read from the ISTREAM
       struct input_stream {
         // port definition helper
-        struct out : public out_port<MSG> {
-        };
-    
+        using defs=input_stream_defs<MSG>;
         struct state_variables{
     
           state_variables(){
@@ -164,7 +169,7 @@ namespace cadmium {
     
         // ports definition
         using input_ports=std::tuple<>;            
-        using output_ports=std::tuple<out>;
+        using output_ports=std::tuple<typename defs::out>;
     
         /**
         * @brief internal function reads the stream and prepares next event.
@@ -195,7 +200,7 @@ namespace cadmium {
         typename make_message_bags<output_ports>::type output() const {
           typename make_message_bags<output_ports>::type outmb;
             for(int i = 0; (unsigned)i < state.output.size(); i++){
-              get_messages<out>(outmb).emplace_back(state.output[i]);
+              get_messages<typename defs::out>(outmb).emplace_back(state.output[i]);
             }  
             return outmb;
         }

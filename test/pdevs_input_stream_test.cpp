@@ -43,6 +43,8 @@ BOOST_AUTO_TEST_SUITE( pdevs_basic_models_suite )
 BOOST_AUTO_TEST_SUITE( pistream_test_suite )
 
 using input_stream = cadmium::basic_models::input_stream<float, boost::any, int, int>;
+using input_stream_defs = cadmium::basic_models::input_stream_defs<boost::any>;
+
 using Time = float;
 BOOST_AUTO_TEST_CASE( pistream_simple_of_single_events_test )
 {
@@ -57,8 +59,8 @@ BOOST_AUTO_TEST_CASE( pistream_simple_of_single_events_test )
 
     // only message
     auto outmb1 = pf.output();
-    BOOST_REQUIRE_EQUAL(cadmium::get_messages<typename input_stream::out>(outmb1).size(), 1);
-    BOOST_CHECK_EQUAL(boost::any_cast<int>(cadmium::get_messages<typename input_stream::out>(outmb1)[0]), 0);
+    BOOST_REQUIRE_EQUAL(cadmium::get_messages<typename input_stream_defs::out>(outmb1).size(), 1);
+    BOOST_CHECK_EQUAL(boost::any_cast<int>(cadmium::get_messages<typename input_stream_defs::out>(outmb1)[0]), 0);
     pf.internal_transition();
     BOOST_CHECK( isinf(pf.time_advance()));
 }
@@ -76,7 +78,7 @@ BOOST_AUTO_TEST_CASE( pistream_simple_of_multiple_events_test_3 )
 
     // only output
     auto outmb1 = pf.output();
-    BOOST_REQUIRE_EQUAL(cadmium::get_messages<typename input_stream::out>(outmb1).size(), 3);
+    BOOST_REQUIRE_EQUAL(cadmium::get_messages<typename input_stream_defs::out>(outmb1).size(), 3);
     pf.internal_transition();
     BOOST_CHECK( isinf(pf.time_advance()));
 }
@@ -94,7 +96,7 @@ BOOST_AUTO_TEST_CASE( pistream_simple_of_multiple_events_test_2 )
 
     // only output
     auto outmb1 = pf.output();
-    BOOST_REQUIRE_EQUAL(cadmium::get_messages<typename input_stream::out>(outmb1).size(), 2);
+    BOOST_REQUIRE_EQUAL(cadmium::get_messages<typename input_stream_defs::out>(outmb1).size(), 2);
     pf.internal_transition();
     BOOST_CHECK( isinf(pf.time_advance()));
 }
@@ -114,15 +116,15 @@ BOOST_AUTO_TEST_CASE( pistream_as_generator_of_single_events_test )
     //consume
     for (int i=0; i < 10 ; i++){
         auto outmb1 = pf.output();
-        BOOST_REQUIRE_EQUAL(cadmium::get_messages<typename input_stream::out>(outmb1).size(), 1);
-        BOOST_CHECK_EQUAL(boost::any_cast<int>(cadmium::get_messages<typename input_stream::out>(outmb1)[0]), i);
+        BOOST_REQUIRE_EQUAL(cadmium::get_messages<typename input_stream_defs::out>(outmb1).size(), 1);
+        BOOST_CHECK_EQUAL(boost::any_cast<int>(cadmium::get_messages<typename input_stream_defs::out>(outmb1)[0]), i);
         pf.internal_transition();
         BOOST_CHECK_EQUAL(pf.time_advance(), Time(1));
     }
     //last message
     auto outmb2 = pf.output();
-    BOOST_REQUIRE_EQUAL(cadmium::get_messages<typename input_stream::out>(outmb2).size(), 1);
-    BOOST_CHECK_EQUAL(boost::any_cast<int>(cadmium::get_messages<typename input_stream::out>(outmb2)[0]), 10);
+    BOOST_REQUIRE_EQUAL(cadmium::get_messages<typename input_stream_defs::out>(outmb2).size(), 1);
+    BOOST_CHECK_EQUAL(boost::any_cast<int>(cadmium::get_messages<typename input_stream_defs::out>(outmb2)[0]), 10);
     pf.internal_transition();
     BOOST_CHECK( isinf(pf.time_advance()));
 }
@@ -141,17 +143,17 @@ BOOST_AUTO_TEST_CASE( pistream_as_generator_of_multiple_events_test )
     //time_advance simulation
     for (int i=1; i < 5; i++){
         auto outmb1 = pf.output();
-        BOOST_REQUIRE_EQUAL(cadmium::get_messages<typename input_stream::out>(outmb1).size(), 2);
-        BOOST_CHECK_EQUAL(boost::any_cast<int>(cadmium::get_messages<typename input_stream::out>(outmb1)[0]), i);
-        BOOST_CHECK_EQUAL(boost::any_cast<int>(cadmium::get_messages<typename input_stream::out>(outmb1)[1]), i);
+        BOOST_REQUIRE_EQUAL(cadmium::get_messages<typename input_stream_defs::out>(outmb1).size(), 2);
+        BOOST_CHECK_EQUAL(boost::any_cast<int>(cadmium::get_messages<typename input_stream_defs::out>(outmb1)[0]), i);
+        BOOST_CHECK_EQUAL(boost::any_cast<int>(cadmium::get_messages<typename input_stream_defs::out>(outmb1)[1]), i);
         pf.internal_transition();
         BOOST_CHECK_EQUAL(pf.time_advance(), Time(1));
     }
     //last item
     auto outmb2 = pf.output();
-    BOOST_REQUIRE_EQUAL(cadmium::get_messages<typename input_stream::out>(outmb2).size(), 2);
-    BOOST_CHECK_EQUAL(boost::any_cast<int>(cadmium::get_messages<typename input_stream::out>(outmb2)[0]), 5);
-    BOOST_CHECK_EQUAL(boost::any_cast<int>(cadmium::get_messages<typename input_stream::out>(outmb2)[1]), 5);
+    BOOST_REQUIRE_EQUAL(cadmium::get_messages<typename input_stream_defs::out>(outmb2).size(), 2);
+    BOOST_CHECK_EQUAL(boost::any_cast<int>(cadmium::get_messages<typename input_stream_defs::out>(outmb2)[0]), 5);
+    BOOST_CHECK_EQUAL(boost::any_cast<int>(cadmium::get_messages<typename input_stream_defs::out>(outmb2)[1]), 5);
     pf.internal_transition();
     BOOST_CHECK( isinf(pf.time_advance()));
 }
@@ -184,16 +186,16 @@ BOOST_AUTO_TEST_CASE( pistream_with_custom_processor_as_generator_of_multiple_ev
     BOOST_CHECK_EQUAL(pf.time_advance(), Time(1));
     //time_advance simulation
     auto outmb1 = pf.output();
-    BOOST_REQUIRE_EQUAL(cadmium::get_messages<typename input_stream::out>(outmb1).size(), 2);
-    BOOST_CHECK(any_of(cadmium::get_messages<typename input_stream::out>(outmb1).begin(), cadmium::get_messages<typename input_stream::out>(outmb1).end(), [](const boost::any& m ){ string s = boost::any_cast<string>(m); return s.compare("hello")==0;}));
-    BOOST_CHECK(any_of(cadmium::get_messages<typename input_stream::out>(outmb1).begin(), cadmium::get_messages<typename input_stream::out>(outmb1).end(), [](const boost::any& m ){ string s = boost::any_cast<string>(m); return s.compare("world")==0;}));
+    BOOST_REQUIRE_EQUAL(cadmium::get_messages<typename input_stream_defs::out>(outmb1).size(), 2);
+    BOOST_CHECK(any_of(cadmium::get_messages<typename input_stream_defs::out>(outmb1).begin(), cadmium::get_messages<typename input_stream_defs::out>(outmb1).end(), [](const boost::any& m ){ string s = boost::any_cast<string>(m); return s.compare("hello")==0;}));
+    BOOST_CHECK(any_of(cadmium::get_messages<typename input_stream_defs::out>(outmb1).begin(), cadmium::get_messages<typename input_stream_defs::out>(outmb1).end(), [](const boost::any& m ){ string s = boost::any_cast<string>(m); return s.compare("world")==0;}));
     pf.internal_transition();
     BOOST_CHECK_EQUAL(pf.time_advance(), Time(1));
     //last item
     auto outmb2 = pf.output();
-    BOOST_REQUIRE_EQUAL(cadmium::get_messages<typename input_stream::out>(outmb2).size(), 2);
-    BOOST_CHECK(any_of(cadmium::get_messages<typename input_stream::out>(outmb2).begin(), cadmium::get_messages<typename input_stream::out>(outmb2).end(), [](const boost::any& m ){ string s = boost::any_cast<string>(m); return s.compare("hello")==0;}));
-    BOOST_CHECK(any_of(cadmium::get_messages<typename input_stream::out>(outmb2).begin(), cadmium::get_messages<typename input_stream::out>(outmb2).end(), [](const boost::any& m ){ string s = boost::any_cast<string>(m); return s.compare("world")==0;}));
+    BOOST_REQUIRE_EQUAL(cadmium::get_messages<typename input_stream_defs::out>(outmb2).size(), 2);
+    BOOST_CHECK(any_of(cadmium::get_messages<typename input_stream_defs::out>(outmb2).begin(), cadmium::get_messages<typename input_stream_defs::out>(outmb2).end(), [](const boost::any& m ){ string s = boost::any_cast<string>(m); return s.compare("hello")==0;}));
+    BOOST_CHECK(any_of(cadmium::get_messages<typename input_stream_defs::out>(outmb2).begin(), cadmium::get_messages<typename input_stream_defs::out>(outmb2).end(), [](const boost::any& m ){ string s = boost::any_cast<string>(m); return s.compare("world")==0;}));
     pf.internal_transition();
     BOOST_CHECK( isinf(pf.time_advance()));
 }
