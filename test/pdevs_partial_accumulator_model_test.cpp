@@ -40,6 +40,7 @@ BOOST_AUTO_TEST_SUITE( pdevs_basic_models_suite )
     BOOST_AUTO_TEST_SUITE( pdevs_Partialaccumulator_suite )
 
         using floating_partial_accumulator=cadmium::basic_models::partial_accumulator<float, float>;
+        using floating_partial_accumulator_defs=cadmium::basic_models::partial_accumulator_defs<float>;
 
         BOOST_AUTO_TEST_CASE( it_is_constructable_test )
         {
@@ -80,7 +81,7 @@ BOOST_AUTO_TEST_SUITE( pdevs_basic_models_suite )
             BOOST_CHECK_EQUAL(0.0f, g.time_advance());
 
             typename cadmium::make_message_bags<floating_partial_accumulator::input_ports>::type bags;
-            cadmium::get_messages<typename floating_partial_accumulator::add>(bags).push_back(5.0f);
+            cadmium::get_messages<typename floating_partial_accumulator_defs::add>(bags).push_back(5.0f);
             BOOST_CHECK_THROW( g.external_transition(1.0f, bags), std::logic_error);
         }
 
@@ -93,7 +94,7 @@ BOOST_AUTO_TEST_SUITE( pdevs_basic_models_suite )
             BOOST_CHECK_EQUAL(0.0f, g.time_advance());
 
             typename cadmium::make_message_bags<floating_partial_accumulator::input_ports>::type bags;
-            cadmium::get_messages<typename floating_partial_accumulator::add>(bags).push_back(5.0f);
+            cadmium::get_messages<typename floating_partial_accumulator_defs::add>(bags).push_back(5.0f);
             BOOST_CHECK_THROW( g.external_transition(1.0f, bags), std::logic_error);
         }
 
@@ -105,7 +106,7 @@ BOOST_AUTO_TEST_SUITE( pdevs_basic_models_suite )
             g.state = std::make_tuple(10.0f, false, 0); //accumulated one and not running a reset and not sending output
             //introducing 3 new values, and setting
             typename cadmium::make_message_bags<floating_partial_accumulator::input_ports>::type bags_one;
-            cadmium::get_messages<typename floating_partial_accumulator::add>(bags_one).push_back(5.0f);
+            cadmium::get_messages<typename floating_partial_accumulator_defs::add>(bags_one).push_back(5.0f);
             g.external_transition(10.0f, bags_one);
             //validate state
             BOOST_CHECK_EQUAL(15.0f, std::get<float>(g.state));
@@ -113,8 +114,8 @@ BOOST_AUTO_TEST_SUITE( pdevs_basic_models_suite )
             BOOST_CHECK_EQUAL(0, std::get<int>(g.state));
 
             typename cadmium::make_message_bags<floating_partial_accumulator::input_ports>::type bags_two;
-            cadmium::get_messages<typename floating_partial_accumulator::add>(bags_two).push_back(3.0f);
-            cadmium::get_messages<typename floating_partial_accumulator::add>(bags_two).push_back(7.0f);
+            cadmium::get_messages<typename floating_partial_accumulator_defs::add>(bags_two).push_back(3.0f);
+            cadmium::get_messages<typename floating_partial_accumulator_defs::add>(bags_two).push_back(7.0f);
             g.external_transition(9.0f, bags_two);
             //validate state
             BOOST_CHECK_EQUAL(25.0f, std::get<float>(g.state));
@@ -122,8 +123,8 @@ BOOST_AUTO_TEST_SUITE( pdevs_basic_models_suite )
             BOOST_CHECK_EQUAL(0, std::get<int>(g.state));
 
             typename cadmium::make_message_bags<floating_partial_accumulator::input_ports>::type bags_three;
-            cadmium::get_messages<typename floating_partial_accumulator::add>(bags_three).push_back(3.0f);
-            cadmium::get_messages<typename floating_partial_accumulator::partial>(bags_three).emplace_back();
+            cadmium::get_messages<typename floating_partial_accumulator_defs::add>(bags_three).push_back(3.0f);
+            cadmium::get_messages<typename floating_partial_accumulator_defs::partial>(bags_three).emplace_back();
             g.external_transition(2.0f, bags_three);
             BOOST_CHECK_EQUAL(28.0f, std::get<float>(g.state));
             BOOST_CHECK_EQUAL(false, std::get<bool>(g.state));
@@ -133,14 +134,14 @@ BOOST_AUTO_TEST_SUITE( pdevs_basic_models_suite )
             typename cadmium::make_message_bags<floating_partial_accumulator::output_ports>::type outmb1;
             outmb1 = g.output();
             typename cadmium::make_message_bags<floating_partial_accumulator::output_ports>::type outmb_expected;
-            cadmium::get_messages<typename floating_partial_accumulator::sum>(outmb_expected).push_back(28.0f);
-            BOOST_CHECK_EQUAL(1, cadmium::get_messages<typename floating_partial_accumulator::sum>(outmb1).size());
-            BOOST_CHECK_EQUAL(1, cadmium::get_messages<typename floating_partial_accumulator::sum>(outmb_expected).size());
-            BOOST_CHECK_EQUAL(cadmium::get_messages<typename floating_partial_accumulator::sum>(outmb_expected)[0], cadmium::get_messages<typename floating_partial_accumulator::sum>(outmb1)[0]);
+            cadmium::get_messages<typename floating_partial_accumulator_defs::sum>(outmb_expected).push_back(28.0f);
+            BOOST_CHECK_EQUAL(1, cadmium::get_messages<typename floating_partial_accumulator_defs::sum>(outmb1).size());
+            BOOST_CHECK_EQUAL(1, cadmium::get_messages<typename floating_partial_accumulator_defs::sum>(outmb_expected).size());
+            BOOST_CHECK_EQUAL(cadmium::get_messages<typename floating_partial_accumulator_defs::sum>(outmb_expected)[0], cadmium::get_messages<typename floating_partial_accumulator_defs::sum>(outmb1)[0]);
 
             //running confluence, because waiting for an internal here
             typename cadmium::make_message_bags<floating_partial_accumulator::input_ports>::type bags_four;
-            cadmium::get_messages<typename floating_partial_accumulator::reset>(bags_four).emplace_back();
+            cadmium::get_messages<typename floating_partial_accumulator_defs::reset>(bags_four).emplace_back();
             g.confluence_transition(0.0f, bags_four);
             BOOST_CHECK_EQUAL(28.0f, std::get<float>(g.state));
             BOOST_CHECK_EQUAL(true, std::get<bool>(g.state));
@@ -149,7 +150,7 @@ BOOST_AUTO_TEST_SUITE( pdevs_basic_models_suite )
              //validate output
             typename cadmium::make_message_bags<floating_partial_accumulator::output_ports>::type outmb2;
             outmb2 = g.output();
-            BOOST_CHECK_EQUAL(true, cadmium::get_messages<typename floating_partial_accumulator::sum>(outmb2).empty());
+            BOOST_CHECK_EQUAL(true, cadmium::get_messages<typename floating_partial_accumulator_defs::sum>(outmb2).empty());
         }
 
     BOOST_AUTO_TEST_SUITE_END()

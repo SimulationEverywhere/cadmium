@@ -59,18 +59,14 @@ namespace cadmium {
  *   time_advance ({total, false, 0}) = infinite
 */
 
-        struct reset_tick {
-        };
+        template<typename VALUE> //value is the type of accumulated values
+        struct partial_accumulator_defs {
+            
+            struct reset_tick {
+            };
 
-        struct set_partial{
-        };
-
-        template<typename VALUE, typename TIME> //value is the type of accumulated values
-        struct partial_accumulator {
-            //local definitions
-            using value_type=VALUE;
-            using on_reset=bool;
-            using on_partial=int;
+            struct set_partial{
+            };
 
             //ports
             struct sum : public out_port<VALUE> {
@@ -81,6 +77,19 @@ namespace cadmium {
             };
             struct partial : public in_port<set_partial>{
             };
+        };
+
+
+      
+
+        template<typename VALUE, typename TIME> //value is the type of accumulated values
+        struct partial_accumulator {
+            //local definitions
+            using value_type=VALUE;
+            using on_reset=bool;
+            using on_partial=int;
+
+            using defs = partial_accumulator_defs<VALUE>;
 
             //required definitions start here
             //state
@@ -91,8 +100,8 @@ namespace cadmium {
             constexpr partial_accumulator() noexcept {}
 
             //ports_definition
-            using input_ports=std::tuple<add, reset, partial>;
-            using output_ports=std::tuple<sum>;
+            using input_ports=std::tuple<typename defs::add, typename defs::reset, typename defs::partial>;
+            using output_ports=std::tuple<typename defs::sum>;
 
             // PDEVS functions
             void internal_transition() {
@@ -117,13 +126,13 @@ namespace cadmium {
                 }
 
                 //one message bag parameter for each port is received
-                for (const auto &x : get_messages<add>(mbs)) {
+                for (const auto &x : get_messages<typename defs::add>(mbs)) {
                     std::get<VALUE>(state) += x;
                 }
-                if (!get_messages<reset>(mbs).empty())
+                if (!get_messages<typename defs::reset>(mbs).empty())
                     std::get<on_reset>(state) = true; //multiple call equal one call
 
-                if (!get_messages<partial>(mbs).empty())
+                if (!get_messages<typename defs::partial>(mbs).empty())
                     std::get<on_partial>(state) = 1; //multiple call equal one call
 
             }
@@ -141,9 +150,9 @@ namespace cadmium {
                 typename make_message_bags<output_ports>::type outmb;
 
                 if(std::get<on_partial>(state)==1) {
-                    get_messages<sum>(outmb).emplace_back(std::get<VALUE>(state));
+                    get_messages<typename defs::sum>(outmb).emplace_back(std::get<VALUE>(state));
                 } else{ //we can reach the external because we are reseting
-                    get_messages<sum>(outmb).clear();
+                    get_messages<typename defs::sum>(outmb).clear();
                 }
                 return outmb;
             }
