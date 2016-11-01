@@ -1,6 +1,9 @@
 /**
- * Copyright (c) 2013-2016, Damian Vicino
+ * Copyright (c) 2013-2016, 
+ * Damian Vicino
  * Carleton University, Universite de Nice-Sophia Antipolis
+ * Cristina Ruiz Martín
+ * Carleton University, Universidad de Valladolid
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
