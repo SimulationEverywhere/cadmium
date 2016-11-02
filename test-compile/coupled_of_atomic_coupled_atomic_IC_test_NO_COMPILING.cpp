@@ -120,8 +120,8 @@ using EOCs_top = std::tuple<
                             >;
 using ICs_top = std::tuple<
                         IC<floating_generator, floating_generator_defs::out, C1, coupled_ports::add>,
-                        IC<reset_tick_generator, reset_tick_generator_defs::out, C1, coupled_ports::reset>,
-                        IC<reset_tick_generator, reset_tick_generator_defs::out, floating_accumulator, floating_accumulator_defs::reset>,
+                        //IC<reset_tick_generator, reset_tick_generator_defs::out, C1, coupled_ports::reset>,
+                        //IC<reset_tick_generator, reset_tick_generator_defs::out, floating_accumulator, floating_accumulator_defs::reset>,
                         IC<C1, coupled_ports::out, floating_accumulator, floating_accumulator_defs::add>
                         >;
 template<typename TIME>

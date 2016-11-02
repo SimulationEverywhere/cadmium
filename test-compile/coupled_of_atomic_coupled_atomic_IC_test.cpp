@@ -28,7 +28,7 @@
  */
 
 /**
- * Test that asserting coupled model with all submodels atomic does not fail compilation
+ * Test that asserting coupled model with atomic_coupled_atomic does not fail compilation
  */
 
 #include <cadmium/modeling/ports.hpp>
@@ -36,7 +36,7 @@
 #include <cadmium/concept/coupled_model_assert.hpp>
 #include <tuple>
 
-#include <cadmium/basic_model/accumulator.hpp>
+#include <cadmium/basic_model/accumulator2.hpp>
 #include <cadmium/basic_model/generator.hpp>
 
 using namespace cadmium;
@@ -57,8 +57,8 @@ struct coupled_ports{
 //submodels
 //accumulator
 template<typename TIME>
-using floating_accumulator=cadmium::basic_models::accumulator<float, TIME>;
-using floating_accumulator_defs=cadmium::basic_models::accumulator_defs<float>;
+using floating_accumulator=cadmium::basic_models::accumulator2<float, reset_tick, TIME>;
+using floating_accumulator_defs=cadmium::basic_models::accumulator2_defs<float, reset_tick>;
 
 
 //generator floating
@@ -119,7 +119,7 @@ using EOCs_top = std::tuple<
 using ICs_top = std::tuple<
                         IC<floating_generator, floating_generator_defs::out, C1, coupled_ports::add>,
                         IC<reset_tick_generator, reset_tick_generator_defs::out, C1, coupled_ports::reset>,
-                        //IC<reset_tick_generator, reset_tick_generator_defs::out, floating_accumulator, floating_accumulator_defs::reset>,
+                        IC<reset_tick_generator, reset_tick_generator_defs::out, floating_accumulator, floating_accumulator_defs::reset>,
                         IC<C1, coupled_ports::out, floating_accumulator, floating_accumulator_defs::add>
                         >;
 template<typename TIME>
