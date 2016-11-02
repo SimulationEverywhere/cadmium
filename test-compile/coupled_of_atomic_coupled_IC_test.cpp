@@ -36,14 +36,16 @@
 #include <cadmium/concept/coupled_model_assert.hpp>
 #include <tuple>
 
-#include <cadmium/basic_model/accumulator.hpp>
+#include <cadmium/basic_model/accumulator2.hpp>
 
 using namespace cadmium;
+
+ struct reset_tick {
+    };
 //ports
 struct coupled_ports{
     //custom ports
-    struct reset_tick {
-    };
+   
 
     struct add : public in_port<float> {};
     struct reset : public in_port<reset_tick> {};
@@ -54,8 +56,8 @@ struct coupled_ports{
 //submodels
 //passive
 template<typename TIME>
-using floating_accumulator=cadmium::basic_models::accumulator<float, TIME>;
-using floating_accumulator_defs=cadmium::basic_models::accumulator_defs<float>;
+using floating_accumulator=cadmium::basic_models::accumulator2<float, reset_tick, TIME>;
+using floating_accumulator_defs=cadmium::basic_models::accumulator2_defs<float, reset_tick>;
 
 //First level coupleds having an accumulator model
 using input_ports=std::tuple<coupled_ports::add, coupled_ports::reset>;
@@ -79,8 +81,8 @@ using output_ports_top=std::tuple<coupled_ports::out>;
 using submodels_top = models_tuple<C1, floating_accumulator>;
 using EICs_top = std::tuple<
                         EIC<coupled_ports::reset, C1, coupled_ports::reset>,
-                        EIC<coupled_ports::add, floating_accumulator, floating_accumulator_defs::add>//,
-                        //EIC<coupled_ports::reset, floating_accumulator, floating_accumulator_defs::reset>
+                        EIC<coupled_ports::add, floating_accumulator, floating_accumulator_defs::add>,
+                        EIC<coupled_ports::reset, floating_accumulator, floating_accumulator_defs::reset>
                        >;
 using EOCs_top = std::tuple<
                             EOC<C1, coupled_ports::out, coupled_ports::out>
