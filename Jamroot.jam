@@ -19,5 +19,5 @@ build-project test ;
 build-project test-compile ;
 
 # Examples are not being built yet
-#build-project example ;
+build-project example ;
 
