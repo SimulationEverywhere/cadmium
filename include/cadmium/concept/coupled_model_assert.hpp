@@ -24,21 +24,22 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef COUPLED_MODEL_ASSERT_HPP
-#define COUPLED_MODEL_ASSERT_HPP
+#ifndef CADMIUM_COUPLED_MODEL_ASSERT_HPP
+#define CADMIUM_COUPLED_MODEL_ASSERT_HPP
 
-#include<cadmium/concept/concept_helper_functions.hpp>
+#include<cadmium/concept/concept_helpers.hpp>
 #include<cadmium/modeling/message_bag.hpp>
 #include<cadmium/concept/atomic_model_assert.hpp>
+#include<cadmium/modeling/ports.hpp>
 #include<type_traits>
 
 namespace cadmium{
     namespace concept {
-    //forward declaration
-    template<typename MODEL>
-    constexpr void coupled_model_float_time_assert();
+        //forward declaration
+        template<typename MODEL>
+        constexpr void coupled_model_float_time_assert();
 
-    //static assert over the EIC descriptions
+        //static assert over the EIC descriptions
         template<typename IN, typename EICs, int S>
         struct assert_each_eic{
             static constexpr bool value() {
@@ -151,6 +152,7 @@ namespace cadmium{
             static_assert(is_tuple(ics), "ICs is not a tuple");
         }
 
+
         //asserting the submodels are proper coupled or atomic modes.
         template<typename MODELs, int S>
         struct assert_each_model{
@@ -215,4 +217,4 @@ namespace cadmium{
         }
     }
 }
-#endif // COUPLED_MODEL_ASSERT_HPP
+#endif // CADMIUM_COUPLED_MODEL_ASSERT_HPP

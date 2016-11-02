@@ -28,73 +28,9 @@
  * Test that asserting coupled model with all submodels atomic does not fail compilation
  */
 
-#include <cadmium/modeling/ports.hpp>
-#include <cadmium/modeling/coupled_model.hpp>
-#include <cadmium/concept/coupled_model_assert.hpp>
-#include <tuple>
-
-#include <cadmium/basic_model/accumulator.hpp>
-#include <cadmium/basic_model/generator.hpp>
-#include <cadmium/basic_model/passive.hpp>
-
-using namespace cadmium;
-//ports
-struct coupled_ports{
-    //custom ports
-    struct in_1 : public in_port<float> {};
-    struct in_2 : public in_port<float> {};
-    struct out : public out_port<float> {};
-};
-
-//submodels
-//passive
-template<typename TIME>
-using floating_passive=cadmium::basic_models::passive<float, TIME>;
-using floating_passive_defs=cadmium::basic_models::passive_defs<float>;
-//generator
-const float init_period = 0.1f;
-const float init_output_message = 1.0f;
-template<typename TIME>
-using floating_generator_base=cadmium::basic_models::generator<float, TIME>;
-using floating_generator_defs=cadmium::basic_models::generator_defs<float>;
-template<typename TIME>
-struct floating_generator : public floating_generator_base<TIME>{
-    float period() const override {
-        return init_period;
-    }
-    float output_message() const override {
-        return init_output_message;
-    }
-};
-//accumulator
-template<typename TIME>
-using floating_accumulator=cadmium::basic_models::accumulator<float, TIME>;
-using floating_accumulator_defs=cadmium::basic_models::accumulator_defs<float>;
-
-//Coupled
-using namespace cadmium::modeling;
-using input_ports=std::tuple<coupled_ports::in_1, coupled_ports::in_2>;
-using output_ports=std::tuple<coupled_ports::out>;
-
-using submodels = models_tuple<floating_generator, floating_accumulator, floating_passive>;
-using EICs = std::tuple<
-                        EIC<coupled_ports::in_1, floating_passive, floating_passive_defs::in>,
-                        EIC<coupled_ports::in_2, floating_passive, floating_passive_defs::in>
-                       >;
-using EOCs = std::tuple<
-                        EOC<floating_accumulator, floating_accumulator_defs::sum, coupled_ports::out>,
-                        EOC<floating_generator, floating_generator_defs::out, coupled_ports::out>
-                       >;
-using ICs = std::tuple<
-                        IC<floating_generator, floating_generator_defs::out, floating_accumulator, floating_accumulator_defs::add>,
-                        IC<floating_accumulator, floating_accumulator_defs::sum, floating_passive, floating_passive_defs::in>
-                      >;
-
-template<typename TIME>
-using C1=cadmium::modeling::coupled_model<TIME, input_ports, output_ports, submodels, EICs, EOCs, ICs>;
+#include "coupled_of_atomic_models.hpp"
 
 int main(){
-
-    cadmium::concept::coupled_model_assert<C1>();
+    cadmium::concept::coupled_model_assert<coupled_of_atomics>();
     return 0;
 }

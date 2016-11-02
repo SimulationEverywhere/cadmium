@@ -24,13 +24,13 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * Test that asserting coupled model with all submodels atomic does not fail compilation
- */
+#include <cadmium/engine/pdevs_coordinator.hpp>
+template<typename TIME>
+struct fail_model{
 
-#include "coupled_of_mixed_models.hpp"
+};
 
 int main(){
-    cadmium::concept::coupled_model_assert<coupled_of_mixed_models>();
+    cadmium::engine::coordinator<fail_model::type, float>();
     return 0;
 }
