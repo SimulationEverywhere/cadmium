@@ -32,3 +32,6 @@ compile-fail failure_to_map_types_in_EIC_fails_compile_test.cpp ;
 compile-fail failure_to_map_types_in_EOC_fails_compile_test.cpp ;
 compile-fail failure_to_map_types_in_IC_fails_compile_test.cpp ;
 compile empty_coupled_model_is_a_valid_model_test.cpp ;
+compile coupled_of_atomic_coupled_IC_test.cpp ;
+compile coupled_of_atomic_coupled_atomic_IC_test.cpp ;
+compile coupled_of_atomic_coupled_atomic_IC_test_NO_COMPILING.cpp ;
