@@ -9,6 +9,7 @@ compile simulator_provide_types_test.cpp ;
 compile coupled_of_all_atomics_test.cpp ;
 compile coupled_of_all_coupleds_test.cpp ;
 compile coupled_of_mixed_models_test.cpp ;
+compile coupled_of_atomic_coupled_atomic_IC_test_NO_COMPILING.cpp ; 
 
 #Tests that should fail compilation
 compile-fail missing_input_ports_fails_compile_test.cpp ;
