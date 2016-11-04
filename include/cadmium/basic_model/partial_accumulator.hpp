@@ -46,20 +46,23 @@ namespace cadmium {
      * - Y = Numeric
      * - In_Ports: add<Numeric>, reset, partial
      * - Out_Ports: outport
-     * - S = {Numeric:total, bool:reseted, int:partial}
-     * - internal({total, true, i}) = {0, false, 0}
-     *   internal({total, false, 1}) = {total, false, 0}
+     * - S = {Numeric:total, bool:reseted, bool:partial}
+     * - internal({total, ?, ?}) = {0, false, false}
      * - external({total, b, i}, t, x.add) = {total+x, b, i}
      *   external({total, b, i}, t, x.reset) = {total, true, i}
-     *   external({total, b, i}, t, x.partial) = {total, b, 1}
+     *   external({total, b, i}, t, x.partial) = {total, b, true}
+     *   external({total, b, i}, t, x.add & x.reset) = {total+x, true, i}
+     *   external({total, b, i}, t, x.add & x.partial) = {total+x, b, true}
+     *   external({total, b, i}, t, x.add & x.reset & x.partial) = {total+x, true, true}
+     *   external({total, b, i}, t, x.reset & x.partial) = {total, true, true}
      * - confluence({total, b, i}, 0, x) = external(internal({total, b, i}), 0, x)
-     * - output ({total, b, 1}) = outport:{total}
-     * - time_advance({total, b, 1}) = 0
-     *   time_advance({total, true, i}) = 0
-     *   time_advance ({total, false, 0}) = infinite
+     * - output ({total, b, true}) = outport:{total}
+     * - time_advance({total, ?, true}) = 0
+     *   time_advance({total, true, ?}) = 0
+     *   time_advance ({total, false, false}) = infinite
     */
 
-    template<typename VALUE, typename SET> //value is the type of accumulated values
+    template<typename VALUE, typename SET> //VALUE is the type of accumulated values, SET is any type 
       struct partial_accumulator_defs {
         struct sum : public out_port<VALUE> {
         };
@@ -71,15 +74,29 @@ namespace cadmium {
         };
     };   
 
-    template<typename VALUE, typename SET, typename TIME> //value is the type of accumulated values
+    template<typename VALUE, typename SET, typename TIME> //VALUE is the type of accumulated values, SET is any type 
       struct partial_accumulator {
-        using on_reset=bool;
-        using on_partial=int;
+
+        struct state_type{ 
+          state_type(){
+            on_reset = false;
+            on_partial = false;
+            accumulated = VALUE{};
+          }
+          bool on_reset;
+          bool on_partial;
+          VALUE accumulated;
+
+          void set_state(VALUE accum, bool reset, bool partial){
+            accumulated = accum;
+            on_reset = reset;
+            on_partial = partial;            
+          }
+        };
 
         using defs = partial_accumulator_defs<VALUE, SET>;
 
-        using state_type=std::tuple<VALUE, on_reset, on_partial>;
-        state_type state = std::make_tuple(VALUE{}, false, 0);
+        state_type state = state_type();
 
         //default constructor
         constexpr partial_accumulator() noexcept {}
@@ -90,27 +107,27 @@ namespace cadmium {
 
         // PDEVS functions
         void internal_transition() {
-          if(!std::get<on_reset>(state) && std::get<on_partial>(state)!=1) {
+          if(!state.on_reset && ! state.on_partial) {
             throw std::logic_error("Internal transition called while not on reset or not on partial state");
           }
-          if(std::get<on_reset>(state)) {
-            std::get<VALUE>(state) = VALUE{0};
-            std::get<on_reset>(state) = false;
+          if(state.on_reset) {
+            state.accumulated = VALUE{0};
+            state.on_reset = false;
           }
-          if(std::get<on_partial>(state)==1) {
-            std::get<on_partial>(state) = 0;
+          if(state.on_partial) {
+            state.on_partial = false;
           }                
         }
 
         void external_transition(TIME e, typename make_message_bags<input_ports>::type mbs) {
-          if(std::get<on_reset>(state) || std::get<on_partial>(state)==1) {
+          if(state.on_reset || state.on_partial) {
             throw std::logic_error("External transition called while on reset or on partial state");
           }
           for (const auto &x : get_messages<typename defs::add>(mbs)) {
-            std::get<VALUE>(state) += x;
+            state.accumulated += x;
           }
-          if (!get_messages<typename defs::reset>(mbs).empty()) std::get<on_reset>(state) = true; //multiple call equal one call
-          if (!get_messages<typename defs::partial>(mbs).empty()) std::get<on_partial>(state) = 1; //multiple call equal one call
+          if (!get_messages<typename defs::partial>(mbs).empty()) state.on_partial = true; //multiple call equal one call
+          if (!get_messages<typename defs::reset>(mbs).empty()) state.on_reset = true; //multiple call equal one call         
         }
 
         void confluence_transition(TIME e, typename make_message_bags<input_ports>::type mbs) {
@@ -122,10 +139,8 @@ namespace cadmium {
 
         typename make_message_bags<output_ports>::type output() {       
           typename make_message_bags<output_ports>::type outmb;
-          if(std::get<on_partial>(state)==1) {
-              get_messages<typename defs::sum>(outmb).emplace_back(std::get<VALUE>(state));
-          } else{ //we can reach the external because we are reseting
-              get_messages<typename defs::sum>(outmb).clear();
+          if(state.on_partial) {
+            get_messages<typename defs::sum>(outmb).emplace_back(state.accumulated);
           }
           return outmb;
         }
@@ -133,17 +148,15 @@ namespace cadmium {
         TIME time_advance() {
           //we assume default constructor of time is 0 and infinity is defined in numeric_limits
           TIME advace_time;
-          if(std::get<on_reset>(state) || std::get<on_partial>(state)==1){
-            advace_time = 0;
+          if(state.on_reset || state.on_partial){
+            advace_time = TIME{0};
           }else{
             advace_time = std::numeric_limits<TIME>::infinity();
           }
           return (advace_time);
         }
       };
-
     }
 }
-
 
 #endif // CADMIUM_PARTIAL_ACCUMULATOR_HPP
