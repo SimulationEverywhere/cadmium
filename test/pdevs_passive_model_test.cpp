@@ -30,45 +30,51 @@
 
 #include<cmath>
 #include<cadmium/basic_model/passive.hpp>
+#include<cadmium/concept/concept_helpers.hpp>
 
 
 BOOST_AUTO_TEST_SUITE( pdevs_basic_models_suite )
 BOOST_AUTO_TEST_SUITE( pdevs_passive_suite )
 
-using floating_passive=cadmium::basic_models::passive<float, float>;
+template<typename TIME>
+using floating_passive=cadmium::basic_models::passive<float, TIME>;
 using floating_passive_defs=cadmium::basic_models::passive_defs<float>;
+
+BOOST_AUTO_TEST_CASE( it_is_atomic_test ){
+    BOOST_CHECK(cadmium::concept::is_atomic<floating_passive>::value());
+}
 
 BOOST_AUTO_TEST_CASE( it_is_constructable_test )
 {
-    BOOST_REQUIRE_NO_THROW( floating_passive{} );
+    BOOST_REQUIRE_NO_THROW( floating_passive<float>{} );
 }
 
 BOOST_AUTO_TEST_CASE( it_throws_on_call_to_internal_transition_test )
 {
-    auto p = floating_passive();
+    auto p = floating_passive<float>();
     BOOST_CHECK_THROW(p.internal_transition(), std::logic_error);
 }
 
 BOOST_AUTO_TEST_CASE( it_throws_on_call_to_confluece_transition_test )
 {
-    auto p = floating_passive();
-    typename cadmium::make_message_bags<floating_passive::input_ports>::type bags;
+    auto p = floating_passive<float>();
+    typename cadmium::make_message_bags<floating_passive<float>::input_ports>::type bags;
     cadmium::get_messages<typename floating_passive_defs::in>(bags).push_back(1);
     BOOST_CHECK_THROW( p.confluence_transition(5.0, bags), std::logic_error);
 }
 
 BOOST_AUTO_TEST_CASE( it_throws_on_call_to_output_function_test )
 {
-    auto p = floating_passive();
+    auto p = floating_passive<float>();
     BOOST_CHECK_THROW( p.output(), std::logic_error);
 }
 
     BOOST_AUTO_TEST_CASE( call_to_external_transition_keeps_infinite_time_advance_test )
 {
-    auto p = floating_passive();
+    auto p = floating_passive<float>();
     bool is_inf_ta = std::isinf(p.time_advance());
     BOOST_CHECK_MESSAGE( is_inf_ta, "Passive model is not in passive state");
-    typename cadmium::make_message_bags<floating_passive::input_ports>::type bags;
+    typename cadmium::make_message_bags<floating_passive<float>::input_ports>::type bags;
     cadmium::get_messages<typename floating_passive_defs::in>(bags).push_back(1);
     BOOST_CHECK_NO_THROW( p.external_transition(5.0, bags));
     is_inf_ta = std::isinf(p.time_advance());

@@ -29,6 +29,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include <cadmium/basic_model/accumulator.hpp>
+#include <cadmium/basic_model/generator.hpp>
 #include <cadmium/engine/pdevs_simulator.hpp>
 #include <limits>
 
@@ -43,87 +44,147 @@ BOOST_AUTO_TEST_CASE( accumulator_model_simulation_test )
 {
     //construct a simulator for an accumulator
     using simulator_t=cadmium::engine::simulator<int_accumulator, float>;
-    simulator_t s{0.0f};
+    simulator_t s;
+    s.init(0.0f);
 
     BOOST_CHECK(s.next()==std::numeric_limits<float>::infinity());
 
     using input_ports=int_accumulator<float>::input_ports;
     //crate the tuple for sending the messages
-    typename cadmium::make_message_bags<input_ports>::type input_bags;
-    typename cadmium::make_message_bags<input_ports>::type empty_input;
+    typename boost::optional<cadmium::make_message_bags<input_ports>::type> input_bags=cadmium::make_message_bags<input_ports>::type{};
+    typename boost::optional<cadmium::make_message_bags<input_ports>::type> empty_input=cadmium::make_message_bags<input_ports>::type{};
     //insert values to add port and reset to empty
-    cadmium::get_messages<int_accumulator_defs::add>(input_bags).assign(std::initializer_list<int>{1, 2, 3, 4});
-    cadmium::get_messages<int_accumulator_defs::reset>(input_bags).clear();
-    
+    BOOST_REQUIRE_MESSAGE(input_bags && empty_input, "Error initializing the bags used for the test");
+    cadmium::get_messages<int_accumulator_defs::add>(*input_bags).assign(std::initializer_list<int>{1, 2, 3, 4});
+    cadmium::get_messages<int_accumulator_defs::reset>(*input_bags).clear();
+
     //advance simulator
-    s.advance_simulation(3.0f, input_bags);
+    s.inbox(*input_bags);
+    s.advance_simulation(3.0f);
     BOOST_CHECK(s.next() == std::numeric_limits<float>::infinity());
 
     //external input in reset triggers a reset
-    cadmium::get_messages<int_accumulator_defs::add>(input_bags).clear();
-    cadmium::get_messages<int_accumulator_defs::reset>(input_bags).emplace_back();
-    s.advance_simulation(4.0f, input_bags); //here time is referring to absolute chronology, we are in simulation context.
+    cadmium::get_messages<int_accumulator_defs::add>(*input_bags).clear();
+    cadmium::get_messages<int_accumulator_defs::reset>(*input_bags).emplace_back();
+    s.inbox(*input_bags);
+    s.advance_simulation(4.0f); //here time is referring to absolute chronology, we are in simulation context.
     BOOST_CHECK(s.next() == 4.0f );
 
     //out provides the accumulated result
-    auto o = s.collect_outputs(4.0f);
-    BOOST_REQUIRE(cadmium::get_messages<int_accumulator_defs::sum>(o).size() == 1);
-    BOOST_CHECK(cadmium::get_messages<int_accumulator_defs::sum>(o).at(0) == 10);
-    s.advance_simulation(4.0f, empty_input);
+    s.collect_outputs(4.0f);
+    auto o = s.outbox();
+    BOOST_REQUIRE(o);
+    BOOST_REQUIRE(cadmium::get_messages<int_accumulator_defs::sum>(*o).size() == 1);
+    BOOST_CHECK(cadmium::get_messages<int_accumulator_defs::sum>(*o).at(0) == 10);
+    s.inbox(*empty_input);
+    s.advance_simulation(4.0f);
     BOOST_CHECK(s.next() == std::numeric_limits<float>::infinity());
 
     //internal transition resets counter
-    s.advance_simulation(5.0f, input_bags);
+    s.inbox(*input_bags);
+    s.advance_simulation(5.0f);
     BOOST_CHECK(s.next() == 5.0f);
-    o = s.collect_outputs(5.0f);
-    BOOST_REQUIRE(cadmium::get_messages<int_accumulator_defs::sum>(o).size() == 1);
-    BOOST_CHECK(cadmium::get_messages<int_accumulator_defs::sum>(o).at(0) == 0);
-    s.advance_simulation(5.0f, empty_input);
+    s.collect_outputs(5.0f);
+    o = s.outbox();
+    BOOST_REQUIRE(o);
+    BOOST_REQUIRE(cadmium::get_messages<int_accumulator_defs::sum>(*o).size() == 1);
+    BOOST_CHECK(cadmium::get_messages<int_accumulator_defs::sum>(*o).at(0) == 0);
+    s.inbox(*empty_input);
+    s.advance_simulation(5.0f);
     BOOST_CHECK(s.next() == std::numeric_limits<float>::infinity());
 
     //simultaneous external input in both ports increments and schedules reset
-    cadmium::get_messages<int_accumulator_defs::add>(input_bags).assign(std::initializer_list<int>{1, 2, 3, 4});
-    s.advance_simulation(6.0f, input_bags);
+    cadmium::get_messages<int_accumulator_defs::add>(*input_bags).assign(std::initializer_list<int>{1, 2, 3, 4});
+    s.inbox(*input_bags);
+    s.advance_simulation(6.0f);
     BOOST_CHECK(s.next() == 6.0f);
-    o = s.collect_outputs(6.0f);
-    BOOST_REQUIRE(cadmium::get_messages<int_accumulator_defs::sum>(o).size() == 1);
-    BOOST_CHECK(cadmium::get_messages<int_accumulator_defs::sum>(o).at(0) == 10);
-    s.advance_simulation(6.0f, empty_input);
+    s.collect_outputs(6.0f);
+    o = s.outbox();
+    BOOST_REQUIRE(o);
+    BOOST_REQUIRE(cadmium::get_messages<int_accumulator_defs::sum>(*o).size() == 1);
+    BOOST_CHECK(cadmium::get_messages<int_accumulator_defs::sum>(*o).at(0) == 10);
+    s.inbox(*empty_input);
+    s.advance_simulation(6.0f);
     BOOST_CHECK(s.next() == std::numeric_limits<float>::infinity());
 }
 
 BOOST_AUTO_TEST_CASE( accumulator_simulation_throws_test ){
     //construct a simulator for an accumulator
     using simulator_t= cadmium::engine::simulator<int_accumulator, float>;
-    using model_t=simulator_t::model_type;
-    simulator_t  s{0.0f};
+    using input_ports=int_accumulator<float>::input_ports;
+    simulator_t  s;
+    s.init(0.0f);
     BOOST_CHECK(s.next()==std::numeric_limits<float>::infinity());
 
     //crate the tuple for sending the messages
-    typename cadmium::make_message_bags<model_t::input_ports>::type input_bags;
-    typename cadmium::make_message_bags<model_t::input_ports>::type empty_input;
+    typename boost::optional<cadmium::make_message_bags<input_ports>::type> input_bags=cadmium::make_message_bags<input_ports>::type{};
+    typename boost::optional<cadmium::make_message_bags<input_ports>::type> empty_input=cadmium::make_message_bags<input_ports>::type{};
     //insert values to add port and reset to empty
-    cadmium::get_messages<int_accumulator_defs::add>(input_bags).assign(std::initializer_list<int>{1, 2, 3, 4});
-    cadmium::get_messages<int_accumulator_defs::reset>(input_bags).emplace_back();
+    cadmium::get_messages<int_accumulator_defs::add>(*input_bags).assign(std::initializer_list<int>{1, 2, 3, 4});
+    cadmium::get_messages<int_accumulator_defs::reset>(*input_bags).emplace_back();
 
-    //try to obtain output when no internal transition is scheduled
-    BOOST_CHECK_THROW(s.collect_outputs(6.0f), std::domain_error);
     //assuming strong exceptions guarantees
     //advance simulator
-    s.advance_simulation(3.0f, input_bags);
+    s.inbox(*input_bags);
+    s.advance_simulation(3.0f);
     BOOST_CHECK(s.next() == 3.0f);
 
     //try to input in the past of current time
-    BOOST_CHECK_THROW(s.advance_simulation(2.0f, input_bags), std::domain_error);
+    s.inbox(*input_bags);
+    BOOST_CHECK_THROW(s.advance_simulation(2.0f), std::domain_error);
     //try to input later than next scheduled internal event
-    BOOST_CHECK_THROW(s.advance_simulation(4.0f, input_bags), std::domain_error);
+    s.inbox(*input_bags);
+    BOOST_CHECK_THROW(s.advance_simulation(4.0f), std::domain_error);
 
     //execute expected internal transition
-    s.advance_simulation(3.0f, empty_input);
+    s.inbox(*empty_input);
+    s.advance_simulation(3.0f);
     BOOST_CHECK(s.next()==std::numeric_limits<float>::infinity());
 }
 
 BOOST_AUTO_TEST_SUITE_END()
 
+BOOST_AUTO_TEST_SUITE( pdevs_generator_suite )
+
+const float init_period = 1.0f;
+const float init_output_message = 2.0f;
+template<typename TIME>
+using floating_generator_base=cadmium::basic_models::generator<float, TIME>;
+using floating_generator_defs=cadmium::basic_models::generator_defs<float>;
+template<typename TIME>
+struct floating_generator : public floating_generator_base<TIME> {
+    float period() const override {
+        return init_period;
+    }
+    float output_message() const override {
+        return init_output_message;
+    }
+};
+
+
+BOOST_AUTO_TEST_CASE( generator_model_simulation_test )
+{
+    //construct a simulator for an generator of floats
+    using simulator_t=cadmium::engine::simulator<floating_generator, float>;
+    simulator_t s;
+    s.init(0.0f);
+    BOOST_CHECK(s.next()==1.0f);
+    //collecting early output produces a "false output".
+    s.collect_outputs(0.5f);
+    auto out = s.outbox();
+    BOOST_REQUIRE(!out); // obtaining no bag of messages, we are running before the scheduled transition time
+    //collecting output
+    s.collect_outputs(1.0f);
+    out = s.outbox();
+    BOOST_REQUIRE(out); // obtaining a bag of messages, not an optional empty value
+    BOOST_CHECK(cadmium::get_messages<floating_generator_defs::out>(*out).size() == 1);
+    BOOST_CHECK(cadmium::get_messages<floating_generator_defs::out>(*out)[0] == 2.0f);
+    //advance simulation
+    s.advance_simulation(1.0f);
+    //check next time is 2.0f
+    BOOST_CHECK(s.next()==2.0f);
+}
+
+BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE_END()

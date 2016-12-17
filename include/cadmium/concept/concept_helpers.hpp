@@ -24,13 +24,28 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef HELPER_FUNCTIONS_HPP
-#define HELPER_FUNCTIONS_HPP
+#ifndef CADMIUM_HELPERS_HPP
+#define CADMIUM_HELPERS_HPP
 
 #include<tuple>
 
 namespace cadmium {
     namespace concept {
+
+
+        template<template<typename> class MODEL>
+        struct is_atomic{
+            struct atomic_detected{};
+            struct coupled_detected{};
+
+            template <typename M> static coupled_detected test( typename M::template models<float>* );
+            template <typename M> static atomic_detected test( ...  ) ;
+
+            static constexpr bool value(){
+                return std::is_same<decltype(test<MODEL<float>>(0)), atomic_detected>::value;
+            }
+        };
+
         namespace { //details
             template<typename... Ts>
             constexpr bool is_tuple(std::tuple<Ts...>) {
@@ -90,5 +105,5 @@ namespace cadmium {
         }
     }
 }
-#endif // HELPER_FUNCTIONS_HPP
+#endif // CADMIUM_HELPERS_HPP
 

@@ -10,8 +10,9 @@ project cadmium
     : requirements
         <include>$(BOOST_ROOT)
         <include>include
-	<cxxflags>-pedantic
+        <cxxflags>-pedantic
         <cxxflags>-std=c++14
+        <cxxflags>-fcolor-diagnostics
     : build-dir ./build
 ;
 

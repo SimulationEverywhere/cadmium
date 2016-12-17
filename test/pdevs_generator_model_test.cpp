@@ -30,16 +30,18 @@
 
 #include<cadmium/modeling/message_bag.hpp>
 #include<cadmium/basic_model/generator.hpp>
-
+#include<cadmium/concept/concept_helpers.hpp>
 
 BOOST_AUTO_TEST_SUITE( pdevs_basic_models_suite )
     BOOST_AUTO_TEST_SUITE( pdevs_generator_suite )
 
         const float init_period = 0.1f;
         const float init_output_message = 1.0f;
-        using floating_generator_base=cadmium::basic_models::generator<float, float>;
+        template<typename TIME>
+        using floating_generator_base=cadmium::basic_models::generator<float, TIME>;
         using floating_generator_defs=cadmium::basic_models::generator_defs<float>;
-        struct floating_generator : public floating_generator_base {
+        template<typename TIME>
+        struct floating_generator : public floating_generator_base<TIME> {
             float period() const override {
                 return init_period;
             }
@@ -48,14 +50,19 @@ BOOST_AUTO_TEST_SUITE( pdevs_basic_models_suite )
             }
         };
 
+
+        BOOST_AUTO_TEST_CASE( it_is_atomic_test ){
+            BOOST_CHECK(cadmium::concept::is_atomic<floating_generator>::value());
+        }
+
         BOOST_AUTO_TEST_CASE( it_is_constructable_test )
         {
-            BOOST_REQUIRE_NO_THROW( floating_generator{} );
+            BOOST_REQUIRE_NO_THROW( floating_generator<float>{} );
         }
 
         BOOST_AUTO_TEST_CASE( time_advance_is_the_init_one_even_after_internal_transition_test )
         {
-            auto g = floating_generator();
+            auto g = floating_generator<float>();
             BOOST_CHECK_EQUAL(init_period, g.time_advance());
             g.internal_transition();
             BOOST_CHECK_EQUAL(init_period, g.time_advance());
@@ -63,21 +70,21 @@ BOOST_AUTO_TEST_SUITE( pdevs_basic_models_suite )
 
         BOOST_AUTO_TEST_CASE( it_throws_on_call_to_confluece_transition_test )
         {
-            auto g = floating_generator();
-            typename cadmium::make_message_bags<floating_generator::input_ports>::type bags;
+            auto g = floating_generator<float>();
+            typename cadmium::make_message_bags<floating_generator<float>::input_ports>::type bags;
             BOOST_CHECK_THROW( g.confluence_transition(5.0, bags), std::logic_error);
         }
 
         BOOST_AUTO_TEST_CASE( it_throws_on_call_to_external_transition_test )
         {
-            auto g = floating_generator();
-            typename cadmium::make_message_bags<floating_generator::input_ports>::type bags;
+            auto g = floating_generator<float>();
+            typename cadmium::make_message_bags<floating_generator<float>::input_ports>::type bags;
             BOOST_CHECK_THROW( g.external_transition(5.0, bags), std::logic_error);
         }
 
         BOOST_AUTO_TEST_CASE( output_function_returns_init_message_test )
         {
-            auto g = floating_generator();
+            auto g = floating_generator<float>();
             auto o = g.output();
             auto o_m =cadmium::get_messages<typename floating_generator_defs::out>(o);
             BOOST_CHECK_EQUAL( o_m.size(), 1);

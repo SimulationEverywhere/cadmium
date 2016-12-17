@@ -27,23 +27,9 @@
 /**
  * Test that asserting couple over an empty coupled model is not a compile error
  */
-#include <cadmium/modeling/ports.hpp>
-#include <cadmium/modeling/coupled_model.hpp>
 #include <cadmium/concept/coupled_model_assert.hpp>
-#include <tuple>
-
-
-using input_ports=std::tuple<>;
-using output_ports=std::tuple<>;
-using submodels = cadmium::modeling::models_tuple<>;
-using EICs = std::tuple<>;
-using EOCs = std::tuple<>;
-using ICs = std::tuple<>;
-template<typename TIME>
-using C1=cadmium::modeling::coupled_model<TIME, input_ports, output_ports, submodels, EICs, EOCs, ICs>;
-
-
+#include "empty_coupled_model.hpp"
 int main(){
-    cadmium::concept::coupled_model_assert<C1>();
+    cadmium::concept::coupled_model_assert<empty_coupled_model::type>();
     return 0;
 }

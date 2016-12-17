@@ -24,10 +24,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ATOMIC_MODEL_ASSERT_HPP
-#define ATOMIC_MODEL_ASSERT_HPP
+#ifndef CADMIUM_ATOMIC_MODEL_ASSERT_HPP
+#define CADMIUM_ATOMIC_MODEL_ASSERT_HPP
 
-#include<cadmium/concept/concept_helper_functions.hpp>
+#include<cadmium/concept/concept_helpers.hpp>
 #include<cadmium/modeling/message_bag.hpp>
 
 namespace cadmium{
@@ -80,4 +80,4 @@ namespace cadmium{
         }
     }
 }
-#endif // ATOMIC_MODEL_ASSERT_HPP
+#endif // CADMIUM_ATOMIC_MODEL_ASSERT_HPP

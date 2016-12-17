@@ -24,8 +24,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef COUPLED_MODEL_HPP
-#define COUPLED_MODEL_HPP
+#ifndef CADMIUM_COUPLED_MODEL_HPP
+#define CADMIUM_COUPLED_MODEL_HPP
 
 #include<type_traits>
 #include<tuple>
@@ -104,5 +104,5 @@ namespace cadmium {
 }
 
 
-#endif // COUPLED_MODEL_HPP
+#endif // CADMIUM_COUPLED_MODEL_HPP
 

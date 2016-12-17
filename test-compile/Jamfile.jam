@@ -9,6 +9,10 @@ compile simulator_provide_types_test.cpp ;
 compile coupled_of_all_atomics_test.cpp ;
 compile coupled_of_all_coupleds_test.cpp ;
 compile coupled_of_mixed_models_test.cpp ;
+compile empty_coupled_model_is_a_valid_model_test.cpp ;
+compile coordinator_of_empty_coupled_model_test.cpp ;
+compile coordinator_of_coupled_of_atomics_test.cpp ;
+compile coordinator_of_coupled_of_mixed_models_test.cpp ;
 
 #Tests that should fail compilation
 compile-fail missing_input_ports_fails_compile_test.cpp ;
@@ -27,8 +31,8 @@ compile-fail inports_not_a_tuple_in_coupled_model_fail_compile_test.cpp ;
 compile-fail outports_not_a_tuple_in_atomic_model_fail_compile_test.cpp ;
 compile-fail outports_not_a_tuple_in_coupled_model_fail_compile_test.cpp ;
 compile-fail missing_atomic_model_simulator_fails_compile_test.cpp ;
-#compile-fail submodel_is_not_a_model_fails_compile_test.cpp ;
+compile-fail submodel_is_not_a_model_fails_compile_test.cpp ;
 compile-fail failure_to_map_types_in_EIC_fails_compile_test.cpp ;
 compile-fail failure_to_map_types_in_EOC_fails_compile_test.cpp ;
 compile-fail failure_to_map_types_in_IC_fails_compile_test.cpp ;
-compile empty_coupled_model_is_a_valid_model_test.cpp ;
+compile-fail coordinator_of_no_coupled_fails_compile_test.cpp ;

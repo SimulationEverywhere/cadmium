@@ -24,8 +24,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef MESSAGE_BAG_HPP
-#define MESSAGE_BAG_HPP
+#ifndef CADMIUM_MESSAGE_BAG_HPP
+#define CADMIUM_MESSAGE_BAG_HPP
 
 #include <vector>
 #include <tuple>
@@ -64,5 +64,5 @@ bag<typename message_bag<PORT>::message_type> & get_messages(T& mbs){
 
 }
 
-#endif // MESSAGE_BAG_HPP
+#endif // CADMIUM_MESSAGE_BAG_HPP
 
