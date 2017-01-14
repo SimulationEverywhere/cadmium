@@ -174,8 +174,8 @@ using g2a_eocs=std::tuple<
         cadmium::modeling::EOC<test_accumulator, test_accumulator_defs::sum, g2a_coupled_out_port>
 >;
 using g2a_ics=std::tuple<
-        cadmium::modeling::IC<test_generator_to_add, add_one_generator_defs::out, test_accumulator, test_accumulator_defs::add>,
-        cadmium::modeling::IC<test_generator_to_reset, reset_generator_defs::out , test_accumulator, test_accumulator_defs::reset>
+//        cadmium::modeling::IC<test_generator_to_add, add_one_generator_defs::out, test_accumulator, test_accumulator_defs::add>,
+//        cadmium::modeling::IC<test_generator_to_reset, reset_generator_defs::out , test_accumulator, test_accumulator_defs::reset>
 >;
 
 template<typename TIME>
