@@ -64,7 +64,9 @@ BOOST_AUTO_TEST_CASE( pdevs_coordinator_empty_coupled_is_not_atomic_test ){
 
 //generator in a coupled model definition pieces
 //message representing ticks
-struct test_tick{};
+struct test_tick{
+
+};
 
 //generator for tick messages
 using out_port = cadmium::basic_models::generator_defs<test_tick>::out;
@@ -196,8 +198,8 @@ BOOST_AUTO_TEST_CASE( generators_send_to_accumulator_and_output_test ){
     cc.collect_outputs(5.0f);
     auto output_bags = cc.outbox();
     BOOST_REQUIRE(output_bags);
-    BOOST_CHECK_EQUAL(cadmium::get_messages<coupled_out_port>(*output_bags).size(), 1); //only a sum happened.
-    BOOST_CHECK_EQUAL(cadmium::get_messages<coupled_out_port>(*output_bags).at(0), 5); //5 ticks of 1 were counted
+    BOOST_CHECK_EQUAL(cadmium::get_messages<g2a_coupled_out_port>(*output_bags).size(), 1); //only a sum happened.
+    BOOST_CHECK_EQUAL(cadmium::get_messages<g2a_coupled_out_port>(*output_bags).at(0), 5); //5 ticks of 1 were counted
     BOOST_CHECK_EQUAL(6.0f, cc.next());
     cc.collect_outputs(6.0f);
     output_bags = cc.outbox();
