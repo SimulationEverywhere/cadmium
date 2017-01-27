@@ -126,20 +126,25 @@ namespace cadmium {
         }
 
         //get the engine  from a tuple of engines that is simulating the model provided
-        template<typename MODEL, typename CST, std::size_t S>
-        struct get_engine_by_model_impl{
+        template<typename TIMED_MODEL, typename CST, std::size_t S>
+        struct get_engine_type_by_model_impl{
             using found_element_type =  typename std::conditional<
-                                            std::is_same<typename std::tuple_element<S-1, CST>::type::model_type, MODEL>::value,
+                                            std::is_same<typename std::tuple_element<S-1, CST>::type::model_type, TIMED_MODEL>::value,
                                             typename std::tuple_element<S-1, CST>::type,
-                                            get_engine_by_model_impl<MODEL, CST, S-1 >
+                                            get_engine_type_by_model_impl<TIMED_MODEL, CST, S-1 >
                                         >::type;
         };
 
-        template<typename MODEL, typename CST>
-        auto get_engine_by_model(CST& cst){
-            using found_element_type=typename get_engine_by_model_impl<MODEL, CST, std::tuple_size<CST>::value>::found_element_type;
-            return std::get<found_element_type>(cst);
+        template<typename TIMED_MODEL, typename CST>
+        struct get_engine_type_by_model{
+            using type=typename get_engine_type_by_model_impl<TIMED_MODEL, CST, std::tuple_size<CST>::value>::found_element_type;
+
         };
+
+        template<typename TIMED_MODEL, typename CST>
+        typename get_engine_type_by_model<TIMED_MODEL, CST>::type get_engine_by_model(CST& cst){
+            return std::get<typename get_engine_type_by_model<TIMED_MODEL, CST>::type>(cst);
+        }
 
         //map the messages in the outboxes of subengines to the messages in the outbox of current coordinator
         template<typename TIME, typename EOC, std::size_t S, typename OUT_BAG, typename CST>

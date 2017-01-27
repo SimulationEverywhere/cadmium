@@ -55,40 +55,42 @@ BOOST_AUTO_TEST_CASE(get_engine_by_model__one_element_test){
 }
 
 //Definition of two generators
-const float init_period = 0.1f;
-const float init_output_message = 1.0f;
-template<typename TIME>
-using floating_generator_base=cadmium::basic_models::generator<float, TIME>;
-using floating_generator_defs=cadmium::basic_models::generator_defs<float>;
-template<typename TIME>
-struct floating_generator_a : public floating_generator_base<TIME> {
-    float period() const override {
-        return init_period;
-    }
-    float output_message() const override {
-        return init_output_message;
-    }
-};
+//const float init_period = 0.1f;
+//const float init_output_message = 1.0f;
+//template<typename TIME>
+//using floating_generator_base=cadmium::basic_models::generator<float, TIME>;
+//using floating_generator_defs=cadmium::basic_models::generator_defs<float>;
+//template<typename TIME>
+//struct floating_generator_a : public floating_generator_base<TIME> {
+//    float period() const override {
+//        return init_period;
+//    }
+//    float output_message() const override {
+//        return init_output_message;
+//    }
+//};
 
-template<typename TIME>
-struct floating_generator_b : public floating_generator_base<TIME> {
-    float period() const override {
-        return init_period;
-    }
-    float output_message() const override {
-        return init_output_message;
-    }
-};
+//template<typename TIME>
+//struct floating_generator_b : public floating_generator_base<TIME> {
+//    float period() const override {
+//        return init_period;
+//    }
+//    float output_message() const override {
+//        return init_output_message;
+//    }
+//};
 
-//Definition of two simulator
-using simulator_of_gen_a=cadmium::engine::simulator<floating_generator_a, float>;
-using simulator_of_gen_b=cadmium::engine::simulator<floating_generator_b, float>;
-//Definition of a tuple with one simulator
-using tuple_sim_gens=std::tuple<simulator_of_gen_a, simulator_of_gen_b>;
-BOOST_AUTO_TEST_CASE(get_engine_by_model_two_elements_test){
-    tuple_sim_gens st;
-    cadmium::engine::get_engine_by_model<floating_generator_a<float>, tuple_sim_gens>(st);
-}
+////Definition of two simulator
+//using simulator_of_gen_a=cadmium::engine::simulator<floating_generator_a, float>;
+//using simulator_of_gen_b=cadmium::engine::simulator<floating_generator_b, float>;
+////Definition of a tuple with one simulator
+//using tuple_sim_gens=std::tuple<simulator_of_gen_a, simulator_of_gen_b>;
+//BOOST_AUTO_TEST_CASE(get_engine_by_model_two_elements_test){
+//    tuple_sim_gens st;
+//    std::get<simulator_of_gen_a>(st);
+//    std::get<simulator_of_gen_b>(st);
+//    auto& eng=cadmium::engine::get_engine_by_model<floating_generator_a<float>, tuple_sim_gens>(st);
+//}
 
 
 BOOST_AUTO_TEST_SUITE_END()
