@@ -13,6 +13,7 @@ project cadmium
         <cxxflags>-pedantic
         <cxxflags>-std=c++14
         <cxxflags>-fcolor-diagnostics
+        <cxxflags>-ftemplate-backtrace-limit=0
     : build-dir ./build
 ;
 

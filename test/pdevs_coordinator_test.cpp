@@ -164,30 +164,39 @@ BOOST_AUTO_TEST_CASE( coordinated_generator_produces_right_output_test){
         }
     };
 
-////connecting generators to acumm coupled model definition
-//using g2a_iports = std::tuple<>;
-//struct g2a_coupled_out_port : public cadmium::out_port<int>{};
-//using g2a_oports = std::tuple<g2a_coupled_out_port>;
-//using g2a_submodels=cadmium::modeling::models_tuple<test_generator_to_reset, test_generator_to_add, test_accumulator>;
-//using g2a_eics=std::tuple<>;
-//using g2a_eocs=std::tuple<
+//connecting generators to acumm coupled model definition
+using g2a_iports = std::tuple<>;
+struct g2a_coupled_out_port : public cadmium::out_port<int>{};
+using g2a_oports = std::tuple<g2a_coupled_out_port>;
+using g2a_submodels=cadmium::modeling::models_tuple<test_generator_to_reset, test_generator_to_add, test_accumulator>;
+using g2a_eics=std::tuple<>;
+using g2a_eocs=std::tuple<
 //        cadmium::modeling::EOC<test_accumulator, test_accumulator_defs::sum, g2a_coupled_out_port>
-//>;
-//using g2a_ics=std::tuple<
-////        cadmium::modeling::IC<test_generator_to_add, add_one_generator_defs::out, test_accumulator, test_accumulator_defs::add>,
+>;
+using g2a_ics=std::tuple<
+//        cadmium::modeling::IC<test_generator_to_add, add_one_generator_defs::out, test_accumulator, test_accumulator_defs::add>,
 //        cadmium::modeling::IC<test_generator_to_reset, reset_generator_defs::out , test_accumulator, test_accumulator_defs::reset>
-//>;
+>;
 
-//template<typename TIME>
-//using coupled_g2a_model=cadmium::modeling::coupled_model<TIME, g2a_iports, g2a_oports, g2a_submodels, g2a_eics, g2a_eocs, g2a_ics>;
+template<typename TIME>
+using coupled_g2a_model=cadmium::modeling::coupled_model<TIME, g2a_iports, g2a_oports, g2a_submodels, g2a_eics, g2a_eocs, g2a_ics>;
 
-//BOOST_AUTO_TEST_CASE( generators_send_to_accumulator_and_output_test ){
-//    cadmium::engine::coordinator<coupled_g2a_model, float> cc;
-//        g2a_submodels::type<float> subs{};
-//    //check init sets the right next time
-//    cc.init(0);
-//    //first 4 collections of output are empty
-//    for (int i=1; i < 6; i++) {
+BOOST_AUTO_TEST_CASE( generators_send_to_accumulator_and_output_test ){
+    cadmium::engine::coordinator<coupled_g2a_model, float> cc;
+    g2a_submodels::type<float> subs{};
+    //check init sets the right next time
+    cc.init(0);
+
+    //first collection of output are empty
+    BOOST_CHECK_EQUAL((float) 1, cc.next());
+
+    cc.collect_outputs((float) 1);
+//    auto output_bags = cc.outbox();
+//    BOOST_REQUIRE(!output_bags);
+//    cc.advance_simulation((float) 1);
+
+    //next 3 collections of output are empty
+//    for (int i=2; i < 6; i++) {
 //        BOOST_CHECK_EQUAL((float) i, cc.next());
 //        cc.collect_outputs((float) i);
 //        auto output_bags = cc.outbox();
@@ -204,7 +213,7 @@ BOOST_AUTO_TEST_CASE( coordinated_generator_produces_right_output_test){
 //    cc.collect_outputs(6.0f);
 //    output_bags = cc.outbox();
 //    BOOST_REQUIRE(!output_bags);//was reset
-//}
+}
 
 
 BOOST_AUTO_TEST_SUITE_END()

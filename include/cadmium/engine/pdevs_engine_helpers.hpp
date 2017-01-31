@@ -126,23 +126,31 @@ namespace cadmium {
         }
 
         //get the engine  from a tuple of engines that is simulating the model provided
-        template<typename TIMED_MODEL, typename CST, std::size_t S>
-        struct get_engine_type_by_model_impl{
-            using found_element_type =  typename std::conditional<
-                                            std::is_same<typename std::tuple_element<S-1, CST>::type::model_type, TIMED_MODEL>::value,
-                                            typename std::tuple_element<S-1, CST>::type,
-                                            get_engine_type_by_model_impl<TIMED_MODEL, CST, S-1 >
-                                        >::type;
+        template<typename TIMED_MODEL, typename CST, size_t S>
+        struct get_engine_by_model_impl{
+            using current_engine=typename std::tuple_element<S-1, CST>::type;
+            using current_model=typename current_engine::model_type;
+            current_model c = TIMED_MODEL();
+            using type=typename std::conditional<std::is_same<current_model, TIMED_MODEL>::value, current_engine, typename get_engine_by_model_impl<TIMED_MODEL, CST, S-1>::type>::type;
         };
+
+        template<typename TIMED_MODEL, typename CST>
+        struct get_engine_by_model_impl<TIMED_MODEL, CST, 1>{
+            using current_engine=typename std::tuple_element<0, CST>::type;
+            using current_model=typename current_engine::model_type;
+            static_assert(std::is_same<TIMED_MODEL, current_model>::value, "There is no engine for the models found");
+            using type=current_engine;
+        };
+
 
         template<typename TIMED_MODEL, typename CST>
         struct get_engine_type_by_model{
-            using type=typename get_engine_type_by_model_impl<TIMED_MODEL, CST, std::tuple_size<CST>::value>::found_element_type;
-
+            using type=typename get_engine_by_model_impl<TIMED_MODEL, CST, std::tuple_size<CST>::value>::type;
         };
 
         template<typename TIMED_MODEL, typename CST>
-        typename get_engine_type_by_model<TIMED_MODEL, CST>::type get_engine_by_model(CST& cst){
+        //typename get_engine_type_by_model<TIMED_MODEL, CST>::type
+        auto get_engine_by_model(CST& cst){
             return std::get<typename get_engine_type_by_model<TIMED_MODEL, CST>::type>(cst);
         }
 
