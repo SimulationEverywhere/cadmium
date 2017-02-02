@@ -168,10 +168,10 @@ BOOST_AUTO_TEST_CASE( coordinated_generator_produces_right_output_test){
 using g2a_iports = std::tuple<>;
 struct g2a_coupled_out_port : public cadmium::out_port<int>{};
 using g2a_oports = std::tuple<g2a_coupled_out_port>;
-using g2a_submodels=cadmium::modeling::models_tuple<test_generator_to_reset, test_generator_to_add, test_accumulator>;
+using g2a_submodels=cadmium::modeling::models_tuple<test_accumulator, test_generator_to_reset, test_generator_to_add>;
 using g2a_eics=std::tuple<>;
 using g2a_eocs=std::tuple<
-//        cadmium::modeling::EOC<test_accumulator, test_accumulator_defs::sum, g2a_coupled_out_port>
+        cadmium::modeling::EOC<test_accumulator, test_accumulator_defs::sum, g2a_coupled_out_port>
 >;
 using g2a_ics=std::tuple<
 //        cadmium::modeling::IC<test_generator_to_add, add_one_generator_defs::out, test_accumulator, test_accumulator_defs::add>,

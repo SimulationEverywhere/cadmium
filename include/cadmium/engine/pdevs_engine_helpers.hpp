@@ -130,7 +130,6 @@ namespace cadmium {
         struct get_engine_by_model_impl{
             using current_engine=typename std::tuple_element<S-1, CST>::type;
             using current_model=typename current_engine::model_type;
-            current_model c = TIMED_MODEL();
             using type=typename std::conditional<std::is_same<current_model, TIMED_MODEL>::value, current_engine, typename get_engine_by_model_impl<TIMED_MODEL, CST, S-1>::type>::type;
         };
 
@@ -163,7 +162,7 @@ namespace cadmium {
             using submodel_out_messages_type=boost::optional<typename make_message_bags<typename std::tuple<submodel_output_port>>::type>;
 
             static void fill(OUT_BAG& messages, CST& cst){
-                //precess one coupling
+                //process one coupling
                 auto& to_messages = get_messages<external_output_port>(messages);
                 if (submodel_out_messages_type from_messages_opt = get_engine_by_model<submodel_from, CST>(cst).outbox()){
                     auto& from_messages = get_messages<submodel_output_port>(*from_messages_opt);

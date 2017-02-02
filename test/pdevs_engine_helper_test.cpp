@@ -85,19 +85,14 @@ using simulator_of_gen_a=cadmium::engine::simulator<floating_generator_a, float>
 using simulator_of_gen_b=cadmium::engine::simulator<floating_generator_b, float>;
 //Definition of a tuple with one simulator
 using tuple_sim_gens=std::tuple<simulator_of_gen_a, simulator_of_gen_b>;
-using found_engine_type=typename cadmium::engine::get_engine_type_by_model<floating_generator_a<float>, tuple_sim_gens>::type;
-BOOST_AUTO_TEST_CASE(get_engine_by_model_two_elements_test){
+BOOST_AUTO_TEST_CASE(get_engine_by_model_two_elements_get_first_test){
     tuple_sim_gens st;
-    std::get<simulator_of_gen_a>(st);
-    std::get<simulator_of_gen_b>(st);
-    static_assert(std::is_same<simulator_of_gen_a, std::tuple_element<0, tuple_sim_gens>::type>::value, "They are not equal");
+    auto eng_a=cadmium::engine::get_engine_by_model<floating_generator_a<float>, tuple_sim_gens>(st);
+}
 
-    found_engine_type f;
-    simulator_of_gen_a a;
-
-    static_assert(std::is_same<simulator_of_gen_a, found_engine_type>::value, "They are not equal");
-
-    auto eng=cadmium::engine::get_engine_by_model<floating_generator_a<float>, tuple_sim_gens>(st);
+BOOST_AUTO_TEST_CASE(get_engine_by_model_two_elements_get_last_test){
+    tuple_sim_gens st;
+    auto eng_b=cadmium::engine::get_engine_by_model<floating_generator_b<float>, tuple_sim_gens>(st);
 }
 
 
