@@ -7,7 +7,7 @@ cadmium:
 	
 
 test: cadmium
-	b2
+	bjam
 
 clean:
-	b2 clean
+	bjam clean
