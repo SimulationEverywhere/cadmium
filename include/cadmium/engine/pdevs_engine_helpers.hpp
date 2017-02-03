@@ -133,12 +133,13 @@ namespace cadmium {
             using type=typename std::conditional<std::is_same<current_model, TIMED_MODEL>::value, current_engine, typename get_engine_by_model_impl<TIMED_MODEL, CST, S-1>::type>::type;
         };
 
+        struct NO_SIMULATOR{};
+
         template<typename TIMED_MODEL, typename CST>
         struct get_engine_by_model_impl<TIMED_MODEL, CST, 1>{
             using current_engine=typename std::tuple_element<0, CST>::type;
             using current_model=typename current_engine::model_type;
-            static_assert(std::is_same<TIMED_MODEL, current_model>::value, "There is no engine for the models found");
-            using type=current_engine;
+            using type=typename std::conditional<std::is_same<current_model, TIMED_MODEL>::value, current_engine, NO_SIMULATOR>::type;
         };
 
 
