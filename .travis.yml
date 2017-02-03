@@ -1,0 +1,8 @@
+language: cpp
+compiler: 
+  - clang
+  - gcc
+before_install:
+  - sudo apt-get -qq update
+  - sudo apt-get install -y libboost-all-dev
+
