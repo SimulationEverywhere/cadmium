@@ -220,14 +220,15 @@ namespace cadmium {
             static void route(const TIME& t, CST& engines){
                 //route messages for 1 coupling
                 auto from_engine=get_engine_by_model<from_model, CST>(engines);
-//                auto to_engine=get_engine_by_model<to_model, CST>(engines);
-//                //if outbox empty
-//                //if inbox empty assign
+                auto to_engine=get_engine_by_model<to_model, CST>(engines);
+                //if outbox empty
 
-//                //if inbox not empty concatanate
-//                //cadmium::get_messages<to_port>(to_engine)
+                //if inbox empty assign
 
-//                //recurse
+                //if inbox not empty concatanate
+                //cadmium::get_messages<to_port>(to_engine)
+
+                //recurse
 //                route_internal_coupled_messages_on_subcoordinators_impl<TIME, CST, ICs, S-1>::route(t, engines);
             }
         };

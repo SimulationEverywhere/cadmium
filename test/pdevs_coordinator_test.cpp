@@ -174,8 +174,8 @@ using g2a_eocs=std::tuple<
         cadmium::modeling::EOC<test_accumulator, test_accumulator_defs::sum, g2a_coupled_out_port>
 >;
 using g2a_ics=std::tuple<
-//        cadmium::modeling::IC<test_generator_to_add, add_one_generator_defs::out, test_accumulator, test_accumulator_defs::add>,
-//        cadmium::modeling::IC<test_generator_to_reset, reset_generator_defs::out , test_accumulator, test_accumulator_defs::reset>
+        cadmium::modeling::IC<test_generator_to_add, add_one_generator_defs::out, test_accumulator, test_accumulator_defs::add>,
+        cadmium::modeling::IC<test_generator_to_reset, reset_generator_defs::out , test_accumulator, test_accumulator_defs::reset>
 >;
 
 template<typename TIME>
@@ -191,28 +191,28 @@ BOOST_AUTO_TEST_CASE( generators_send_to_accumulator_and_output_test ){
     BOOST_CHECK_EQUAL((float) 1, cc.next());
 
     cc.collect_outputs((float) 1);
-//    auto output_bags = cc.outbox();
-//    BOOST_REQUIRE(!output_bags);
-//    cc.advance_simulation((float) 1);
+    auto output_bags = cc.outbox();
+    BOOST_REQUIRE(!output_bags);
+    cc.advance_simulation((float) 1);
 
     //next 3 collections of output are empty
-//    for (int i=2; i < 6; i++) {
-//        BOOST_CHECK_EQUAL((float) i, cc.next());
-//        cc.collect_outputs((float) i);
-//        auto output_bags = cc.outbox();
-//        BOOST_REQUIRE(!output_bags);
-//        cc.advance_simulation((float) i);
-//    }
-//    //fifth advance triggers a reset and reschedules same time for next
-//    cc.collect_outputs(5.0f);
-//    auto output_bags = cc.outbox();
-//    BOOST_REQUIRE(output_bags);
-//    BOOST_CHECK_EQUAL(cadmium::get_messages<g2a_coupled_out_port>(*output_bags).size(), 1); //only a sum happened.
-//    BOOST_CHECK_EQUAL(cadmium::get_messages<g2a_coupled_out_port>(*output_bags).at(0), 5); //5 ticks of 1 were counted
-//    BOOST_CHECK_EQUAL(6.0f, cc.next());
-//    cc.collect_outputs(6.0f);
-//    output_bags = cc.outbox();
-//    BOOST_REQUIRE(!output_bags);//was reset
+    for (int i=2; i < 6; i++) {
+        BOOST_CHECK_EQUAL((float) i, cc.next());
+        cc.collect_outputs((float) i);
+        output_bags = cc.outbox();
+        BOOST_REQUIRE(!output_bags);
+        cc.advance_simulation((float) i);
+    }
+    //fifth advance triggers a reset and reschedules same time for next
+    cc.collect_outputs(5.0f);
+    output_bags = cc.outbox();
+    BOOST_REQUIRE(output_bags);
+    BOOST_CHECK_EQUAL(cadmium::get_messages<g2a_coupled_out_port>(*output_bags).size(), 1); //only a sum happened.
+    BOOST_CHECK_EQUAL(cadmium::get_messages<g2a_coupled_out_port>(*output_bags).at(0), 5); //5 ticks of 1 were counted
+    BOOST_CHECK_EQUAL(6.0f, cc.next());
+    cc.collect_outputs(6.0f);
+    output_bags = cc.outbox();
+    BOOST_REQUIRE(!output_bags);//was reset
 }
 
 
