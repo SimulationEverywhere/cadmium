@@ -7,7 +7,7 @@ cadmium:
 	
 
 test: cadmium
-	bjam
+	bjam toolset=clang
 
 clean:
 	bjam clean

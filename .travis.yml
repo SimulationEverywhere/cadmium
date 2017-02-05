@@ -2,7 +2,7 @@ language: cpp
 sudo: required
 compiler: 
   - clang
-  - gcc
+#  - gcc
 before_install:
   - sudo apt-get -qq update
   - sudo apt-get install -y libboost-all-dev clang g++
