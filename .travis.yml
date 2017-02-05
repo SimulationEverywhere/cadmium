@@ -2,7 +2,13 @@ language: cpp
 sudo: required
 compiler: 
   - clang
-#  - gcc
-before_install:
-  - sudo apt-get -qq update
-  - sudo apt-get install -y libboost-all-dev clang g++
+addons:
+  apt:
+    sources:
+    # add PPAs with more up-to-date toolchains
+    - ubuntu-toolchain-r-test
+    - llvm-toolchain-precise-3.6
+    packages:
+    # install toolchains
+    - clang-3.6
+env: COMPILER=clang++-3.6
