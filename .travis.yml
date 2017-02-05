@@ -1,0 +1,9 @@
+language: cpp
+sudo: required
+os: osx
+osx_image: xcode8
+compiler: 
+  - clang
+before_install:
+  - brew update
+  - brew install boost-build
