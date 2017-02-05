@@ -6,4 +6,4 @@ compiler:
   - clang
 before_install:
   - brew update
-  - brew install boost boost-build
+  - brew install boost-build
