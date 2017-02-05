@@ -1,4 +1,4 @@
-# cadmium
+# cadmium [![Build Status](https://travis-ci.org/SimulationEverywhere/cadmium.svg?branch=master)](https://travis-ci.org/SimulationEverywhere/cadmium)
 
 ## Introduction
 This library provides model classes for multiple Discrete-Event Simulation formalisms and the tools to simulate those models.
