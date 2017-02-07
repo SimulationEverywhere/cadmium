@@ -162,11 +162,15 @@ namespace cadmium {
             using submodel_output_port=typename std::tuple_element<S-1, EOC>::type::submodel_output_port;
             using submodel_out_messages_type=boost::optional<typename make_message_bags<typename std::tuple<submodel_output_port>>::type>;
 
-            static void fill(OUT_BAG& messages, CST& cst){
+            static void fill(boost::optional<OUT_BAG>& messages, CST& cst){
                 //process one coupling
-                auto& to_messages = get_messages<external_output_port>(messages);
                 if (submodel_out_messages_type from_messages_opt = get_engine_by_model<submodel_from, CST>(cst).outbox()){
+                    //if there is output in the submodel
                     auto& from_messages = get_messages<submodel_output_port>(*from_messages_opt);
+                    if (!messages){ //init the optional message bags because there is output
+                        messages = OUT_BAG{};
+                    }
+                    auto& to_messages = get_messages<external_output_port>(*messages);
                     to_messages.insert(to_messages.end(), from_messages.begin(), from_messages.end());
                 }
                 //recurse
@@ -176,12 +180,12 @@ namespace cadmium {
 
         template<typename TIME, typename EOC, typename OUT_BAG, typename CST>
         struct collect_messages_by_eoc_impl<TIME, EOC, 0, OUT_BAG, CST>{
-            static void fill(OUT_BAG& messages, CST& cst){} //nothing to do here
+            static void fill(boost::optional<OUT_BAG>& messages, CST& cst){} //nothing to do here
         };
 
         template<typename TIME, typename EOC, typename OUT_BAG, typename CST>
-        OUT_BAG collect_messages_by_eoc(CST& cst){
-            OUT_BAG ret;
+        boost::optional<OUT_BAG> collect_messages_by_eoc(CST& cst){
+            boost::optional<OUT_BAG> ret;//if the subcoordinators active are not connected by EOC, no output is generated
             collect_messages_by_eoc_impl<TIME, EOC, std::tuple_size<EOC>::value, OUT_BAG, CST>::fill(ret, cst);
             return ret;
         }
