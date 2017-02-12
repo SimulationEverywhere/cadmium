@@ -142,7 +142,9 @@ namespace cadmium {
                 } else {
                     //Route the messages standing in the outboxes to mapped inboxes following ICs and EICs
                     cadmium::engine::route_internal_coupled_messages_on_subcoordinators<TIME, subcoordinators_type, ic>(t, _subcoordinators);
-                    //TODO: Second route EICs
+                    if (_inbox){
+                        cadmium::engine::route_external_input_coupled_messages_on_subcoordinators<TIME, in_bags_type, subcoordinators_type, eic>(t, *_inbox, _subcoordinators);
+                    }
                     //recurse on advance_simulation
                     cadmium::engine::advance_simulation_in_subengines<TIME, subcoordinators_type>(t, _subcoordinators);
                     //set _last and _next

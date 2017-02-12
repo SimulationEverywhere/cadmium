@@ -173,7 +173,7 @@ namespace cadmium {
                     auto& to_messages = get_messages<external_output_port>(*messages);
                     to_messages.insert(to_messages.end(), from_messages.begin(), from_messages.end());
                 }
-                //recurse
+                //iterate
                 collect_messages_by_eoc_impl<TIME, EOC, S-1, OUT_BAG, CST>::fill(messages, cst);
             }
         };
@@ -223,17 +223,19 @@ namespace cadmium {
 
             static void route(const TIME& t, CST& engines){
                 //route messages for 1 coupling
-                auto from_engine=get_engine_by_model<from_model, CST>(engines);
-                auto to_engine=get_engine_by_model<to_model, CST>(engines);
-                //if outbox empty
-
-                //if inbox empty assign
-
-                //if inbox not empty concatanate
-                //cadmium::get_messages<to_port>(to_engine)
-
-                //recurse
-//                route_internal_coupled_messages_on_subcoordinators_impl<TIME, CST, ICs, S-1>::route(t, engines);
+                auto& from_engine=get_engine_by_model<from_model, CST>(engines);
+                if (from_engine._outbox){
+                    auto& to_engine=get_engine_by_model<to_model, CST>(engines);
+                    if(!to_engine._inbox){
+                        to_engine._inbox = to_model::in_bags_type();
+                    }
+                    //add the messages
+                    auto& from_messages = get_messages<from_port>(from_engine->_outbox);
+                    auto& to_messages = get_messages<to_port>(to_engine->_inbox);
+                    to_messages.insert(to_messages.end(), from_messages.begin(), from_messages.end());
+                }
+                //iterate
+                route_internal_coupled_messages_on_subcoordinators_impl<TIME, CST, ICs, S-1>::route(t, engines);
             }
         };
 
@@ -249,6 +251,13 @@ namespace cadmium {
             route_internal_coupled_messages_on_subcoordinators_impl<TIME, CST, ICs, std::tuple_size<ICs>::value>::route(t, cst);
             return;
         };
+
+        template <typename TIME, typename INBAGS, typename CST, typename EICs >
+        void route_external_input_coupled_messages_on_subcoordinators(const TIME& t, const INBAGS& inbox, CST& cst){
+//                route_external_input_coupled_messages_on_subcoordinators_impl<TIME, CST, ICs, std::tuple_size<ICs>::value>::route(t, cst);
+            return;
+        };
+
     }
 
 }
