@@ -28,6 +28,7 @@
 #define CADMIUM_PDEVS_SIMULATOR_HPP
 #include <cadmium/modeling/message_bag.hpp>
 #include <cadmium/concept/atomic_model_assert.hpp>
+#include <cadmium/engine/pdevs_engine_helpers.hpp>
 
 
 /**
@@ -113,7 +114,7 @@ namespace cadmium {
                 } else if (_next < t) {
                     throw std::domain_error("Event received for executing after next internal event");
                 } else {
-                    if (!all_bags_empty(_inbox)) { //input available
+                    if (!cadmium::engine::all_bags_empty(_inbox)) { //input available
                         if (t == _next) { //confluence
                             _model.confluence_transition(t - _last, _inbox);
                         } else { //external
@@ -135,29 +136,6 @@ namespace cadmium {
                 }
             }
     //TODO: use enable_if functions to give access to read state and messages in debug mode
-
-        private:
-            //auxiliary
-            template<size_t I, typename... Ps>
-            struct all_bags_empty_impl {
-                static bool check(std::tuple<Ps...> t) {
-                    if (!std::get<I - 1>(t).messages.empty()) return false;
-                    return all_bags_empty_impl<I - 1, Ps...>::check(t);
-                }
-            };
-
-            template<typename... Ps>
-            struct all_bags_empty_impl<0, Ps...> {
-                static bool check(std::tuple<Ps...> t) {
-                    return true;
-                }
-            };
-
-            template<typename... Ps>
-            bool all_bags_empty(std::tuple<Ps...> t) {
-                return (std::tuple_size < std::tuple < Ps...>>() == 0 )
-                || all_bags_empty_impl<std::tuple_size<decltype(t)>::value, Ps...>::check(t);
-            }
         };
 
     }

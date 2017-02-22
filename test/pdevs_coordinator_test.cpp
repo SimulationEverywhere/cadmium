@@ -31,6 +31,7 @@
 #include <cadmium/basic_model/accumulator.hpp>
 #include <cadmium/modeling/coupled_model.hpp>
 #include <cadmium/engine/pdevs_coordinator.hpp>
+#include <cadmium/engine/pdevs_simulator.hpp>
 #include <cadmium/concept/concept_helpers.hpp>
 #include <cadmium/engine/pdevs_engine_helpers.hpp>
 

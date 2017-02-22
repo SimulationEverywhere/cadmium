@@ -30,7 +30,7 @@
 
 #include<type_traits>
 #include<tuple>
-#include<cadmium/engine/pdevs_simulator.hpp>
+//#include<cadmium/engine/pdevs_simulator.hpp>
 #include<cadmium/concept/concept_helpers.hpp>
 
 
@@ -39,6 +39,9 @@ namespace cadmium {
         //forward declaration
         template<template<typename T> class MODEL, typename TIME>
         class coordinator;
+        //forward declaration
+        template<template<typename T> class MODEL, typename TIME>
+        class simulator;
 
         //finding the min next from a tuple of coordinators and simulators
         template<typename T, std::size_t S>
