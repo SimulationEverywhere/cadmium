@@ -30,8 +30,9 @@
 
 #include<type_traits>
 #include<tuple>
-//#include<cadmium/engine/pdevs_simulator.hpp>
 #include<cadmium/concept/concept_helpers.hpp>
+#include<cadmium/modeling/message_bag.hpp>
+#include<algorithm>
 
 
 namespace cadmium {
