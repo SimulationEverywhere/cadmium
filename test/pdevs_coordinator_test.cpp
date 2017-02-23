@@ -215,7 +215,6 @@ BOOST_AUTO_TEST_CASE( generators_send_to_accumulator_and_output_test ){
     BOOST_REQUIRE(cadmium::get_messages<g2a_coupled_out_port>(output_bags).empty());//was reset
 }
 
-
 BOOST_AUTO_TEST_SUITE_END()
 
 
