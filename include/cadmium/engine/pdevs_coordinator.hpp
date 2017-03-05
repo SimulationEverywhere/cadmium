@@ -134,10 +134,8 @@ namespace cadmium {
              * @param t is the time the transition is expected to be run.
              */
             void advance_simulation(const TIME &t) {
-                if (_next < t) {
-                    throw std::domain_error("Trying to obtain output when not internal event is scheduled");
-                } else if ( t < _last ) {
-                    throw std::domain_error("Trying to obtain output when not internal event is scheduled");
+                if (_next < t || t < _last ) {
+                    throw std::domain_error("Trying to obtain output when out of the advance time scope");
                 } else {
                     //Route the messages standing in the outboxes to mapped inboxes following ICs and EICs
                     cadmium::engine::route_internal_coupled_messages_on_subcoordinators<TIME, subcoordinators_type, ic>(t, _subcoordinators);

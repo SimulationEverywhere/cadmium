@@ -120,18 +120,20 @@ namespace cadmium {
                         } else { //external
                             _model.external_transition(t - _last, _inbox);
                         }
+                        _last = t;
+                        _next = _last + _model.time_advance();
                     } else { //no input available
                         if (t != _next) {
                             //throw std::domain_error("Trying to execute internal transition at wrong time");
                             //for now, we iterate all models in place of using a FEL.
                             //Then, it could reach the case nothing is there.
-                            //Just a nop is enough.
+                            //Just a nop is enough. And no _next or _last should be changed.
                         } else {
                             _model.internal_transition();
+                            _last = t;
+                            _next = _last + _model.time_advance();
                         }
                     }
-                    _last = t;
-                    _next = _last + _model.time_advance();
                     _inbox = in_bags_type{};
                 }
             }

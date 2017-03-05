@@ -113,6 +113,7 @@ namespace cadmium {
         struct collect_outputs_in_subcoordinators_impl{
             static void run(const TIME& t, CST& cs){
                 std::get<S-1>(cs).collect_outputs(t);
+                collect_outputs_in_subcoordinators_impl<TIME, CST, S-1>::run(t, cs);
             }
         };
 
@@ -145,7 +146,6 @@ namespace cadmium {
             using type=typename std::conditional<std::is_same<current_model, TIMED_MODEL>::value, current_engine, NO_SIMULATOR>::type;
         };
 
-
         template<typename TIMED_MODEL, typename CST>
         struct get_engine_type_by_model{
             using type=typename get_engine_by_model_impl<TIMED_MODEL, CST, std::tuple_size<CST>::value>::type;
@@ -153,7 +153,7 @@ namespace cadmium {
 
         template<typename TIMED_MODEL, typename CST>
         //typename get_engine_type_by_model<TIMED_MODEL, CST>::type
-        auto get_engine_by_model(CST& cst){
+        auto& get_engine_by_model(CST& cst){
             return std::get<typename get_engine_type_by_model<TIMED_MODEL, CST>::type>(cst);
         }
 
@@ -193,6 +193,7 @@ namespace cadmium {
         struct advance_simulation_in_subengines_impl{
             static void run(const TIME& t, CST& cst){
                 std::get<S-1>(cst).advance_simulation(t);
+                advance_simulation_in_subengines_impl<TIME, CST, S-1>::run(t, cst);
             }
         };
 
@@ -247,9 +248,32 @@ namespace cadmium {
             return;
         };
 
+        template<typename TIME, typename INBAGS, typename CST, typename EICs, size_t S>
+        struct route_external_input_coupled_messages_on_subcoordinators_impl{
+            using current_EIC=typename std::tuple_element<S-1, EICs>::type;
+            using from_port=typename current_EIC::from_port;
+            using to_model=typename current_EIC::template to_model<TIME>;
+            using to_port=typename current_EIC::to_model_input_port;
+
+            static void route(TIME T, const INBAGS& inbox, CST& engines){
+                auto to_engine=get_engine_by_model<to_model, CST>(engines);
+                auto& from_messages = cadmium::get_messages<from_port>(inbox);
+                auto& to_messages = cadmium::get_messages<to_port>(to_engine._inbox);
+                to_messages.insert(to_messages.end(), from_messages.begin(), from_messages.end());
+            }
+        };
+
+        template<typename TIME, typename INBAGS, typename CST, typename EICs>
+        struct route_external_input_coupled_messages_on_subcoordinators_impl<TIME, INBAGS, CST, EICs, 0>{
+            static void route(TIME T, const INBAGS& inbox, CST& engines){
+            //nothing to do here
+            }
+        };
+
+
         template <typename TIME, typename INBAGS, typename CST, typename EICs >
         void route_external_input_coupled_messages_on_subcoordinators(const TIME& t, const INBAGS& inbox, CST& cst){
-//                route_external_input_coupled_messages_on_subcoordinators_impl<TIME, CST, ICs, std::tuple_size<ICs>::value>::route(t, cst);
+                route_external_input_coupled_messages_on_subcoordinators_impl<TIME, INBAGS, CST, EICs, std::tuple_size<EICs>::value>::route(t, inbox, cst);
             return;
         };
 
