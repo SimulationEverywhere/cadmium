@@ -31,8 +31,9 @@
 #include <cadmium/basic_model/accumulator.hpp>
 #include <cadmium/modeling/coupled_model.hpp>
 #include <cadmium/engine/pdevs_coordinator.hpp>
+#include <cadmium/engine/pdevs_simulator.hpp>
 #include <cadmium/concept/concept_helpers.hpp>
-#include <boost/optional.hpp>
+#include <cadmium/engine/pdevs_engine_helpers.hpp>
 
 /**
   This test suite uses coordinators running simulators and basic models that were tested in other suites before
@@ -106,28 +107,27 @@ BOOST_AUTO_TEST_CASE( coordinated_generator_produces_right_output_test){
     //collecting output before the next scheduled produces no output
     cg.collect_outputs(0.5f);
     auto output_bags = cg.outbox();
-    BOOST_REQUIRE(!output_bags);
+    BOOST_REQUIRE(cadmium::get_messages<coupled_out_port>(output_bags).empty());
     //check asking for output after next scheduled transition throws
     BOOST_CHECK_THROW(cg.collect_outputs(2.0f), std::domain_error);
     //check the right output is generated when asking at next time
     cg.collect_outputs(1.0f);
     output_bags = cg.outbox();
-    BOOST_REQUIRE(output_bags);
-    BOOST_CHECK_EQUAL(cadmium::get_messages<coupled_out_port>(*output_bags).size(), 1); //only a tick happened.
+    BOOST_REQUIRE(!cadmium::engine::all_bags_empty(output_bags));
+    BOOST_CHECK_EQUAL(cadmium::get_messages<coupled_out_port>(output_bags).size(), 1); //only a tick happened.
 
     //second cycle, all same checks one second later produce same results
     cg.advance_simulation(1.0f);
     //collecting output before the next scheduled produces no output
     cg.collect_outputs(1.5f);
     output_bags = cg.outbox();
-    BOOST_REQUIRE(!output_bags);
+    BOOST_REQUIRE(cadmium::get_messages<coupled_out_port>(output_bags).empty());
     //check asking for output after next scheduled transition throws
     BOOST_CHECK_THROW(cg.collect_outputs(3.0f), std::domain_error);
     //check the right output is generated when asking at next time
     cg.collect_outputs(2.0f);
     output_bags = cg.outbox();
-    BOOST_REQUIRE(output_bags);
-    BOOST_CHECK_EQUAL(cadmium::get_messages<coupled_out_port>(*output_bags).size(), 1); //only a tick happened.
+    BOOST_CHECK_EQUAL(cadmium::get_messages<coupled_out_port>(output_bags).size(), 1); //only a tick happened.
 }
 
 //2 generators connected to an infinite_counter are coordinated and routing messages correctly
@@ -157,7 +157,7 @@ BOOST_AUTO_TEST_CASE( coordinated_generator_produces_right_output_test){
     template<typename TIME>
     struct test_generator_to_reset : public reset_generator_base<TIME> {
         float period() const override {
-            return 5.0f; //using float for time in this test, ticking every second
+            return 5.0f; //using float for time in this test, ticking every 5 seconds
         }
         reset_tick output_message() const override {
             return reset_tick();
@@ -174,8 +174,8 @@ using g2a_eocs=std::tuple<
         cadmium::modeling::EOC<test_accumulator, test_accumulator_defs::sum, g2a_coupled_out_port>
 >;
 using g2a_ics=std::tuple<
-//        cadmium::modeling::IC<test_generator_to_add, add_one_generator_defs::out, test_accumulator, test_accumulator_defs::add>,
-//        cadmium::modeling::IC<test_generator_to_reset, reset_generator_defs::out , test_accumulator, test_accumulator_defs::reset>
+        cadmium::modeling::IC<test_generator_to_add, add_one_generator_defs::out, test_accumulator, test_accumulator_defs::add>,
+        cadmium::modeling::IC<test_generator_to_reset, reset_generator_defs::out , test_accumulator, test_accumulator_defs::reset>
 >;
 
 template<typename TIME>
@@ -183,7 +183,6 @@ using coupled_g2a_model=cadmium::modeling::coupled_model<TIME, g2a_iports, g2a_o
 
 BOOST_AUTO_TEST_CASE( generators_send_to_accumulator_and_output_test ){
     cadmium::engine::coordinator<coupled_g2a_model, float> cc;
-    g2a_submodels::type<float> subs{};
     //check init sets the right next time
     cc.init(0);
 
@@ -191,30 +190,30 @@ BOOST_AUTO_TEST_CASE( generators_send_to_accumulator_and_output_test ){
     BOOST_CHECK_EQUAL((float) 1, cc.next());
 
     cc.collect_outputs((float) 1);
-//    auto output_bags = cc.outbox();
-//    BOOST_REQUIRE(!output_bags);
-//    cc.advance_simulation((float) 1);
+    auto output_bags = cc.outbox();
+    BOOST_REQUIRE(cadmium::get_messages<g2a_coupled_out_port>(output_bags).empty());
+    cc.advance_simulation((float) 1);
 
     //next 3 collections of output are empty
-//    for (int i=2; i < 6; i++) {
-//        BOOST_CHECK_EQUAL((float) i, cc.next());
-//        cc.collect_outputs((float) i);
-//        auto output_bags = cc.outbox();
-//        BOOST_REQUIRE(!output_bags);
-//        cc.advance_simulation((float) i);
-//    }
-//    //fifth advance triggers a reset and reschedules same time for next
-//    cc.collect_outputs(5.0f);
-//    auto output_bags = cc.outbox();
-//    BOOST_REQUIRE(output_bags);
-//    BOOST_CHECK_EQUAL(cadmium::get_messages<g2a_coupled_out_port>(*output_bags).size(), 1); //only a sum happened.
-//    BOOST_CHECK_EQUAL(cadmium::get_messages<g2a_coupled_out_port>(*output_bags).at(0), 5); //5 ticks of 1 were counted
-//    BOOST_CHECK_EQUAL(6.0f, cc.next());
-//    cc.collect_outputs(6.0f);
-//    output_bags = cc.outbox();
-//    BOOST_REQUIRE(!output_bags);//was reset
-}
+    for (int i=2; i < 6; i++) {
+        BOOST_CHECK_EQUAL((float) i, cc.next());
+        cc.collect_outputs((float) i);
+        output_bags = cc.outbox();
+        BOOST_REQUIRE(cadmium::get_messages<g2a_coupled_out_port>(output_bags).empty());
+        cc.advance_simulation((float) i);
+    }
+    BOOST_CHECK_EQUAL((float) 5.0, cc.next()); //fifth advance triggers a reset and reschedules same time for next
+    cc.collect_outputs(5.0f);
+    output_bags = cc.outbox();
 
+    BOOST_REQUIRE(!cadmium::engine::all_bags_empty(output_bags));
+    BOOST_CHECK_EQUAL(cadmium::get_messages<g2a_coupled_out_port>(output_bags).size(), 1); //only a sum happened.
+    BOOST_CHECK_EQUAL(cadmium::get_messages<g2a_coupled_out_port>(output_bags).at(0), 5); //5 ticks of 1 were counted
+    BOOST_CHECK_EQUAL(6.0f, cc.next());
+    cc.collect_outputs(6.0f);
+    output_bags = cc.outbox();
+    BOOST_REQUIRE(cadmium::get_messages<g2a_coupled_out_port>(output_bags).empty());//was reset
+}
 
 BOOST_AUTO_TEST_SUITE_END()
 
