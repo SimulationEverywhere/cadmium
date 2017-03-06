@@ -33,6 +33,7 @@
 #include <cadmium/modeling/coupled_model.hpp>
 #include <cadmium/modeling/ports.hpp>
 #include <cadmium/concept/coupled_model_assert.hpp>
+#include <cadmium/engine/pdevs_runner.hpp>
 using namespace std;
 
 using hclock=chrono::high_resolution_clock;
@@ -107,11 +108,8 @@ using clock_model=cadmium::modeling::coupled_model<TIME, iports, oports, submode
 int main(){
     auto start = hclock::now(); //to measure simulation execution time
 
-
-    //TODO: enable the run when the runner is implemented to complete the example
-    //runmodel<clock>();
-    cadmium::concept::coupled_model_assert<clock_model>();
-
+    cadmium::engine::runner<float, clock_model> r{0.0};
+    r.runUntil(30000.0);
 
     auto elapsed = std::chrono::duration_cast<std::chrono::duration<double, std::ratio<1>>>
                                                                                           (hclock::now() - start).count();
