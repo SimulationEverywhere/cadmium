@@ -39,16 +39,46 @@ BOOST_AUTO_TEST_SUITE( pdevs_runner_test_suite )
 
 BOOST_AUTO_TEST_SUITE( pdevs_silent_runner_test_suite )
 
-BOOST_AUTO_TEST_CASE( pdevs_runner_of_empty_coupled_for_a_minute_test){
-    BOOST_FAIL("unimplemented");
-}
+//generator in a coupled model definition pieces
+//message representing ticks
+struct test_tick{
 
-BOOST_AUTO_TEST_CASE( pdevs_runner_of_empty_coupled_until_stop_test){
-    BOOST_FAIL("unimplemented");
-}
+};
+
+//generator for tick messages
+using out_port = cadmium::basic_models::generator_defs<test_tick>::out;
+template <typename TIME>
+using test_tick_generator_base=cadmium::basic_models::generator<test_tick, TIME>;
+
+template<typename TIME>
+struct test_generator : public test_tick_generator_base<TIME> {
+    float period() const override {
+        return 1.0f; //using float for time in this test, ticking every second
+    }
+    test_tick output_message() const override {
+        return test_tick();
+    }
+};
+
+//generator of ticks coupled model definition
+using iports = std::tuple<>;
+struct coupled_out_port : public cadmium::out_port<test_tick>{};
+using oports = std::tuple<coupled_out_port>;
+using submodels=cadmium::modeling::models_tuple<test_generator>;
+using eics=std::tuple<>;
+using eocs=std::tuple<
+    cadmium::modeling::EOC<test_generator, out_port, coupled_out_port>
+>;
+using ics=std::tuple<>;
+
+template<typename TIME>
+using coupled_generator=cadmium::modeling::coupled_model<TIME, iports, oports, submodels, eics, eocs, ics>;
+
 
 BOOST_AUTO_TEST_CASE( pdevs_runner_of_a_generator_in_a_coupled_for_a_minute_test){
-    BOOST_FAIL("unimplemented");
+    cadmium::engine::runner<float, coupled_generator> r{0.0};
+    float next_to_end_time = r.runUntil(60.0);
+    BOOST_CHECK_EQUAL(60.0, next_to_end_time);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

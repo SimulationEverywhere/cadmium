@@ -62,7 +62,7 @@ namespace cadmium {
              * @param init_time is the initial time of the simulation.
              * @param end_time is the time simulation has to stop running
              */
-            explicit runner(const TIME& init_time, const TIME& end_time){
+            explicit runner(const TIME& init_time){
                 top_coordinator.init(init_time);
                 _next = top_coordinator.next();
             }
@@ -75,7 +75,7 @@ namespace cadmium {
             TIME runUntil(const TIME& t) {
                 while (_next < t){
                     top_coordinator.advance_simulation(_next);
-                    _next = top_coordinator->next();
+                    _next = top_coordinator.next();
                 }
                 return _next;
             }
