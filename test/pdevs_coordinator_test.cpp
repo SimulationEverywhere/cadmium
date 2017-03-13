@@ -27,7 +27,9 @@
 
 #define BOOST_TEST_DYN_LINK
 #include <boost/test/unit_test.hpp>
-#include <cadmium/basic_model/generator.hpp>
+#include<cadmium/basic_model/int_generator_one_sec.hpp>
+#include<cadmium/basic_model/reset_generator_five_sec.hpp>
+#include<cadmium/basic_model/generator.hpp>
 #include <cadmium/basic_model/accumulator.hpp>
 #include <cadmium/modeling/coupled_model.hpp>
 #include <cadmium/engine/pdevs_coordinator.hpp>
@@ -131,56 +133,30 @@ BOOST_AUTO_TEST_CASE( coordinated_generator_produces_right_output_test){
 }
 
 //2 generators connected to an infinite_counter are coordinated and routing messages correctly
-    template<typename TIME>
-    using add_one_generator_base=cadmium::basic_models::generator<int, TIME>;
-    using add_one_generator_defs=cadmium::basic_models::generator_defs<int>;
-
-    template<typename TIME>
-    struct test_generator_to_add: public add_one_generator_base <TIME> {
-        float period() const override {
-            return 1.0f; //using float for time in this test, ticking every second
-        }
-        int output_message() const override {
-            return 1;// sending one to add
-        }
-    };
-
-    template<typename TIME>
-    using test_accumulator=cadmium::basic_models::accumulator<int, TIME>;
-    using test_accumulator_defs=cadmium::basic_models::accumulator_defs<int>;
-    using reset_tick=cadmium::basic_models::accumulator_defs<int>::reset_tick;
-
-    template<typename TIME>
-    using reset_generator_base=cadmium::basic_models::generator<reset_tick, TIME>;
-    using reset_generator_defs=cadmium::basic_models::generator_defs<reset_tick>;
-
-    template<typename TIME>
-    struct test_generator_to_reset : public reset_generator_base<TIME> {
-        float period() const override {
-            return 5.0f; //using float for time in this test, ticking every 5 seconds
-        }
-        reset_tick output_message() const override {
-            return reset_tick();
-        }
-    };
-
 //connecting generators to acumm coupled model definition
+
+template<typename TIME>
+using test_accumulator=cadmium::basic_models::accumulator<int, TIME>;
+using test_accumulator_defs=cadmium::basic_models::accumulator_defs<int>;
+using reset_tick=cadmium::basic_models::accumulator_defs<int>::reset_tick;
+
 using g2a_iports = std::tuple<>;
 struct g2a_coupled_out_port : public cadmium::out_port<int>{};
 using g2a_oports = std::tuple<g2a_coupled_out_port>;
-using g2a_submodels=cadmium::modeling::models_tuple<test_accumulator, test_generator_to_reset, test_generator_to_add>;
+using g2a_submodels=cadmium::modeling::models_tuple<test_accumulator, cadmium::basic_models::reset_generator_five_sec, cadmium::basic_models::int_generator_one_sec>;
 using g2a_eics=std::tuple<>;
 using g2a_eocs=std::tuple<
-        cadmium::modeling::EOC<test_accumulator, test_accumulator_defs::sum, g2a_coupled_out_port>
+cadmium::modeling::EOC<test_accumulator, test_accumulator_defs::sum, g2a_coupled_out_port>
 >;
 using g2a_ics=std::tuple<
-        cadmium::modeling::IC<test_generator_to_add, add_one_generator_defs::out, test_accumulator, test_accumulator_defs::add>,
-        cadmium::modeling::IC<test_generator_to_reset, reset_generator_defs::out , test_accumulator, test_accumulator_defs::reset>
+cadmium::modeling::IC<cadmium::basic_models::int_generator_one_sec, cadmium::basic_models::int_generator_one_sec_defs::out, test_accumulator, test_accumulator_defs::add>,
+cadmium::modeling::IC<cadmium::basic_models::reset_generator_five_sec, cadmium::basic_models::reset_generator_five_sec_defs::out , test_accumulator, test_accumulator_defs::reset>
 >;
 
 template<typename TIME>
 using coupled_g2a_model=cadmium::modeling::coupled_model<TIME, g2a_iports, g2a_oports, g2a_submodels, g2a_eics, g2a_eocs, g2a_ics>;
 
+struct sumint : public cadmium::out_port<int> {};
 BOOST_AUTO_TEST_CASE( generators_send_to_accumulator_and_output_test ){
     cadmium::engine::coordinator<coupled_g2a_model, float> cc;
     //check init sets the right next time
@@ -209,6 +185,7 @@ BOOST_AUTO_TEST_CASE( generators_send_to_accumulator_and_output_test ){
     BOOST_REQUIRE(!cadmium::engine::all_bags_empty(output_bags));
     BOOST_CHECK_EQUAL(cadmium::get_messages<g2a_coupled_out_port>(output_bags).size(), 1); //only a sum happened.
     BOOST_CHECK_EQUAL(cadmium::get_messages<g2a_coupled_out_port>(output_bags).at(0), 5); //5 ticks of 1 were counted
+    cc.advance_simulation(5.0f);
     BOOST_CHECK_EQUAL(6.0f, cc.next());
     cc.collect_outputs(6.0f);
     output_bags = cc.outbox();
