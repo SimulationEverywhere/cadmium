@@ -1,4 +1,4 @@
-project exaremple
+project example
     : requirements
         <include>../include
 	<include>../../safefloat/include
