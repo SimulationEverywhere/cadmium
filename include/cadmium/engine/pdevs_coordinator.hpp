@@ -80,7 +80,6 @@ namespace cadmium {
             /**
              * @brief init function sets the start time
              * @param t is the start time
-             * @return the time until first time advance result
              */
             void init(TIME t) noexcept {
                 _last = t;
@@ -101,7 +100,6 @@ namespace cadmium {
             /**
              * @brief Collects outputs ready for output before advancing the simulation
              * @param t time the simulation will be advanced to
-             * @return message bags with the outputs
              * @todo At this point all messages are copied while routed form onelevel to the next, need to find a good
              * strategy to lower copying, maybe.
              * @todo Merge the Collect output calls into the advance simulation as done with ICs and EICs routing

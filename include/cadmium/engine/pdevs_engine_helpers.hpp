@@ -153,7 +153,7 @@ namespace cadmium {
 
         template<typename TIMED_MODEL, typename CST>
         //typename get_engine_type_by_model<TIMED_MODEL, CST>::type
-        auto& get_engine_by_model(CST& cst){
+        typename get_engine_type_by_model<TIMED_MODEL, CST>::type & get_engine_by_model(CST& cst){
             return std::get<typename get_engine_type_by_model<TIMED_MODEL, CST>::type>(cst);
         }
 
@@ -220,10 +220,12 @@ namespace cadmium {
             using to_model=typename current_IC::template to_model<TIME>;
             using to_port=typename current_IC::to_model_input_port;
 
+            using from_model_type=typename get_engine_type_by_model<from_model, CST>::type;
+            using to_model_type=typename get_engine_type_by_model<to_model, CST>::type;
             static void route(const TIME& t, CST& engines){
                 //route messages for 1 coupling
-                auto from_engine=get_engine_by_model<from_model, CST>(engines);
-                auto to_engine=get_engine_by_model<to_model, CST>(engines);
+                from_model_type& from_engine = get_engine_by_model<from_model, CST>(engines);
+                to_model_type& to_engine=get_engine_by_model<to_model, CST>(engines);
 
                 //add the messages
                 auto& from_messages = cadmium::get_messages<from_port>(from_engine._outbox);

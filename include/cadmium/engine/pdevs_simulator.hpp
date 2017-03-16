@@ -66,8 +66,7 @@ namespace cadmium {
 
             /**
              * @brief constructor is used as init function, sets the start time
-             * @param t is the start time
-             * @return the time until first time advance result
+             * @param initial_time is the start time
              */
             void init(TIME initial_time) {
                 _last=initial_time;
@@ -81,12 +80,13 @@ namespace cadmium {
             }
 
             void collect_outputs(const TIME &t) {
-                if (_next < t)
+                if (_next < t){
                     throw std::domain_error("Trying to obtain output when not internal event is scheduled");
-                else if (_next == t)
+                } else if (_next == t) {
                     _outbox = _model.output();
-                else
+                } else {
                     _outbox = out_bags_type();
+                }
             }
 
             /**
