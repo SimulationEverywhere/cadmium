@@ -51,10 +51,7 @@ namespace cadmium {
 
         //TODO: migrate specialization FEL behavior from CDBoost. At this point, there is no parametrized FEL.
         template <class TIME, template<class> class MODEL, typename LOGGER=default_logger>
-        class runner;
-
-        template <class TIME, template<class> class MODEL>
-        class runner<TIME, MODEL>{
+        class runner{
             TIME _next; //next scheduled event
 
             //TODO: handle the case that the model received is an atomic model.
@@ -67,6 +64,7 @@ namespace cadmium {
              * @param init_time is the initial time of the simulation.
              */
             explicit runner(const TIME& init_time){
+                LOGGER::template log<cadmium::logger::logger_global_time, TIME>(init_time);
                 top_coordinator.init(init_time);
                 _next = top_coordinator.next();
             }
@@ -78,6 +76,7 @@ namespace cadmium {
              */
             TIME runUntil(const TIME& t) {
                 while (_next < t){
+                    LOGGER::template log<cadmium::logger::logger_global_time, TIME>(_next);
                     top_coordinator.advance_simulation(_next);
                     _next = top_coordinator.next();
                 }
@@ -90,6 +89,7 @@ namespace cadmium {
             void runUntilPassivate() {
                 while ( _next !=  std::numeric_limits<TIME>::infinity )
                 {
+                    LOGGER::template log<cadmium::logger::logger_global_time, TIME>(_next);
                     top_coordinator.advanceSimulation( _next);
                     _next = top_coordinator.next();
                 }
