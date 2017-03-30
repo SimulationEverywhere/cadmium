@@ -29,35 +29,44 @@
 #include <sstream>
 #include<boost/test/unit_test.hpp>
 #include <cadmium/logger/logger.hpp>
+#include <cadmium/logger/common_loggers.hpp>
+
+namespace {
+    std::ostringstream oss;
+
+    struct oss_test_sink_provider{
+        static std::ostream& sink(){
+            return oss;
+        }
+    };
+}
+
 
 BOOST_AUTO_TEST_SUITE( loggers_test_suite )
 
 BOOST_AUTO_TEST_CASE( log_nothing_test )
 {
-    struct logger_info : public logger_source{};
-    struct logger_debug : public logger_source{};
+    oss.clear();
 
-    std::ostringstream oss;
+
     //logger definition
-    logger<logger_info, verbatim_formater> l(oss);
+    cadmium::logger::logger<cadmium::logger::logger_info, cadmium::logger::verbatim_formater, oss_test_sink_provider> l;
 
     //log usage in different source
-    l.log<logger_debug, std::string>("nothing to show");
+    l.log<cadmium::logger::logger_debug, std::string>("nothing to show");
 
     BOOST_CHECK(oss.str().empty());
 }
 
 BOOST_AUTO_TEST_CASE( simple_logger_logs_test )
 {
-    struct logger_info : public logger_source{};
-    struct logger_debug : public logger_source{};
+    oss.clear();
 
-    std::ostringstream oss;
     //logger definition
-    logger<logger_info, verbatim_formater> l(oss);
+    cadmium::logger::logger<cadmium::logger::logger_info, cadmium::logger::verbatim_formater, oss_test_sink_provider> l;
 
     //log usage in different source
-    l.log<logger_info, std::string>("nothing to show");
+    l.log<cadmium::logger::logger_info, std::string>("nothing to show");
 
     BOOST_CHECK_EQUAL(oss.str(), "nothing to show\n");
 

@@ -29,6 +29,8 @@
 #include <iostream>
 #include <cadmium/engine/pdevs_coordinator.hpp>
 #include <cadmium/concept/atomic_model_assert.hpp>
+#include <cadmium/logger/logger.hpp>
+#include <cadmium/logger/common_loggers.hpp>
 
 
 namespace cadmium {
@@ -44,12 +46,15 @@ namespace cadmium {
          * @param Silent will not produce any output when running
          */
 
+        //by default state changes get verbatim formatted and logged to cout
+        using default_logger=cadmium::logger::logger<cadmium::logger::logger_state, cadmium::logger::verbatim_formater, cadmium::logger::cout_sink_provider>;
+
         //TODO: migrate specialization FEL behavior from CDBoost. At this point, there is no parametrized FEL.
-        template <class TIME, template<class> class MODEL, bool SILENT=true>
+        template <class TIME, template<class> class MODEL, typename LOGGER=default_logger>
         class runner;
 
         template <class TIME, template<class> class MODEL>
-        class runner<TIME, MODEL, true>{ //silent run implementation
+        class runner<TIME, MODEL>{
             TIME _next; //next scheduled event
 
             //TODO: handle the case that the model received is an atomic model.
@@ -60,7 +65,6 @@ namespace cadmium {
             /**
              * @brief set the dynamic parameters for the simulation
              * @param init_time is the initial time of the simulation.
-             * @param end_time is the time simulation has to stop running
              */
             explicit runner(const TIME& init_time){
                 top_coordinator.init(init_time);

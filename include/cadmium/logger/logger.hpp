@@ -28,6 +28,7 @@
 #define LOGGER_HPP
 
 #include <sstream>
+#include <iostream>
 
 /**
   * Logging concepts
@@ -52,47 +53,23 @@
   *   We will like to allow an extension for model specific log sources and filters.
   */
 
-//log sources are identified as childs of this class
-struct logger_source{};
 
-//formatter for verbatim concatenated outputs
-template<typename... PARAMs>
-struct verbatim_formater;
+namespace cadmium {
+    namespace logger {
+        //log sources are identified as childs of this class
+        struct logger_source{};
 
-template<typename PARAM, typename... PARAMs>
-struct verbatim_formater<PARAM, PARAMs...>{
-    static void format(std::ostream& os, const PARAM& p, const PARAMs&... ps){
-        os << p;
-        verbatim_formater<PARAMs...>::format(os, ps...);
+        template<typename LOGGER_SOURCE, template<typename...> class FORMATTER, typename SINK_PROVIDER>
+        struct logger{
+            template<typename DECLARED_SOURCE, typename... PARAMs>
+            static void log(const PARAMs&... ps){ //todo: apply a static_if solution
+                if (std::is_same<LOGGER_SOURCE, DECLARED_SOURCE>::value) {
+                    FORMATTER<PARAMs...>::format(SINK_PROVIDER::sink(), ps...);
+                }
+            }
+        };
+
     }
-};
-
-template<>
-struct verbatim_formater<>{
-    static void format(std::ostream& os){
-        os << std::endl;
-    }
-};
-
-
-
-template<typename LOGGER_SOURCE, template<typename...> class FORMATTER>
-struct logger{
-    logger() = delete;
-
-    std::ostream& _sink; //todo: try to remove need for pointer
-    logger(std::ostream& s): _sink(s){} //sets the sink where data will be routed. Sink will receive streams to publish
-
-
-    template<typename DECLARED_SOURCE, typename... PARAMs>
-    void log(const PARAMs&... ps){ //todo: apply a static_if solution
-        if (std::is_same<LOGGER_SOURCE, DECLARED_SOURCE>::value) {
-            FORMATTER<PARAMs...>::format(_sink, ps...);
-        }
-    }
-};
-
-
-
+}
 
 #endif // LOGGER_HPP
