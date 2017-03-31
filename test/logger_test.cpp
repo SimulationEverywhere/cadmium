@@ -48,7 +48,6 @@ BOOST_AUTO_TEST_CASE( log_nothing_test )
 {
     oss.clear();
 
-
     //logger definition
     cadmium::logger::logger<cadmium::logger::logger_info, cadmium::logger::verbatim_formater, oss_test_sink_provider> l;
 
