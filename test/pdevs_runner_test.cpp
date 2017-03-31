@@ -37,8 +37,6 @@
 
 BOOST_AUTO_TEST_SUITE( pdevs_runner_test_suite )
 
-BOOST_AUTO_TEST_SUITE( pdevs_silent_runner_test_suite )
-
 //generator in a coupled model definition pieces
 //message representing ticks
 struct test_tick{
@@ -74,12 +72,58 @@ using ics=std::tuple<>;
 template<typename TIME>
 using coupled_generator=cadmium::modeling::coupled_model<TIME, iports, oports, submodels, eics, eocs, ics>;
 
+BOOST_AUTO_TEST_SUITE( pdevs_silent_runner_test_suite )
 
 BOOST_AUTO_TEST_CASE( pdevs_runner_of_a_generator_in_a_coupled_for_a_minute_test){
     cadmium::engine::runner<float, coupled_generator> r{0.0};
     float next_to_end_time = r.runUntil(60.0);
     BOOST_CHECK_EQUAL(60.0, next_to_end_time);
 }
+
+BOOST_AUTO_TEST_SUITE_END()
+
+BOOST_AUTO_TEST_SUITE( loggers_sources_runner_test_suite )
+
+namespace {
+    std::ostringstream oss;
+
+    struct oss_test_sink_provider{
+        static std::ostream& sink(){
+            return oss;
+        }
+    };
+}
+
+
+BOOST_AUTO_TEST_CASE( runner_logs_global_time_advances_test )
+{
+    oss.str("");
+    //logger definition
+    using log_gt_to_oss=cadmium::logger::logger<cadmium::logger::logger_global_time, cadmium::logger::verbatim_formater, oss_test_sink_provider>;
+
+    //setup runner
+    cadmium::engine::runner<float, coupled_generator, log_gt_to_oss> r{0.0};
+    float next_to_end_time = r.runUntil(3.0);
+
+    //check the string
+    BOOST_CHECK_EQUAL(oss.str(), "0\n1\n2\n");
+}
+
+BOOST_AUTO_TEST_CASE( runner_logs_info_on_setup_and_start_and_end_of_run_test )
+{
+    oss.str("");
+    //logger definition
+    using log_info_to_oss=cadmium::logger::logger<cadmium::logger::logger_info  , cadmium::logger::verbatim_formater, oss_test_sink_provider>;
+
+    //setup runner
+    cadmium::engine::runner<float, coupled_generator, log_info_to_oss> r{0.0};
+    float next_to_end_time = r.runUntil(3.0);
+
+    //check the string
+    auto expected="Preparing model\nStarting run\nFinished run\n";
+    BOOST_CHECK_EQUAL(oss.str(), expected);
+}
+
 
 BOOST_AUTO_TEST_SUITE_END()
 
