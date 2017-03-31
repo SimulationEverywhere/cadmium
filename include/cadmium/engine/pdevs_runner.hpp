@@ -65,6 +65,7 @@ namespace cadmium {
              */
             explicit runner(const TIME& init_time){
                 LOGGER::template log<cadmium::logger::logger_global_time, TIME>(init_time);
+                LOGGER::template log<cadmium::logger::logger_info, std::string>("Preparing model");
                 top_coordinator.init(init_time);
                 _next = top_coordinator.next();
             }
@@ -75,11 +76,13 @@ namespace cadmium {
              * @return the TIME of the next event to happen when simulation stopped.
              */
             TIME runUntil(const TIME& t) {
+                LOGGER::template log<cadmium::logger::logger_info, std::string>("Starting run");
                 while (_next < t){
                     LOGGER::template log<cadmium::logger::logger_global_time, TIME>(_next);
                     top_coordinator.advance_simulation(_next);
                     _next = top_coordinator.next();
                 }
+                LOGGER::template log<cadmium::logger::logger_info, std::string>("Finished run");
                 return _next;
             }
 
@@ -87,12 +90,14 @@ namespace cadmium {
              * @brief runUntilPassivate starts the simulation and stops when there is no next internal event to happen.
              */
             void runUntilPassivate() {
+                LOGGER::template log<cadmium::logger::logger_info, std::string>("Starting run");
                 while ( _next !=  std::numeric_limits<TIME>::infinity )
                 {
                     LOGGER::template log<cadmium::logger::logger_global_time, TIME>(_next);
                     top_coordinator.advanceSimulation( _next);
                     _next = top_coordinator.next();
                 }
+                LOGGER::template log<cadmium::logger::logger_info, std::string>("Finished run");
             }
         };
     }
