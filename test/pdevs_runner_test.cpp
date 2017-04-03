@@ -99,29 +99,53 @@ BOOST_AUTO_TEST_CASE( runner_logs_global_time_advances_test )
 {
     oss.str("");
     //logger definition
-    using log_gt_to_oss=cadmium::logger::logger<cadmium::logger::logger_global_time, cadmium::logger::verbatim_formater, oss_test_sink_provider>;
+    using log_gt_to_oss=cadmium::logger::logger<cadmium::logger::logger_global_time, cadmium::logger::verbatim_formatter, oss_test_sink_provider>;
 
     //setup runner
     cadmium::engine::runner<float, coupled_generator, log_gt_to_oss> r{0.0};
-    float next_to_end_time = r.runUntil(3.0);
+    r.runUntil(3.0);
 
     //check the string
-    BOOST_CHECK_EQUAL(oss.str(), "0\n1\n2\n");
+    auto expected = "0\n"  //runnner init time
+                    "1\n"  //runner first advance
+                    "2\n"; //runner last advance
+    BOOST_CHECK_EQUAL(oss.str(), expected);
 }
 
-BOOST_AUTO_TEST_CASE( runner_logs_info_on_setup_and_start_and_end_of_run_test )
+BOOST_AUTO_TEST_CASE( simulation_logs_info_on_setup_and_start_loops_and_end_of_run_test )
 {
+    //This test integrates log output from runner, coordinator and simulator.
     oss.str("");
     //logger definition
-    using log_info_to_oss=cadmium::logger::logger<cadmium::logger::logger_info  , cadmium::logger::verbatim_formater, oss_test_sink_provider>;
+    using log_info_to_oss=cadmium::logger::logger<cadmium::logger::logger_info, cadmium::logger::verbatim_formatter, oss_test_sink_provider>;
 
     //setup runner
     cadmium::engine::runner<float, coupled_generator, log_info_to_oss> r{0.0};
-    float next_to_end_time = r.runUntil(3.0);
+    r.runUntil(2.0);
 
     //check the string
-    auto expected="Preparing model\nStarting run\nFinished run\n";
-    BOOST_CHECK_EQUAL(oss.str(), expected);
+    std::ostringstream expected_oss;
+    expected_oss << "Preparing model\n"; //setup of model by runner
+
+    //top model is init
+    expected_oss << "Coordinator for model ";
+    expected_oss << boost::typeindex::type_id<coupled_generator<float>>().pretty_name();
+    expected_oss << " initialized to time 0\n";
+
+    expected_oss << "Starting run\n"; //starting simulation main loop in runner
+
+    //top model collects outputs
+    expected_oss << "Coordinator for model ";
+    expected_oss << boost::typeindex::type_id<coupled_generator<float>>().pretty_name();
+    expected_oss << " collecting output at time 1\n";
+
+    //top model advances simulation
+    expected_oss << "Coordinator for model ";
+    expected_oss << boost::typeindex::type_id<coupled_generator<float>>().pretty_name();
+    expected_oss << " advancing simulation from time 0 to 1\n";
+
+    expected_oss << "Finished run\n"; //finished simulation and exiting runner
+    BOOST_CHECK_EQUAL(oss.str(), expected_oss.str());
 }
 
 

@@ -36,6 +36,7 @@
 #include <cadmium/engine/pdevs_simulator.hpp>
 #include <cadmium/concept/concept_helpers.hpp>
 #include <cadmium/engine/pdevs_engine_helpers.hpp>
+#include <cadmium/logger/logger.hpp>
 
 /**
   This test suite uses coordinators running simulators and basic models that were tested in other suites before
@@ -102,7 +103,7 @@ using coupled_generator=cadmium::modeling::coupled_model<TIME, iports, oports, s
 
 
 BOOST_AUTO_TEST_CASE( coordinated_generator_produces_right_output_test){
-    cadmium::engine::coordinator<coupled_generator, float> cg;
+    cadmium::engine::coordinator<coupled_generator, float, cadmium::logger::not_logger> cg;
     //check init sets the right next time
     cg.init(0);
     BOOST_CHECK_EQUAL(1.0f, cg.next());
@@ -158,7 +159,7 @@ using coupled_g2a_model=cadmium::modeling::coupled_model<TIME, g2a_iports, g2a_o
 
 struct sumint : public cadmium::out_port<int> {};
 BOOST_AUTO_TEST_CASE( generators_send_to_accumulator_and_output_test ){
-    cadmium::engine::coordinator<coupled_g2a_model, float> cc;
+    cadmium::engine::coordinator<coupled_g2a_model, float, cadmium::logger::not_logger> cc;
     //check init sets the right next time
     cc.init(0);
 

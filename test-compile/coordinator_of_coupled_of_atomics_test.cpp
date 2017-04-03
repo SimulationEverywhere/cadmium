@@ -26,8 +26,9 @@
 
 #include "coupled_of_atomic_models.hpp"
 #include <cadmium/engine/pdevs_coordinator.hpp>
+#include <cadmium/logger/common_loggers.hpp>
 
 int main(){
-    cadmium::engine::coordinator<coupled_of_atomics, float> cca;
+    cadmium::engine::coordinator<coupled_of_atomics, float, cadmium::logger::not_logger> cca;
     return 0;
 }

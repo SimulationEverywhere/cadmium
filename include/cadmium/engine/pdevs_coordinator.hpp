@@ -27,13 +27,15 @@
 
 #ifndef CADMIUM_PDEVS_COORDINATOR_H
 #define CADMIUM_PDEVS_COORDINATOR_H
-
+#include <limits>
 #include <cadmium/engine/pdevs_engine_helpers.hpp>
 #include <cadmium/modeling/coupled_model.hpp>
 #include <cadmium/modeling/message_bag.hpp>
 #include <cadmium/concept/coupled_model_assert.hpp>
 #include <cadmium/engine/pdevs_simulator.hpp>
-#include <limits>
+#include <cadmium/logger/common_loggers.hpp>
+#include <boost/type_index.hpp>
+
 
 namespace cadmium {
     namespace engine {
@@ -52,14 +54,14 @@ namespace cadmium {
 
             //TODO: migrate specialization FEL behavior from CDBoost. At this point, there is no parametrized FEL.
 
-        template<template<typename T> class MODEL, typename TIME>
+        template<template<typename T> class MODEL, typename TIME, typename LOGGER>
         class coordinator {
             //types for subcoordination
             template<typename P>
             using submodels_type=typename MODEL<TIME>::template models<P>;
             using in_bags_type=typename make_message_bags<typename MODEL<TIME>::input_ports>::type;
             using out_bags_type=typename make_message_bags<typename MODEL<TIME>::output_ports>::type;
-            using subcoordinators_type=typename coordinate_tuple<TIME, submodels_type>::type;
+            using subcoordinators_type=typename coordinate_tuple<TIME, submodels_type, LOGGER>::type;
             using eic=typename MODEL<TIME>::external_input_couplings;
             using eoc=typename MODEL<TIME>::external_output_couplings;
             using ic=typename MODEL<TIME>::internal_couplings;
@@ -82,6 +84,16 @@ namespace cadmium {
              * @param t is the start time
              */
             void init(TIME t) noexcept {
+                auto log_info_init = [](TIME t) -> std::string {
+                     std::ostringstream oss;
+                     oss << "Coordinator for model ";
+                     oss << boost::typeindex::type_id<MODEL<TIME>>().pretty_name();
+                     oss << " initialized to time ";
+                     oss << t;
+                     return oss.str();
+                 };
+                LOGGER::template log<cadmium::logger::logger_info, decltype(log_info_init), TIME>(log_info_init, t);
+
                 _last = t;
                 //init all subcoordinators and find next transition time.
                 cadmium::engine::init_subcoordinators<TIME, subcoordinators_type>(t, _subcoordinators);
@@ -106,6 +118,16 @@ namespace cadmium {
              */
 
             void collect_outputs(const TIME &t) {
+                auto log_info_collect = [](TIME t) -> std::string {
+                     std::ostringstream oss;
+                     oss << "Coordinator for model ";
+                     oss << boost::typeindex::type_id<MODEL<TIME>>().pretty_name();
+                     oss << " collecting output at time ";
+                     oss << t;
+                     return oss.str();
+                };
+                LOGGER::template log<cadmium::logger::logger_info, decltype(log_info_collect), TIME>(log_info_collect, t);
+
                 if (_next < t) {
                     throw std::domain_error("Trying to obtain output when not internal event is scheduled");
                 } else if (_next == t) {
@@ -132,6 +154,18 @@ namespace cadmium {
              * @param t is the time the transition is expected to be run.
              */
             void advance_simulation(const TIME &t) {
+                auto log_info_advance = [](const TIME& from, const TIME& to) -> std::string {
+                     std::ostringstream oss;
+                     oss << "Coordinator for model ";
+                     oss << boost::typeindex::type_id<MODEL<TIME>>().pretty_name();
+                     oss << " advancing simulation from time ";
+                     oss << from;
+                     oss << " to ";
+                     oss << to;
+                     return oss.str();
+                };
+                LOGGER::template log<cadmium::logger::logger_info, decltype(log_info_advance), TIME>(log_info_advance, _last, t);
+
                 if (_next < t || t < _last ) {
                     throw std::domain_error("Trying to obtain output when out of the advance time scope");
                 } else {

@@ -38,9 +38,8 @@
 namespace cadmium {
     namespace engine {
         //forward declaration
-        template<template<typename T> class MODEL, typename TIME>
-        class coordinator;
-        //forward declaration
+        template<template<typename T> class MODEL, typename TIME, typename LOGGER>
+        class coordinator;        //forward declaration
         template<template<typename T> class MODEL, typename TIME>
         class simulator;
 
@@ -65,24 +64,24 @@ namespace cadmium {
         }
 
         //We use COS to accumulate coordinators and simulators while iterating MT using the S index
-        template<typename TIME, template<typename> class MT, std::size_t S, typename... COS> //COS accumulates coords or sims
+        template<typename TIME, template<typename> class MT, std::size_t S, typename LOGGER, typename... COS> //COS accumulates coords or sims
         struct coordinate_tuple_impl {
             template<typename T>
             using current=typename std::tuple_element<S - 1, MT<T>>::type;
-            using current_coordinated=typename std::conditional<cadmium::concept::is_atomic<current>::value(), simulator<current, TIME>, coordinator<current, TIME>>::type;
-            using type=typename coordinate_tuple_impl<TIME, MT, S - 1, current_coordinated, COS...>::type;
+            using current_coordinated=typename std::conditional<cadmium::concept::is_atomic<current>::value(), simulator<current, TIME>, coordinator<current, TIME, LOGGER>>::type;
+            using type=typename coordinate_tuple_impl<TIME, MT, S - 1, LOGGER, current_coordinated, COS...>::type;
         };
 
         //When the S reaches 0, all coordinators and simulators are put into a tuple for return
-        template<typename TIME, template<typename> class MT, typename... COS>
-        struct coordinate_tuple_impl<TIME, MT, 0, COS...> {
+        template<typename TIME, template<typename> class MT, typename LOGGER, typename... COS>
+        struct coordinate_tuple_impl<TIME, MT, 0, LOGGER, COS...> {
             using type=std::tuple<COS...>;
         };
 
-        template<typename TIME, template<typename> class MT>
+        template<typename TIME, template<typename> class MT, typename LOGGER>
         struct coordinate_tuple {
             //the size should not be affected by the type used for TIME, simplifying passing float
-            using type=typename coordinate_tuple_impl<TIME, MT, std::tuple_size<MT<float>>::value>::type;
+            using type=typename coordinate_tuple_impl<TIME, MT, std::tuple_size<MT<float>>::value, LOGGER>::type;
         };
 
         //init every subcooridnator in the coordination tuple

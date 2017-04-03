@@ -59,16 +59,15 @@ namespace cadmium {
         //log sources are identified as childs of this class
         struct logger_source{};
 
-        template<typename LOGGER_SOURCE, template<typename...> class FORMATTER, typename SINK_PROVIDER>
+        template<typename LOGGER_SOURCE, class FORMATTER, typename SINK_PROVIDER>
         struct logger{
             template<typename DECLARED_SOURCE, typename... PARAMs>
             static void log(const PARAMs&... ps){ //todo: apply a static_if solution
                 if (std::is_same<LOGGER_SOURCE, DECLARED_SOURCE>::value) {
-                    FORMATTER<PARAMs...>::format(SINK_PROVIDER::sink(), ps...);
+                    FORMATTER::format(SINK_PROVIDER::sink(), ps...);
                 }
             }
         };
-
     }
 }
 

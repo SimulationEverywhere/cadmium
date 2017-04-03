@@ -43,11 +43,11 @@ namespace cadmium {
          *
          * @param Model The model to be simulated
          * @param Time Representation of time to be used to run the simualtion
-         * @param Silent will not produce any output when running
+         * @param Logger what, where and how to log from the simulation
          */
 
         //by default state changes get verbatim formatted and logged to cout
-        using default_logger=cadmium::logger::logger<cadmium::logger::logger_state, cadmium::logger::verbatim_formater, cadmium::logger::cout_sink_provider>;
+        using default_logger=cadmium::logger::logger<cadmium::logger::logger_state, cadmium::logger::verbatim_formatter, cadmium::logger::cout_sink_provider>;
 
         //TODO: migrate specialization FEL behavior from CDBoost. At this point, there is no parametrized FEL.
         template <class TIME, template<class> class MODEL, typename LOGGER=default_logger>
@@ -55,7 +55,7 @@ namespace cadmium {
             TIME _next; //next scheduled event
 
             //TODO: handle the case that the model received is an atomic model.
-            cadmium::engine::coordinator<MODEL, TIME> top_coordinator; //this only works for coupled models.
+            cadmium::engine::coordinator<MODEL, TIME, LOGGER> top_coordinator; //this only works for coupled models.
 
         public:
             //contructors
@@ -79,6 +79,7 @@ namespace cadmium {
                 LOGGER::template log<cadmium::logger::logger_info, std::string>("Starting run");
                 while (_next < t){
                     LOGGER::template log<cadmium::logger::logger_global_time, TIME>(_next);
+                    top_coordinator.collect_outputs(_next);
                     top_coordinator.advance_simulation(_next);
                     _next = top_coordinator.next();
                 }
