@@ -26,8 +26,9 @@
 
 #include "empty_coupled_model.hpp"
 #include <cadmium/engine/pdevs_coordinator.hpp>
+#include <cadmium/logger/common_loggers.hpp>
 
 int main(){
-    cadmium::engine::coordinator<empty_coupled_model::type, float>();
+    cadmium::engine::coordinator<empty_coupled_model::type, float, cadmium::logger::not_logger>();
     return 0;
 }

@@ -208,6 +208,7 @@ namespace cadmium{
             static_assert(check_unique_elem_types<OP>::value(), "ambiguous port name in output ports");
             //check submodels when using float as TIME
             using floating_submodels=typename FLOATING_MODEL::template models<float>;
+            static_assert(std::is_constructible<floating_submodels>::value, "coupled model cannot be constructed");
         }
 
         template<template<typename TIME> class MODEL> //check a template argument is required (for time)
