@@ -27,9 +27,11 @@
 
 #define BOOST_TEST_DYN_LINK
 #include <boost/test/unit_test.hpp>
-#include<cadmium/basic_model/int_generator_one_sec.hpp>
-#include<cadmium/basic_model/reset_generator_five_sec.hpp>
-#include<cadmium/basic_model/generator.hpp>
+#include <cadmium/logger/tuple_to_ostream.hpp>
+
+#include <cadmium/basic_model/int_generator_one_sec.hpp>
+#include <cadmium/basic_model/reset_generator_five_sec.hpp>
+#include <cadmium/basic_model/generator.hpp>
 #include <cadmium/basic_model/accumulator.hpp>
 #include <cadmium/modeling/coupled_model.hpp>
 #include <cadmium/engine/pdevs_coordinator.hpp>
@@ -37,6 +39,7 @@
 #include <cadmium/concept/concept_helpers.hpp>
 #include <cadmium/engine/pdevs_engine_helpers.hpp>
 #include <cadmium/logger/logger.hpp>
+
 
 /**
   This test suite uses coordinators running simulators and basic models that were tested in other suites before

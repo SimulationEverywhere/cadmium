@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2013-2015, Damian Vicino
+ * Copyright (c) 2013-2017, Damian Vicino
  * Carleton University, Universite de Nice-Sophia Antipolis
  * All rights reserved.
  *
@@ -24,50 +24,29 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CADMIUM_MESSAGE_BAG_HPP
-#define CADMIUM_MESSAGE_BAG_HPP
 
-#include <vector>
+#define BOOST_TEST_DYN_LINK
+#include <boost/test/unit_test.hpp>
 #include <tuple>
+#include <sstream>
+#include <cadmium/logger/tuple_to_ostream.hpp>
 
-namespace cadmium {
-template<typename T>
-using bag=std::vector<T>;
+using namespace cadmium; //for the ostream << to be accesible
 
-template<typename PORT>
-struct message_bag{
-    using port=PORT;
-    using message_type=typename PORT::message_type;
+BOOST_AUTO_TEST_SUITE( tuple_to_ostream_suite )
+BOOST_AUTO_TEST_CASE( simple_common_tuples_test ){
+    std::ostringstream oss;
 
-    bag<message_type> messages;
+    std::tuple<> empty;
+    oss << empty;
+    BOOST_CHECK_EQUAL(oss.str(), "[]");
+    oss.str("");
 
-    message_bag(){}
-
-    message_bag(std::initializer_list<message_type> l) : messages{l} {}
-};
-
-template<typename... Ps>
-std::tuple<message_bag<Ps>...> make_message_bags_impl(std::tuple<Ps...>){
-    return std::tuple<message_bag<Ps>...>{};
-}
-
-template<typename T>
-struct make_message_bags{
-    using type=decltype(make_message_bags_impl(T{}));
-};
-
-
-template<typename PORT, typename T>
-bag<typename message_bag<PORT>::message_type> & get_messages(T& mbs){
-    return std::get<message_bag<PORT>>(mbs).messages;
-}
-
-template<typename PORT, typename T>
-const bag<typename message_bag<PORT>::message_type> & get_messages(const T& mbs){
-    return std::get<message_bag<PORT>>(mbs).messages;
-}
+    auto one_int = std::make_tuple(1);
+    oss << one_int;
+    BOOST_CHECK_EQUAL(oss.str(), "[1]");
+    oss.str("");
 
 }
 
-#endif // CADMIUM_MESSAGE_BAG_HPP
-
+BOOST_AUTO_TEST_SUITE_END()
