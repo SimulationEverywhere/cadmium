@@ -28,11 +28,14 @@
 #ifndef PDEVS_ENGINE_HELPERS_HPP
 #define PDEVS_ENGINE_HELPERS_HPP
 
-#include<type_traits>
-#include<tuple>
-#include<cadmium/concept/concept_helpers.hpp>
-#include<cadmium/modeling/message_bag.hpp>
-#include<algorithm>
+#include <type_traits>
+#include <tuple>
+#include <algorithm>
+#include <iostream>
+#include <numeric>
+#include <boost/type_index.hpp>
+#include <cadmium/concept/concept_helpers.hpp>
+#include <cadmium/modeling/message_bag.hpp>
 
 
 namespace cadmium {
@@ -40,7 +43,7 @@ namespace cadmium {
         //forward declaration
         template<template<typename T> class MODEL, typename TIME, typename LOGGER>
         class coordinator;        //forward declaration
-        template<template<typename T> class MODEL, typename TIME>
+        template<template<typename T> class MODEL, typename TIME, typename LOGGER>
         class simulator;
 
         //finding the min next from a tuple of coordinators and simulators
@@ -68,7 +71,7 @@ namespace cadmium {
         struct coordinate_tuple_impl {
             template<typename T>
             using current=typename std::tuple_element<S - 1, MT<T>>::type;
-            using current_coordinated=typename std::conditional<cadmium::concept::is_atomic<current>::value(), simulator<current, TIME>, coordinator<current, TIME, LOGGER>>::type;
+            using current_coordinated=typename std::conditional<cadmium::concept::is_atomic<current>::value(), simulator<current, TIME, LOGGER>, coordinator<current, TIME, LOGGER>>::type;
             using type=typename coordinate_tuple_impl<TIME, MT, S - 1, LOGGER, current_coordinated, COS...>::type;
         };
 
@@ -118,9 +121,7 @@ namespace cadmium {
 
         template<typename TIME, typename CST>
         struct collect_outputs_in_subcoordinators_impl<TIME, CST, 0>{
-            static void run(const TIME& t, CST& cs){
-                std::get<0>(cs).collect_outputs(t);
-            }
+            static void run(const TIME& t, CST& cs){}
         };
 
         template<typename TIME, typename CST>
@@ -301,6 +302,93 @@ namespace cadmium {
             || all_bags_empty_impl<std::tuple_size<decltype(t)>::value, Ps...>::check(t);
         }
 
+        //printing all messages in bags, if the support the << operator to ostream
+        template <typename T>
+        struct is_streamable {
+        private:
+            template <typename U>
+            static decltype(std::cout << std::declval<U>(), void(), std::true_type()) test(int);
+            template <typename>
+            static std::false_type test(...);
+        public:
+            using type=decltype(test<T>(0));
+            static constexpr auto value=type::value;
+        };
+
+        template<typename T>
+        constexpr bool is_streamable_v(){
+            return is_streamable<T>::value;
+        }
+
+        template<typename T, typename V=typename is_streamable<T>::type>
+        struct value_or_name;
+
+        template<typename T>
+        struct value_or_name<T, std::true_type>{
+            static void print(std::ostream& os, const T& v){
+                os << v;
+            }
+        };
+
+        template<typename T>
+        struct value_or_name<T, std::false_type>{
+            static void print(std::ostream& os, const T& v){
+                os << "obscure message of type ";
+                os << boost::typeindex::type_id<T>().pretty_name();
+            }
+        };
+
+        template<typename T>
+        std::ostream& implode(std::ostream& os, const T& collection){
+             os << "{";
+             auto it = std::begin(collection);
+             if (it != std::end(collection)) {
+                value_or_name<typename T::value_type>::print(os, *it);
+                ++it;
+             }
+             while (it != std::end(collection)){
+                os << ", ";
+                value_or_name<typename T::value_type>::print(os, *it);
+                ++it;
+             }
+             os << "}";
+             return os;
+        }
+
+
+        template<size_t s, typename... T>
+        struct print_messages_by_port_impl{
+            using current_bag=typename std::tuple_element<s-1, std::tuple<T...>>::type;
+            static void run(std::ostream& os, const std::tuple<T...>& b){
+                print_messages_by_port_impl<s-1, T...>::run(os, b);
+                os << ", ";
+                os << boost::typeindex::type_id<typename current_bag::port>().pretty_name();
+                os << ": ";
+                implode(os, cadmium::get_messages<typename current_bag::port>(b));
+            }
+        };
+
+        template<typename... T>
+        struct print_messages_by_port_impl<1, T...>{
+            using current_bag=typename std::tuple_element<0, std::tuple<T...>>::type;
+            static void run(std::ostream& os, const std::tuple<T...>& b){
+                os << boost::typeindex::type_id<typename current_bag::port>().pretty_name();
+                os << ": ";
+                implode(os, cadmium::get_messages<typename current_bag::port>(b));
+            }
+        };
+
+        template<typename... T>
+        struct print_messages_by_port_impl<0, T...>{
+            static void run(std::ostream& os, const std::tuple<T...>& b){}
+        };
+
+        template <typename... T>
+        void print_messages_by_port(std::ostream& os, const std::tuple<T...>& b){
+               os << "[";
+               print_messages_by_port_impl<sizeof...(T), T...>::run(os, b);
+               os << "]";
+        }
     }
 
 

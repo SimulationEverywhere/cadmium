@@ -36,6 +36,7 @@ namespace cadmium {
         struct logger_debug : public cadmium::logger::logger_source{};
         struct logger_state : public cadmium::logger::logger_source{};
         struct logger_messages : public cadmium::logger::logger_source{};
+        struct logger_message_routing : public cadmium::logger::logger_source{};
         struct logger_global_time : public cadmium::logger::logger_source{};
         struct logger_local_time :  public cadmium::logger::logger_source{};
 

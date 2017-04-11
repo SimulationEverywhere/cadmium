@@ -32,9 +32,6 @@
 #include <cadmium/engine/pdevs_coordinator.hpp>
 #include <cadmium/basic_model/generator.hpp>
 #include <cadmium/engine/pdevs_engine_helpers.hpp>
-//#include <cadmium/modeling/coupled_model.hpp>
-//#include <cadmium/concept/concept_helpers.hpp>
-//#include <boost/optional.hpp>
 
 /**
   * This test is for some common helper functions used by coordinators and simulators
@@ -46,7 +43,7 @@ template<typename TIME>
 using floating_accumulator=cadmium::basic_models::accumulator<float, TIME>;
 using floating_accumulator_defs=cadmium::basic_models::accumulator_defs<float>;
 //Definition of a simulator
-using simulator_of_floating_accumulator=cadmium::engine::simulator<floating_accumulator, float>;
+using simulator_of_floating_accumulator=cadmium::engine::simulator<floating_accumulator, float, cadmium::logger::not_logger>;
 //Definition of a tuple with one simulator
 using tuple_sim_accum=std::tuple<simulator_of_floating_accumulator>;
 BOOST_AUTO_TEST_CASE(get_engine_by_model__one_element_test){
@@ -81,8 +78,8 @@ struct floating_generator_b : public floating_generator_base<TIME> {
 };
 
 //Definition of two simulator
-using simulator_of_gen_a=cadmium::engine::simulator<floating_generator_a, float>;
-using simulator_of_gen_b=cadmium::engine::simulator<floating_generator_b, float>;
+using simulator_of_gen_a=cadmium::engine::simulator<floating_generator_a, float, cadmium::logger::not_logger>;
+using simulator_of_gen_b=cadmium::engine::simulator<floating_generator_b, float, cadmium::logger::not_logger>;
 //Definition of a tuple with one simulator
 using tuple_sim_gens=std::tuple<simulator_of_gen_a, simulator_of_gen_b>;
 BOOST_AUTO_TEST_CASE(get_engine_by_model_two_elements_get_first_test){

@@ -28,13 +28,15 @@
 #ifndef CADMIUM_PDEVS_COORDINATOR_H
 #define CADMIUM_PDEVS_COORDINATOR_H
 #include <limits>
+#include <boost/type_index.hpp>
+
 #include <cadmium/engine/pdevs_engine_helpers.hpp>
 #include <cadmium/modeling/coupled_model.hpp>
 #include <cadmium/modeling/message_bag.hpp>
 #include <cadmium/concept/coupled_model_assert.hpp>
 #include <cadmium/engine/pdevs_simulator.hpp>
 #include <cadmium/logger/common_loggers.hpp>
-#include <boost/type_index.hpp>
+
 
 
 namespace cadmium {

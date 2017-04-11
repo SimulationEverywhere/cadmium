@@ -26,13 +26,16 @@
 
 
 #define BOOST_TEST_DYN_LINK
+#include <limits>
 #include <boost/test/unit_test.hpp>
+#include <cadmium/logger/tuple_to_ostream.hpp>
 
 #include <cadmium/basic_model/accumulator.hpp>
 #include <cadmium/basic_model/generator.hpp>
 #include <cadmium/engine/pdevs_simulator.hpp>
 #include <cadmium/engine/pdevs_engine_helpers.hpp>
-#include <limits>
+
+
 
 template<typename TIME>
 using int_accumulator=cadmium::basic_models::accumulator<int, TIME>;
@@ -44,7 +47,7 @@ BOOST_AUTO_TEST_SUITE( pdevs_accumulator_suite )
 BOOST_AUTO_TEST_CASE( accumulator_model_simulation_test )
 {
     //construct a simulator for an accumulator
-    using simulator_t=cadmium::engine::simulator<int_accumulator, float>;
+    using simulator_t=cadmium::engine::simulator<int_accumulator, float, cadmium::logger::not_logger>;
     simulator_t s;
     s.init(0.0f);
 
@@ -111,7 +114,7 @@ BOOST_AUTO_TEST_CASE( accumulator_model_simulation_test )
 
 BOOST_AUTO_TEST_CASE( accumulator_simulation_throws_test ){
     //construct a simulator for an accumulator
-    using simulator_t= cadmium::engine::simulator<int_accumulator, float>;
+    using simulator_t= cadmium::engine::simulator<int_accumulator, float, cadmium::logger::not_logger>;
     using input_ports=int_accumulator<float>::input_ports;
     simulator_t  s;
     s.init(0.0f);
@@ -166,7 +169,7 @@ struct floating_generator : public floating_generator_base<TIME> {
 BOOST_AUTO_TEST_CASE( generator_model_simulation_test )
 {
     //construct a simulator for an generator of floats
-    using simulator_t=cadmium::engine::simulator<floating_generator, float>;
+    using simulator_t=cadmium::engine::simulator<floating_generator, float, cadmium::logger::not_logger>;
     simulator_t s;
     s.init(0.0f);
     BOOST_CHECK(s.next()==1.0f);
