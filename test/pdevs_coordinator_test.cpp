@@ -160,7 +160,7 @@ cadmium::modeling::IC<cadmium::basic_models::reset_generator_five_sec, cadmium::
 template<typename TIME>
 using coupled_g2a_model=cadmium::modeling::coupled_model<TIME, g2a_iports, g2a_oports, g2a_submodels, g2a_eics, g2a_eocs, g2a_ics>;
 
-struct sumint : public cadmium::out_port<int> {};
+//struct sumint : public cadmium::out_port<int> {};
 BOOST_AUTO_TEST_CASE( generators_send_to_accumulator_and_output_test ){
     cadmium::engine::coordinator<coupled_g2a_model, float, cadmium::logger::not_logger> cc;
     //check init sets the right next time

@@ -130,15 +130,26 @@ namespace cadmium {
                 };
                 LOGGER::template log<cadmium::logger::logger_info, decltype(log_info_collect), TIME>(log_info_collect, t);
 
+                auto log_routing_collect = []() -> std::string {
+                     std::ostringstream oss;
+                     oss << "EOC for model ";
+                     oss << boost::typeindex::type_id<model_type>().pretty_name();
+                     return oss.str();
+                };
+
                 if (_next < t) {
                     throw std::domain_error("Trying to obtain output when not internal event is scheduled");
                 } else if (_next == t) {
+                    //log EOC
+                    LOGGER::template log<cadmium::logger::logger_message_routing,
+                                         decltype(log_routing_collect)>(log_routing_collect);
+
                     //reset inboxes before populating outboxes and routing messages for preventing inconsistencies
                     _inbox = in_bags_type{};
                     //fill all outboxes and clean the inboxes in the lower levels recursively
                     cadmium::engine::collect_outputs_in_subcoordinators<TIME, subcoordinators_type>(t, _subcoordinators);
                     //use the EOC mapping to compose current level output
-                    _outbox = collect_messages_by_eoc<TIME, eoc, out_bags_type, subcoordinators_type>(_subcoordinators);
+                    _outbox = collect_messages_by_eoc<TIME, eoc, out_bags_type, subcoordinators_type, LOGGER>(_subcoordinators);
                 } else {
                     _outbox = out_bags_type{};
                 }
@@ -171,9 +182,31 @@ namespace cadmium {
                 if (_next < t || t < _last ) {
                     throw std::domain_error("Trying to obtain output when out of the advance time scope");
                 } else {
+
+                    //Loggers for routing
+                    auto log_routing_ic_collect = []() -> std::string {
+                         std::ostringstream oss;
+                         oss << "IC for model ";
+                         oss << boost::typeindex::type_id<model_type>().pretty_name();
+                         return oss.str();
+                    };
+                    auto log_routing_eic_collect = []() -> std::string {
+                         std::ostringstream oss;
+                         oss << "EIC for model ";
+                         oss << boost::typeindex::type_id<model_type>().pretty_name();
+                         return oss.str();
+                    };
+
                     //Route the messages standing in the outboxes to mapped inboxes following ICs and EICs
-                    cadmium::engine::route_internal_coupled_messages_on_subcoordinators<TIME, subcoordinators_type, ic>(t, _subcoordinators);
-                    cadmium::engine::route_external_input_coupled_messages_on_subcoordinators<TIME, in_bags_type, subcoordinators_type, eic>(t, _inbox, _subcoordinators);
+                    LOGGER::template log<cadmium::logger::logger_message_routing,
+                                         decltype(log_routing_ic_collect)>(log_routing_ic_collect);
+
+                    cadmium::engine::route_internal_coupled_messages_on_subcoordinators<TIME, subcoordinators_type, ic, LOGGER>(t, _subcoordinators);
+
+                    LOGGER::template log<cadmium::logger::logger_message_routing,
+                                         decltype(log_routing_eic_collect)>(log_routing_eic_collect);
+
+                    cadmium::engine::route_external_input_coupled_messages_on_subcoordinators<TIME, in_bags_type, subcoordinators_type, eic, LOGGER>(t, _inbox, _subcoordinators);
                     //recurse on advance_simulation
                     cadmium::engine::advance_simulation_in_subengines<TIME, subcoordinators_type>(t, _subcoordinators);
                     //set _last and _next
