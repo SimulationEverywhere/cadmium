@@ -33,12 +33,20 @@
 
 namespace {
     std::ostringstream oss;
+    std::ostringstream oss2;
 
     struct oss_test_sink_provider{
         static std::ostream& sink(){
             return oss;
         }
     };
+
+    struct oss_test_second_sink_provider{
+        static std::ostream& sink(){
+            return oss2;
+        }
+    };
+
 }
 
 
@@ -46,7 +54,7 @@ BOOST_AUTO_TEST_SUITE( loggers_test_suite )
 
 BOOST_AUTO_TEST_CASE( log_nothing_test )
 {
-    oss.clear();
+    oss.str("");
 
     //logger definition
     cadmium::logger::logger<cadmium::logger::logger_info, cadmium::logger::verbatim_formatter, oss_test_sink_provider> l;
@@ -59,21 +67,35 @@ BOOST_AUTO_TEST_CASE( log_nothing_test )
 
 BOOST_AUTO_TEST_CASE( simple_logger_logs_test )
 {
-    oss.clear();
+    oss.str("");
 
     //logger definition
     cadmium::logger::logger<cadmium::logger::logger_info, cadmium::logger::verbatim_formatter, oss_test_sink_provider> l;
 
     //log usage in different source
-    l.log<cadmium::logger::logger_info, std::string>("nothing to show");
+    l.log<cadmium::logger::logger_info, std::string>("something to show");
 
-    BOOST_CHECK_EQUAL(oss.str(), "nothing to show\n");
+    BOOST_CHECK_EQUAL(oss.str(), "something to show\n");
 
 }
 
 BOOST_AUTO_TEST_CASE( multiple_loggers_test )
 {
-    BOOST_WARN("Not yet implemented, this test is a placeholder");
+    oss.str("");
+    oss2.str("");
+    //loggers definition
+    using log1=cadmium::logger::logger<cadmium::logger::logger_info, cadmium::logger::verbatim_formatter, oss_test_sink_provider>;
+    using log2=cadmium::logger::logger<cadmium::logger::logger_debug, cadmium::logger::verbatim_formatter, oss_test_second_sink_provider>;
+
+    cadmium::logger::multilogger<log1, log2> l;
+
+    //log usage in different source
+    l.log<cadmium::logger::logger_info, std::string>("some info");
+    l.log<cadmium::logger::logger_debug, std::string>("some debug");
+
+    BOOST_CHECK_EQUAL(oss.str(), "some info\n");
+    BOOST_CHECK_EQUAL(oss2.str(), "some debug\n");
+
 }
 
 
