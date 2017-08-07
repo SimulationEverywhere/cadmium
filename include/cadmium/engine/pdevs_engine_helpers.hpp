@@ -351,9 +351,9 @@ namespace cadmium {
         template<typename TIME, typename INBAGS, typename CST, typename EICs, size_t S, typename LOGGER>
         struct route_external_input_coupled_messages_on_subcoordinators_impl{
             using current_EIC=typename std::tuple_element<S-1, EICs>::type;
-            using from_port=typename current_EIC::from_port;
-            using to_model=typename current_EIC::template to_model<TIME>;
-            using to_port=typename current_EIC::to_model_input_port;
+            using from_port=typename current_EIC::external_input_port;
+            using to_model=typename current_EIC::template submodel<TIME>;
+            using to_port=typename current_EIC::submodel_input_port;
 
             static void route(TIME t, const INBAGS& inbox, CST& engines){
                 auto to_engine=get_engine_by_model<to_model, CST>(engines);
