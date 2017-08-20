@@ -7,3 +7,5 @@ compiler:
 before_install:
   - brew update
   - brew install boost-build
+script:
+  - cmake -G "Unix Makefiles" . && make && make test  
