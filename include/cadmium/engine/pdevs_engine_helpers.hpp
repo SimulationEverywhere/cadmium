@@ -382,7 +382,7 @@ namespace cadmium {
                                      decltype(to_messages)>(log_routing_collect, from_messages, to_messages);
 
                 //iterate
-                route_external_input_coupled_messages_on_subcoordinators_impl<TIME, INBAGS, CST, EICs, std::tuple_size<EICs>::value, LOGGER>::route(t, inbox, engines);
+                route_external_input_coupled_messages_on_subcoordinators_impl<TIME, INBAGS, CST, EICs, S-1, LOGGER>::route(t, inbox, engines);
 
             }
         };
