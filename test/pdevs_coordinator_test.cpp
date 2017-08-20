@@ -160,7 +160,6 @@ cadmium::modeling::IC<cadmium::basic_models::reset_generator_five_sec, cadmium::
 template<typename TIME>
 using coupled_g2a_model=cadmium::modeling::coupled_model<TIME, g2a_iports, g2a_oports, g2a_submodels, g2a_eics, g2a_eocs, g2a_ics>;
 
-//struct sumint : public cadmium::out_port<int> {};
 BOOST_AUTO_TEST_CASE( generators_send_to_accumulator_and_output_test ){
     cadmium::engine::coordinator<coupled_g2a_model, float, cadmium::logger::not_logger> cc;
     //check init sets the right next time
@@ -195,6 +194,92 @@ BOOST_AUTO_TEST_CASE( generators_send_to_accumulator_and_output_test ){
     output_bags = cc.outbox();
     BOOST_REQUIRE(cadmium::get_messages<g2a_coupled_out_port>(output_bags).empty());//was reset
 }
+
+//next test is similar to previous, but models are split in 2 coupled ones
+//2 generators connected to an infinite_counter are coordinated and routing messages correctly
+//connecting generators to acumm coupled model definition
+
+template<typename TIME>
+using test_accumulator=cadmium::basic_models::accumulator<int, TIME>;
+using test_accumulator_defs=cadmium::basic_models::accumulator_defs<int>;
+using reset_tick=cadmium::basic_models::accumulator_defs<int>::reset_tick;
+
+
+
+using empty_iports = std::tuple<>;
+using empty_eic=std::tuple<>;
+using empty_ic=std::tuple<>;
+
+//2 generators doing output in 2 ports
+using generators_oports=std::tuple<cadmium::basic_models::int_generator_one_sec_defs::out, cadmium::basic_models::reset_generator_five_sec_defs::out>;
+using generators_submodels=cadmium::modeling::models_tuple<cadmium::basic_models::reset_generator_five_sec, cadmium::basic_models::int_generator_one_sec>;
+using generators_eoc=std::tuple<
+cadmium::modeling::EOC<cadmium::basic_models::reset_generator_five_sec, cadmium::basic_models::reset_generator_five_sec_defs::out, cadmium::basic_models::reset_generator_five_sec_defs::out>,
+cadmium::modeling::EOC<cadmium::basic_models::int_generator_one_sec, cadmium::basic_models::int_generator_one_sec_defs::out, cadmium::basic_models::int_generator_one_sec_defs::out>
+>;
+
+template<typename TIME>
+using coupled_generators_model=cadmium::modeling::coupled_model<TIME, empty_iports, generators_oports, generators_submodels, empty_eic, generators_eoc, empty_ic>;
+
+//1 accumulator wrapped in a coupled model
+using accumulator_eic=std::tuple<
+cadmium::modeling::EIC<test_accumulator_defs::add, test_accumulator, test_accumulator_defs::add>,
+cadmium::modeling::EIC<test_accumulator_defs::reset, test_accumulator, test_accumulator_defs::reset>
+>;
+using accumulator_eoc=std::tuple<
+cadmium::modeling::EOC<test_accumulator, test_accumulator_defs::sum, test_accumulator_defs::sum>
+>;
+
+using accumulator_submodels=cadmium::modeling::models_tuple<test_accumulator>;
+
+template<typename TIME>
+using coupled_accumulator_model=cadmium::modeling::coupled_model<TIME, typename test_accumulator<TIME>::input_ports, typename test_accumulator<TIME>::output_ports, accumulator_submodels, accumulator_eic, accumulator_eoc, empty_ic>;
+
+
+//top model interconnecting the 2 coupled models
+
+using top_outport = test_accumulator_defs::sum;
+using top_oports = std::tuple<top_outport>;
+using top_submodels=cadmium::modeling::models_tuple<coupled_generators_model, coupled_accumulator_model>;
+
+using top_eoc=std::tuple<
+cadmium::modeling::EOC<coupled_accumulator_model, test_accumulator_defs::sum, top_outport>
+>;
+using top_ic=std::tuple<
+cadmium::modeling::IC<coupled_generators_model, cadmium::basic_models::int_generator_one_sec_defs::out, coupled_accumulator_model, test_accumulator_defs::add>,
+cadmium::modeling::IC<coupled_generators_model, cadmium::basic_models::reset_generator_five_sec_defs::out , coupled_accumulator_model, test_accumulator_defs::reset>
+>;
+
+template<typename TIME>
+using top_model=cadmium::modeling::coupled_model<TIME, empty_iports, top_oports, top_submodels, empty_eic, top_eoc, top_ic>;
+
+
+BOOST_AUTO_TEST_CASE( generators_send_to_accumulator_and_output_in_two_coupled_models_test ){
+    cadmium::engine::coordinator<top_model, float, cadmium::logger::not_logger> cctop;
+    //check init sets the right next time
+    cctop.init(0);
+
+    //first collection of output are empty
+    BOOST_CHECK_EQUAL((float) 1, cctop.next());
+
+    cctop.collect_outputs((float) 1);
+    auto output_bags = cctop.outbox();
+    BOOST_REQUIRE(cadmium::get_messages<top_outport>(output_bags).empty());
+    cctop.advance_simulation((float) 1);
+
+    //next 3 collections of output are empty
+    for (int i=2; i < 6; i++) {
+        BOOST_CHECK_EQUAL((float) i, cctop.next());
+        cctop.collect_outputs((float) i);
+        output_bags = cctop.outbox();
+        BOOST_REQUIRE(cadmium::get_messages<top_outport>(output_bags).empty());
+        cctop.advance_simulation((float) i);
+    }
+}
+
+
+
+
 
 BOOST_AUTO_TEST_SUITE_END()
 
