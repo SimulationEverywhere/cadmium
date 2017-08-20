@@ -39,7 +39,15 @@ cadmium.includes
 .idea
 
 #Cmake
-CMakeLists.txt
 cmake-build-debug
+CMakeCache.txt
+CMakeFiles/
+CTestTestfile.cmake
+Makefile
+Testing/
+clock_example
+cmake_install.cmake
+test_executable
+
 # Build files
 build
