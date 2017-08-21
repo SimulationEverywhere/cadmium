@@ -8,12 +8,7 @@ find_package(Boost COMPONENTS unit_test_framework REQUIRED)
 
 add_library(Cadmium INTERFACE)
 
-include_directories(include)
-
-#target_include_directories(Cadmium INTERFACE
-#  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-#  $<INSTALL_INTERFACE:include/Cadmium>
-#)
+include_directories(include ${Boost_INCLUDE_DIRS}$)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic -std=c++14")
 
