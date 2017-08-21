@@ -8,14 +8,13 @@ find_package(Boost COMPONENTS unit_test_framework REQUIRED)
 
 add_library(Cadmium INTERFACE)
 
-include_directories(include ${Boost_INCLUDE_DIRS}$)
+include_directories(include ${Boost_INCLUDE_DIRS})
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic -std=c++14")
 
 FILE(GLOB TestSources test/*.cpp)
 add_executable(test_executable ${TestSources})
 add_executable(clock_example example/main-clock.cpp)
-target_include_directories(test_executable PRIVATE ${Boost_INCLUDE_DIRS})
 target_link_libraries(test_executable ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 
 enable_testing()
