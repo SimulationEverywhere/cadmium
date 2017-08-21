@@ -38,16 +38,21 @@ cadmium.includes
 #idea
 .idea
 
+#Xcode project files
+Cadmium.xcodeproj
+
 #Cmake
 cmake-build-debug
 CMakeCache.txt
-CMakeFiles/
+CMakeFiles
 CTestTestfile.cmake
-Makefile
-Testing/
-clock_example
 cmake_install.cmake
-test_executable
+CMakeScripts
+Makefile
 
 # Build files
 build
+clock_example
+test_executable
+Testing
+Cadmium.build
