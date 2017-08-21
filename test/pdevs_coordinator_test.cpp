@@ -275,6 +275,20 @@ BOOST_AUTO_TEST_CASE( generators_send_to_accumulator_and_output_in_two_coupled_m
         BOOST_REQUIRE(cadmium::get_messages<top_outport>(output_bags).empty());
         cctop.advance_simulation((float) i);
     }
+    
+    BOOST_CHECK_EQUAL((float) 5.0, cctop.next()); //fifth advance triggers a reset and reschedules same time for next
+    cctop.collect_outputs(5.0f);
+    output_bags = cctop.outbox();
+
+    BOOST_REQUIRE(!cadmium::engine::all_bags_empty(output_bags));
+    BOOST_CHECK_EQUAL(cadmium::get_messages<top_outport>(output_bags).size(), 1); //only a sum happened.
+    BOOST_CHECK_EQUAL(cadmium::get_messages<top_outport>(output_bags).at(0), 5); //5 ticks of 1 were counted
+    cctop.advance_simulation(5.0f);
+    BOOST_CHECK_EQUAL(6.0f, cctop.next());
+    cctop.collect_outputs(6.0f);
+    output_bags = cctop.outbox();
+    BOOST_REQUIRE(cadmium::get_messages<top_outport>(output_bags).empty());//was reset
+
 }
 
 
