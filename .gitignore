@@ -52,7 +52,8 @@ Makefile
 
 # Build files
 build
+Debug
 clock_example
-test_executable
+test_executable*
 Testing
 Cadmium.build
