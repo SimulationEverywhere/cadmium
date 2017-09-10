@@ -137,21 +137,20 @@ namespace cadmium {
                      return oss.str();
                 };
 
+                //cleanning the inbox and outbox for collecting new messages
+                _inbox = in_bags_type{};
+                _outbox = out_bags_type{};
+                //collecting if necessary
                 if (_next < t) {
                     throw std::domain_error("Trying to obtain output when not internal event is scheduled");
                 } else if (_next == t) {
                     //log EOC
                     LOGGER::template log<cadmium::logger::logger_message_routing,
                                          decltype(log_routing_collect)>(log_routing_collect);
-
-                    //reset inboxes before populating outboxes and routing messages for preventing inconsistencies
-                    _inbox = in_bags_type{};
                     //fill all outboxes and clean the inboxes in the lower levels recursively
                     cadmium::engine::collect_outputs_in_subcoordinators<TIME, subcoordinators_type>(t, _subcoordinators);
                     //use the EOC mapping to compose current level output
                     _outbox = collect_messages_by_eoc<TIME, eoc, out_bags_type, subcoordinators_type, LOGGER>(_subcoordinators);
-                } else {
-                    _outbox = out_bags_type{};
                 }
             }
 
