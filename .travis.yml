@@ -5,7 +5,9 @@ osx_image: xcode8
 compiler: 
   - clang
 before_install:
-  - brew update
-  - brew install boost-build
+- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then rvm get stable || true; fi
+- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update || true; fi
+- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install cmake || brew upgrade cmake || true; fi
+- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install boost-build || brew upgrade cmake || true; fi
 script:
   - cmake -G "Unix Makefiles" . && make && make test  
