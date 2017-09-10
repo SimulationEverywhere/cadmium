@@ -356,7 +356,7 @@ namespace cadmium {
             using to_port=typename current_EIC::submodel_input_port;
 
             static void route(TIME t, const INBAGS& inbox, CST& engines){
-                auto to_engine=get_engine_by_model<to_model, CST>(engines);
+                auto& to_engine=get_engine_by_model<to_model, CST>(engines);
                 auto& from_messages = cadmium::get_messages<from_port>(inbox);
                 auto& to_messages = cadmium::get_messages<to_port>(to_engine._inbox);
                 to_messages.insert(to_messages.end(), from_messages.begin(), from_messages.end());
