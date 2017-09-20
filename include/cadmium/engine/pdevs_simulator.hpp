@@ -105,6 +105,10 @@ namespace cadmium {
                 };
                 LOGGER::template log<cadmium::logger::logger_info, decltype(log_info_collect), TIME>(log_info_collect, t);
 
+                //cleanning the inbox and producing outbox
+                _inbox = in_bags_type{};
+
+                
                 if (_next < t){
                     throw std::domain_error("Trying to obtain output when not internal event is scheduled");
                 } else if (_next == t) {
