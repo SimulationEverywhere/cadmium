@@ -87,6 +87,19 @@ namespace cadmium {
                 _last=initial_time;
                 cadmium::concept::atomic_model_assert<MODEL>();
                 _next = initial_time + _model.time_advance();
+                
+                
+                auto log_state = [](const typename model_type::state_type& s) -> std::string {
+                    std::ostringstream oss;
+                    oss << "State for model ";
+                    oss << boost::typeindex::type_id<model_type>().pretty_name();
+                    oss << " is ";
+                    oss << s;
+                    return oss.str();
+                };
+                
+                LOGGER::template log<cadmium::logger::logger_state, decltype(log_state), const typename model_type::state_type&>(log_state, _model.state);
+
             }
 
 
@@ -196,6 +209,7 @@ namespace cadmium {
                             _next = _last + _model.time_advance();
                         }
                     }
+                    //clean inbox
                     _inbox = in_bags_type{};
                 }
 
