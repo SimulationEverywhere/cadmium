@@ -168,7 +168,7 @@ BOOST_AUTO_TEST_CASE( simulation_logs_info_on_setup_and_start_loops_and_end_of_r
     BOOST_CHECK_EQUAL(oss.str(), expected_oss.str());
 }
 
-BOOST_AUTO_TEST_CASE( simulation_logs_state_only_show_state_changes_test )
+BOOST_AUTO_TEST_CASE( simulation_logs_state_only_show_state_changes_and_initial_state_test )
 {
     //This test integrates log output from runner, coordinator and simulator.
     oss.str("");
@@ -181,13 +181,11 @@ BOOST_AUTO_TEST_CASE( simulation_logs_state_only_show_state_changes_test )
 
     //check the string
     std::ostringstream expected_oss;
-    expected_oss << "State for model ";
-    expected_oss << boost::typeindex::type_id<test_generator<float>>().pretty_name();
-    expected_oss << " is 0\n";
-
-    expected_oss << "State for model ";
-    expected_oss << boost::typeindex::type_id<test_generator<float>>().pretty_name();
-    expected_oss << " is 0\n";
+    for (int i=0; i < 3; i++){// initial state and 2 more states
+        expected_oss << "State for model ";
+        expected_oss << boost::typeindex::type_id<test_generator<float>>().pretty_name();
+        expected_oss << " is 0\n";
+    }
 
     BOOST_CHECK_EQUAL(oss.str(), expected_oss.str());
 }
