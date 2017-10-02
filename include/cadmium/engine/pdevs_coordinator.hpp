@@ -211,6 +211,8 @@ namespace cadmium {
                     //set _last and _next
                     _last = t;
                     _next = cadmium::engine::min_next_in_tuple<subcoordinators_type>(_subcoordinators);
+                    //clean inbox because they were processed already
+                    _inbox = in_bags_type{};
                 }
             }
         };
