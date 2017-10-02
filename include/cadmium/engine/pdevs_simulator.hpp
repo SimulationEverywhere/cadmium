@@ -197,6 +197,8 @@ namespace cadmium {
                         }
                         _last = t;
                         _next = _last + _model.time_advance();
+                        //clean inbox because they were processed already
+                        _inbox = in_bags_type{};
                     } else { //no input available
                         if (t != _next) {
                             //throw std::domain_error("Trying to execute internal transition at wrong time");
@@ -209,8 +211,6 @@ namespace cadmium {
                             _next = _last + _model.time_advance();
                         }
                     }
-                    //clean inbox
-                    _inbox = in_bags_type{};
                 }
 
                 auto log_state = [](const typename model_type::state_type& s) -> std::string {
