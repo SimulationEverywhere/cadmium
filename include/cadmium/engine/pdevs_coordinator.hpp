@@ -137,9 +137,6 @@ namespace cadmium {
                      return oss.str();
                 };
 
-                //cleanning the inbox and outbox for collecting new messages
-                _inbox = in_bags_type{};
-                _outbox = out_bags_type{};
                 //collecting if necessary
                 if (_next < t) {
                     throw std::domain_error("Trying to obtain output when not internal event is scheduled");
@@ -166,6 +163,9 @@ namespace cadmium {
              * @param t is the time the transition is expected to be run.
              */
             void advance_simulation(const TIME &t) {
+                //clean outbox because messages are routed before calling this funtion at a higher level
+                _outbox = out_bags_type{};
+                
                 auto log_info_advance = [](const TIME& from, const TIME& to) -> std::string {
                      std::ostringstream oss;
                      oss << "Coordinator for model ";
