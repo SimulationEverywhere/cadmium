@@ -36,12 +36,15 @@
 /**
   * This test suite is reproducing a bug that was reported in 2017 that under certain circumstances
   * events were received multiple times in the inbox of stale models.
+  * Messages were stale and read multiple times from inbox in some cases (simple_inbox_cleanup_bug_test)
+  * and messages were stale and routed multiples times from outboxes in other cases (simple_outbox_cleanup_bug_test)
   */
 BOOST_AUTO_TEST_SUITE( inbox_cleanup_test_suite )
+namespace BM=cadmium::basic_models;
 
+//Defining a stream to capture logs for validation
 namespace {
     std::ostringstream oss;
-    
     struct oss_test_sink_provider{
         static std::ostream& sink(){
             return oss;
@@ -49,9 +52,25 @@ namespace {
     };
 }
 
+//loggers in output to oss for test
+using global_time=cadmium::logger::logger<cadmium::logger::logger_global_time, cadmium::logger::verbatim_formatter, oss_test_sink_provider>;
+using state=cadmium::logger::logger<cadmium::logger::logger_state, cadmium::logger::verbatim_formatter, oss_test_sink_provider>;
+using routing=cadmium::logger::logger<cadmium::logger::logger_message_routing, cadmium::logger::verbatim_formatter, oss_test_sink_provider>;
+using log_time_and_state=cadmium::logger::multilogger<state, global_time>;
 
-namespace BM=cadmium::basic_models;
+//helper function for checking matches in log
+int count_matches(std::string nail, std::string haystack){
+    int count=0;
+    size_t nPos = haystack.find(nail, 0); // fist occurrence
+    while(nPos != std::string::npos){
+        count++;
+        nPos = haystack.find(nail, nPos+1);
+    }
+    return count;
+}
 
+
+//Atomic models used by the tests
 template<typename TIME>
 struct first_receiver : public BM::filter_first_output<TIME> {};
 template<typename TIME>
@@ -61,7 +80,7 @@ using gen=BM::int_generator_one_sec<TIME>;
 template <typename TIME>
 using acc=BM::accumulator<int, TIME>;
 
-//coupled models
+//coupled models for simple_inbox_cleanup_bug_test
 //C1 (Gen->Filter->)
 struct C1_out : public cadmium::out_port<int>{};
 using ips_C1 = std::tuple<>;
@@ -107,30 +126,13 @@ using eics_TOP = std::tuple<>;
 using eocs_TOP = std::tuple<cadmium::modeling::EOC<C3, C3_out, top_out>>;
 using ics_TOP = std::tuple<cadmium::modeling::IC<C1, C1_out, C3, C3_in>>;
 template<typename TIME>
-struct TOP : public cadmium::modeling::coupled_model<TIME, ips_TOP, ops_TOP, submodels_TOP, eics_TOP, eocs_TOP, ics_TOP>{};
-
-//loggers in output to oss for test
-using global_time=cadmium::logger::logger<cadmium::logger::logger_global_time, cadmium::logger::verbatim_formatter, oss_test_sink_provider>;
-using state=cadmium::logger::logger<cadmium::logger::logger_state, cadmium::logger::verbatim_formatter, oss_test_sink_provider>;
-using routing=cadmium::logger::logger<cadmium::logger::logger_message_routing, cadmium::logger::verbatim_formatter, oss_test_sink_provider>;
-using log_time_and_state=cadmium::logger::multilogger<state, global_time>;
-
-int count_matches(std::string nail, std::string haystack){
-    int count=0;
-    size_t nPos = haystack.find(nail, 0); // fist occurrence
-    while(nPos != std::string::npos){
-        count++;
-        nPos = haystack.find(nail, nPos+1);
-    }
-    return count;
-}
-
+struct CTOP : public cadmium::modeling::coupled_model<TIME, ips_TOP, ops_TOP, submodels_TOP, eics_TOP, eocs_TOP, ics_TOP>{};
 
 BOOST_AUTO_TEST_CASE( simple_inbox_cleanup_bug_test){
     std::string expected_initial_state = "State for model cadmium::basic_models::accumulator<int, float> is [0, 0]";
     std::string expected_accumulation_of_one = "State for model cadmium::basic_models::accumulator<int, float> is [1, 0]";
     std::string accum_states = "State for model cadmium::basic_models::accumulator";
-    cadmium::engine::runner<float, TOP, log_time_and_state> r{0.0};
+    cadmium::engine::runner<float, CTOP, log_time_and_state> r{0.0};
     r.runUntil(5.0);
     
     int count_initial_states = count_matches(expected_initial_state, oss.str());
@@ -140,5 +142,71 @@ BOOST_AUTO_TEST_CASE( simple_inbox_cleanup_bug_test){
     BOOST_CHECK_EQUAL(count_initial_states+count_expected_accumulation, count_accum_states);
 }
 
+//Extra filter model for simple_outbox_cleanup_bug_test
+template<typename TIME>
+struct second_filter_one : public BM::filter_first_output<TIME> {};
+
+//coupled models for simple_outbox_cleanup_bug_test
+//D1 (Gen->Filter_one->)
+struct D1_out : public cadmium::out_port<int>{};
+using ips_D1 = std::tuple<>;
+using ops_D1 = std::tuple<D1_out>;
+using submodels_D1 =cadmium::modeling::models_tuple<gen, filter_one>;
+using eics_D1 = std::tuple<>;
+using eocs_D1 = std::tuple<cadmium::modeling::EOC<filter_one, BM::filter_first_output_defs::out, D1_out>>;
+using ics_D1 = std::tuple<
+cadmium::modeling::IC<gen, BM::int_generator_one_sec_defs::out, filter_one, BM::filter_first_output_defs::in>
+>;
+template<typename TIME>
+struct D1 : public cadmium::modeling::coupled_model<TIME, ips_D1, ops_D1, submodels_D1, eics_D1, eocs_D1, ics_D1>{};
+
+//D2 (->second_Filter_one->Accum->)
+struct D2_in : public cadmium::in_port<int>{};
+struct D2_out : public cadmium::out_port<int>{};
+using ips_D2 = std::tuple<D2_in>;
+using ops_D2 = std::tuple<D2_out>;
+using submodels_D2 =cadmium::modeling::models_tuple<second_filter_one, acc>;
+using eics_D2 = std::tuple<cadmium::modeling::EIC<D2_in, second_filter_one, BM::filter_first_output_defs::in>>;
+using eocs_D2 = std::tuple<cadmium::modeling::EOC<acc, BM::accumulator_defs<int>::sum, D2_out>>;
+using ics_D2 = std::tuple<cadmium::modeling::IC<second_filter_one, BM::filter_first_output_defs::out, acc, BM::accumulator_defs<int>::add>>;
+template<typename TIME>
+struct D2 : public cadmium::modeling::coupled_model<TIME, ips_D2, ops_D2, submodels_D2, eics_D2, eocs_D2, ics_D2>{};
+
+//D3 (->D2->)
+struct D3_in : public cadmium::in_port<int>{};
+struct D3_out : public cadmium::out_port<int>{};
+using ips_D3 = std::tuple<D3_in>;
+using ops_D3 = std::tuple<D3_out>;
+using submodels_D3 =cadmium::modeling::models_tuple<D2>;
+using eics_D3 = std::tuple<cadmium::modeling::EIC<D3_in, D2, D2_in>>;
+using eocs_D3 = std::tuple<cadmium::modeling::EOC<D2, D2_out, D3_out>>;
+using ics_D3 = std::tuple<>;
+template<typename TIME>
+struct D3 : public cadmium::modeling::coupled_model<TIME, ips_D3, ops_D3, submodels_D3, eics_D3, eocs_D3, ics_D3>{};
+
+//DTOP (D1->D3->)
+struct DTOP_out : public cadmium::out_port<int>{};
+using ips_DTOP = std::tuple<>;
+using ops_DTOP = std::tuple<DTOP_out>;
+using submodels_DTOP =cadmium::modeling::models_tuple<D1, D3>;
+using eics_DTOP = std::tuple<>;
+using eocs_DTOP = std::tuple<cadmium::modeling::EOC<D3, D3_out, DTOP_out>>;
+using ics_DTOP = std::tuple<cadmium::modeling::IC<D1, D1_out, D3, D3_in>>;
+template<typename TIME>
+struct DTOP : public cadmium::modeling::coupled_model<TIME, ips_DTOP, ops_DTOP, submodels_DTOP, eics_DTOP, eocs_DTOP, ics_DTOP>{};
+
+BOOST_AUTO_TEST_CASE( simple_outbox_cleanup_bug_test){
+    std::string expected_initial_state = "State for model cadmium::basic_models::accumulator<int, float> is [0, 0]";
+    std::string expected_accumulation_of_one = "State for model cadmium::basic_models::accumulator<int, float> is [1, 0]";
+    std::string accum_states = "State for model cadmium::basic_models::accumulator";
+    cadmium::engine::runner<float, DTOP, log_time_and_state> r{0.0};
+    r.runUntil(5.0);
+    std::cout << oss.str();
+    int count_initial_states = count_matches(expected_initial_state, oss.str());
+    int count_expected_accumulation = count_matches(expected_accumulation_of_one, oss.str());
+    int count_accum_states = count_matches(accum_states, oss.str());
+    // The accumulator has to increment the count once only
+    BOOST_CHECK_EQUAL(count_initial_states+count_expected_accumulation, count_accum_states);
+}
 BOOST_AUTO_TEST_SUITE_END()
 
