@@ -161,6 +161,9 @@ namespace cadmium {
              * @param t is the time the transition is expected to be run.
             */
             void advance_simulation(TIME t) {
+                //clean outbox because messages are routed before calling this funtion at a higher level
+                _outbox = out_bags_type{};
+
                 auto log_info_advance = [](const TIME& from, const TIME& to) -> std::string {
                      std::ostringstream oss;
                      oss << "Simulator for model ";
