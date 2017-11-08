@@ -24,7 +24,6 @@ endforeach(testSrc)
 add_executable(clock_example example/main-clock.cpp)
 add_executable(count_fives_example example/main-count-fives.cpp)
 
-# Building time tests (/compile-test)
 # Tests that should compile 
 FILE(GLOB TestCompileSources RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} test-compile/compiles/*_test.cpp)
 foreach(testCompSrc ${TestCompileSources})
