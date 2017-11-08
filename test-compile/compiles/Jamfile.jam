@@ -1,0 +1,15 @@
+using testing ;
+
+#Tests that should compile
+compile valid_atomic_check_test.cpp ;
+compile generator_atomic_check_test.cpp ;
+compile passive_atomic_check_test.cpp ;
+compile valid_atomic_with_multiple_ports_check_test.cpp ;
+compile simulator_provide_types_test.cpp ;
+compile coupled_of_all_atomics_test.cpp ;
+compile coupled_of_all_coupleds_test.cpp ;
+compile coupled_of_mixed_models_test.cpp ;
+compile empty_coupled_model_is_a_valid_model_test.cpp ;
+compile coordinator_of_empty_coupled_model_test.cpp ;
+compile coordinator_of_coupled_of_atomics_test.cpp ;
+compile coordinator_of_coupled_of_mixed_models_test.cpp ;
