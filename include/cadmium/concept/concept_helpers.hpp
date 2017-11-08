@@ -47,11 +47,16 @@ namespace cadmium {
         };
 
         namespace { //details
-            template<typename... Ts>
-            constexpr bool is_tuple(std::tuple<Ts...>) {
-                return true;
+            template<typename, template<typename...> class>
+            struct is_specialization : std::false_type {};
+            template<template<typename...> class TEMP, typename... ARGS>
+            struct is_specialization<TEMP<ARGS...>, TEMP>: std::true_type {};
+            
+            template<typename T>
+            constexpr bool is_tuple(){
+                return is_specialization<T, std::tuple>::value;
             }
-
+            
             template<typename T, int S>
             struct check_unique_elem_types_impl {
                 static constexpr bool value() {
