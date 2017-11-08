@@ -72,7 +72,7 @@ namespace cadmium{
         template<typename IN, typename EICs>
         constexpr void assert_eic(IN p_in, EICs eics) {
             assert_each_eic<IN, EICs, std::tuple_size<EICs>::value>::value();//check couple individually
-            static_assert(is_tuple(eics), "EIC is not a tuple");
+            static_assert(is_tuple<EICs>(), "EIC is not a tuple");
         }
 
         //static assert over the EOC descriptions
@@ -108,7 +108,7 @@ namespace cadmium{
         template<typename OUT, typename EOCs>
         constexpr void assert_eoc(OUT p_out, EOCs eocs) {
             assert_each_eoc<OUT, EOCs, std::tuple_size<EOCs>::value>::value();//check couple individually
-            static_assert(is_tuple(eocs), "EOC is not a tuple");
+            static_assert(is_tuple<EOCs>(), "EOC is not a tuple");
         }
 
         //static assert over the IC descriptions
@@ -149,7 +149,7 @@ namespace cadmium{
         template<typename ICs>
         constexpr void assert_ic(ICs ics) {
             assert_each_ic<ICs, std::tuple_size<ICs>::value>::value();//check couple individually
-            static_assert(is_tuple(ics), "ICs is not a tuple");
+            static_assert(is_tuple<ICs>(), "ICs is not a tuple");
         }
 
 
