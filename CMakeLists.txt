@@ -24,3 +24,14 @@ endforeach(testSrc)
 add_executable(clock_example example/main-clock.cpp)
 add_executable(count_fives_example example/main-count-fives.cpp)
 
+# Building time tests (/compile-test)
+# These invoke "cmake --build ..."
+add_executable(empty_coupled_model_is_a_valid_model_test test-compile/empty_coupled_model_is_a_valid_model_test.cpp)
+set_target_properties(empty_coupled_model_is_a_valid_model_test PROPERTIES
+                      EXCLUDE_FROM_ALL TRUE
+                      EXCLUDE_FROM_DEFAULT_BUILD TRUE)
+add_test(NAME empty_coupled_model_is_a_valid_model_test_compile
+         COMMAND ${CMAKE_COMMAND} --build . --target empty_coupled_model_is_a_valid_model_test
+         WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
+
