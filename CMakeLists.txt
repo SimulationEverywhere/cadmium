@@ -26,12 +26,17 @@ add_executable(count_fives_example example/main-count-fives.cpp)
 
 # Building time tests (/compile-test)
 # These invoke "cmake --build ..."
-add_executable(empty_coupled_model_is_a_valid_model_test test-compile/empty_coupled_model_is_a_valid_model_test.cpp)
-set_target_properties(empty_coupled_model_is_a_valid_model_test PROPERTIES
-                      EXCLUDE_FROM_ALL TRUE
-                      EXCLUDE_FROM_DEFAULT_BUILD TRUE)
-add_test(NAME empty_coupled_model_is_a_valid_model_test_compile
-         COMMAND ${CMAKE_COMMAND} --build . --target empty_coupled_model_is_a_valid_model_test
-         WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
-
+# Tests that should compile 
+FILE(GLOB TestCompileSources RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} test-compile/compiles/*_test.cpp)
+foreach(testCompSrc ${TestCompileSources})
+        get_filename_component(testCompName ${testCompSrc} NAME_WE)
+        add_executable(${testCompName} ${testCompSrc})
+        set_target_properties(${testCompName} PROPERTIES
+                              EXCLUDE_FROM_ALL TRUE
+                              EXCLUDE_FROM_DEFAULT_BUILD TRUE)
+        target_include_directories(${testCompName} PUBLIC test-compile/compiles)
+        add_test(NAME ${testCompName}
+                 COMMAND ${CMAKE_COMMAND} --build . --target ${testCompName}
+                 WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+endforeach(testCompSrc)
 
