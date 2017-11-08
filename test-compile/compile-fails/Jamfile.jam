@@ -1,0 +1,24 @@
+using testing ;
+
+#Tests that should fail compilation
+compile-fail missing_input_ports_fails_compile_test.cpp ;
+compile-fail missing_output_ports_fails_compile_test.cpp ;
+compile-fail missing_internal_transition_fails_compile_test.cpp ;
+compile-fail missing_output_function_fails_compile_test.cpp ;
+compile-fail missing_confluence_transition_fails_compile_test.cpp ;
+compile-fail missing_external_transition_fails_compile_test.cpp ;
+compile-fail missing_time_advance_function_fails_compile_test.cpp ;
+compile-fail missing_state_type_fails_compile_test.cpp ;
+compile-fail missing_state_variable_fails_compile_test.cpp ;
+compile-fail repeated_input_ports_fail_compile_test.cpp ;
+compile-fail repeated_output_ports_fail_compile_test.cpp ;
+compile-fail inports_not_a_tuple_in_atomic_model_fail_compile_test.cpp ;
+compile-fail inports_not_a_tuple_in_coupled_model_fail_compile_test.cpp ;
+compile-fail outports_not_a_tuple_in_atomic_model_fail_compile_test.cpp ;
+compile-fail outports_not_a_tuple_in_coupled_model_fail_compile_test.cpp ;
+compile-fail missing_atomic_model_simulator_fails_compile_test.cpp ;
+compile-fail submodel_is_not_a_model_fails_compile_test.cpp ;
+compile-fail failure_to_map_types_in_EIC_fails_compile_test.cpp ;
+compile-fail failure_to_map_types_in_EOC_fails_compile_test.cpp ;
+compile-fail failure_to_map_types_in_IC_fails_compile_test.cpp ;
+compile-fail coordinator_of_no_coupled_fails_compile_test.cpp ;
