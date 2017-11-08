@@ -25,7 +25,6 @@ add_executable(clock_example example/main-clock.cpp)
 add_executable(count_fives_example example/main-count-fives.cpp)
 
 # Building time tests (/compile-test)
-# These invoke "cmake --build ..."
 # Tests that should compile 
 FILE(GLOB TestCompileSources RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} test-compile/compiles/*_test.cpp)
 foreach(testCompSrc ${TestCompileSources})
@@ -40,3 +39,16 @@ foreach(testCompSrc ${TestCompileSources})
                  WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 endforeach(testCompSrc)
 
+# Tests that should fail compilation
+FILE(GLOB TestCompileFailSources RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} test-compile/compile-fails/*_test.cpp)
+foreach(testCmpFailSrc ${TestCompileFailSources})
+        get_filename_component(testCmpFailName ${testCmpFailSrc} NAME_WE)
+        add_executable(${testCmpFailName} ${testCmpFailSrc})
+        set_target_properties(${testCmpFailName} PROPERTIES
+                              EXCLUDE_FROM_ALL TRUE
+                              EXCLUDE_FROM_DEFAULT_BUILD TRUE)
+        add_test(NAME ${testCmpFailName}
+                 COMMAND ${CMAKE_COMMAND} --build . --target ${testCmpFailName}
+                 WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+        set_tests_properties(${testCmpFailName} PROPERTIES WILL_FAIL TRUE)
+endforeach(testCmpFailSrc)
