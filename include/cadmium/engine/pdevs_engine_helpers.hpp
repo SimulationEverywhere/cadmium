@@ -346,7 +346,7 @@ namespace cadmium {
         void route_internal_coupled_messages_on_subcoordinators(const TIME& t, CST& cst){
             route_internal_coupled_messages_on_subcoordinators_impl<TIME, CST, ICs, std::tuple_size<ICs>::value, LOGGER>::route(t, cst);
             return;
-        };
+        }
 
         template<typename TIME, typename INBAGS, typename CST, typename EICs, size_t S, typename LOGGER>
         struct route_external_input_coupled_messages_on_subcoordinators_impl{
@@ -399,7 +399,7 @@ namespace cadmium {
         void route_external_input_coupled_messages_on_subcoordinators(const TIME& t, const INBAGS& inbox, CST& cst){
                 route_external_input_coupled_messages_on_subcoordinators_impl<TIME, INBAGS, CST, EICs, std::tuple_size<EICs>::value, LOGGER>::route(t, inbox, cst);
             return;
-        };
+        }
 
         //auxiliary
         template<size_t I, typename... Ps>
