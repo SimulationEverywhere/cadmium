@@ -2,7 +2,8 @@ cmake_minimum_required(VERSION 3.6.1)
 project(Cadmium)
 # The version number.
 set (Cadmium_VERSION_MAJOR 0)
-set (Cadmium_VERSION_MINOR 0)
+set (Cadmium_VERSION_MINOR 2)
+set (Cadmium_VERSION_PATCH 3)
 
 find_package(Boost COMPONENTS unit_test_framework REQUIRED)
 
