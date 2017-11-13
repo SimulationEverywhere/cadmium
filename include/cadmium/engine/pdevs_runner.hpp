@@ -92,7 +92,7 @@ namespace cadmium {
              */
             void runUntilPassivate() {
                 LOGGER::template log<cadmium::logger::logger_info, std::string>("Starting run");
-                while ( _next !=  std::numeric_limits<TIME>::infinity )
+                while ( _next !=  std::numeric_limits<TIME>::infinity() )
                 {
                     LOGGER::template log<cadmium::logger::logger_global_time, TIME>(_next);
                     top_coordinator.advanceSimulation( _next);
