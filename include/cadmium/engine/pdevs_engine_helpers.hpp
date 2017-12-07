@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2013-2016, Damian Vicino
+ * Copyright (c) 2013-2017, Damian Vicino
  * Carleton University, Universite de Nice-Sophia Antipolis
  * All rights reserved.
  *
@@ -401,28 +401,14 @@ namespace cadmium {
             return;
         }
 
-        //auxiliary
-        template<size_t I, typename... Ps>
-        struct all_bags_empty_impl {
-            static bool check(std::tuple<Ps...> t) {
-                if (!std::get<I - 1>(t).messages.empty()) return false;
-                return all_bags_empty_impl<I - 1, Ps...>::check(t);
-            }
+        //Checking all bag of inbox or outbox are empty
+        template<class BOX>
+        decltype(auto) all_bags_empty(BOX const& box) {
+            auto check_empty = [](auto const&... b)->decltype(auto) {
+                return (b.messages.empty() && ...);
+            };
+            return std::apply(check_empty, box);
         };
-
-        template<typename... Ps>
-        struct all_bags_empty_impl<0, Ps...> {
-            static bool check(std::tuple<Ps...> t) {
-                return true;
-            }
-        };
-
-        template<typename... Ps>
-        bool all_bags_empty(std::tuple<Ps...> t) {
-            return (std::tuple_size < std::tuple < Ps...>>() == 0 )
-            || all_bags_empty_impl<std::tuple_size<decltype(t)>::value, Ps...>::check(t);
-        }
-
 
         //priting messages
         template<size_t s, typename... T>
