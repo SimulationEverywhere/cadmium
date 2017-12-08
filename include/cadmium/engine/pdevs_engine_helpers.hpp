@@ -143,27 +143,15 @@ namespace cadmium {
             using type=typename coordinate_tuple_impl<TIME, MT, std::tuple_size<MT<float>>::value, LOGGER>::type;
         };
 
-        //init every subcooridnator in the coordination tuple
-        template <typename TIME, typename  CST, std::size_t S>
-        struct init_subcoordinators_impl{
-            static void value(const TIME& t, CST& cs){
-                std::get<S-1>(cs).init(t);
-                init_subcoordinators_impl<TIME, CST, S-1>::value(t, cs);
-                return;
-            }
-        };
-
-        template <typename TIME, typename  CST>
-        struct init_subcoordinators_impl<TIME, CST, 1>{
-            static void value(const TIME& t, CST& cs){
-                std::get<0>(cs).init(t);
-                return;
-            }
-        };
-
         template<typename TIME, typename CST>
-        void init_subcoordinators(const TIME& t, CST& cs ) {
-            init_subcoordinators_impl<TIME, CST, std::tuple_size<CST>::value>::value(t, cs);
+        void init_subcoordinators(const TIME& t, CST& cs) {
+
+            auto init_coordinator = [t](auto &... c)->void {
+                (c.init(t) , ...);
+                return;
+            };
+            std::apply(init_coordinator, cs);
+            return;
         }
 
         //populate the outbox of every subcoordinator recursively
@@ -408,7 +396,7 @@ namespace cadmium {
                 return (b.messages.empty() && ...);
             };
             return std::apply(check_empty, box);
-        };
+        }
 
         //priting messages
         template<size_t s, typename... T>
