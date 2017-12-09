@@ -143,15 +143,20 @@ namespace cadmium {
             using type=typename coordinate_tuple_impl<TIME, MT, std::tuple_size<MT<float>>::value, LOGGER>::type;
         };
 
+        //Generic tuple for_each function
+        template<typename TUPLE, typename FUNC>
+        void for_each(TUPLE& cs, FUNC&& f) {
+
+            auto init_coordinator = [&f](auto &... e)->void { (f(e) , ...); };
+            std::apply(init_coordinator, cs);
+        }
+
+        //initialize subcoordinators
         template<typename TIME, typename CST>
         void init_subcoordinators(const TIME& t, CST& cs) {
 
-            auto init_coordinator = [t](auto &... c)->void {
-                (c.init(t) , ...);
-                return;
-            };
-            std::apply(init_coordinator, cs);
-            return;
+            auto init_coordinator = [&t](auto & c)->void { c.init(t); };
+            for_each<CST>(cs, init_coordinator);
         }
 
         //populate the outbox of every subcoordinator recursively
