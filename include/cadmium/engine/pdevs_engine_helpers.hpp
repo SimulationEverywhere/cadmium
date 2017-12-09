@@ -145,10 +145,10 @@ namespace cadmium {
 
         //Generic tuple for_each function
         template<typename TUPLE, typename FUNC>
-        void for_each(TUPLE& cs, FUNC&& f) {
+        void for_each(TUPLE& ts, FUNC&& f) {
 
-            auto init_coordinator = [&f](auto &... e)->void { (f(e) , ...); };
-            std::apply(init_coordinator, cs);
+            auto for_each_fold_expression = [&f](auto &... e)->void { (f(e) , ...); };
+            std::apply(for_each_fold_expression, ts);
         }
 
         //initialize subcoordinators
