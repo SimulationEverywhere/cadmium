@@ -160,22 +160,11 @@ namespace cadmium {
         }
 
         //populate the outbox of every subcoordinator recursively
-        template<typename TIME, typename CST, std::size_t S>
-        struct collect_outputs_in_subcoordinators_impl{
-            static void run(const TIME& t, CST& cs){
-                std::get<S-1>(cs).collect_outputs(t);
-                collect_outputs_in_subcoordinators_impl<TIME, CST, S-1>::run(t, cs);
-            }
-        };
-
         template<typename TIME, typename CST>
-        struct collect_outputs_in_subcoordinators_impl<TIME, CST, 0>{
-            static void run(const TIME& t, CST& cs){}
-        };
+        void collect_outputs_in_subcoordinators(const TIME& t, CST& cs) {
 
-        template<typename TIME, typename CST>
-        void collect_outputs_in_subcoordinators(const TIME& t, CST& cs){
-            collect_outputs_in_subcoordinators_impl<TIME, CST, std::tuple_size<CST>::value>::run(t, cs);
+            auto collect_output = [&t](auto & c)->void { c.collect_outputs(t); };
+            for_each<CST>(cs, collect_output);
         }
 
         //get the engine  from a tuple of engines that is simulating the model provided
