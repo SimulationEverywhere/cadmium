@@ -247,25 +247,10 @@ namespace cadmium {
         }
 
         //advance the simulation in every subengine
-        template <typename TIME, typename CST, std::size_t S>
-        struct advance_simulation_in_subengines_impl{
-            static void run(const TIME& t, CST& cst){
-                std::get<S-1>(cst).advance_simulation(t);
-                advance_simulation_in_subengines_impl<TIME, CST, S-1>::run(t, cst);
-            }
-        };
-
         template <typename TIME, typename CST>
-        struct advance_simulation_in_subengines_impl<TIME, CST, 0>{
-            static void run(const TIME& t, CST& cst){
-                //nothing to do here
-            }
-        };
-
-        template <typename TIME, typename CST>
-        void advance_simulation_in_subengines(const TIME& t, CST& subcoordinators){
-            advance_simulation_in_subengines_impl<TIME, CST, std::tuple_size<CST>::value>::run(t, subcoordinators);
-            return;
+        void advance_simulation_in_subengines(const TIME& t, CST& subcoordinators) {
+            auto advance_simulation = [&t](auto & c) -> void { c.advance_simulation(t); };
+            for_each<CST>(subcoordinators, advance_simulation);
         }
 
 
