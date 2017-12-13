@@ -62,8 +62,8 @@ namespace cadmium {
         template<typename LOGGER_SOURCE, class FORMATTER, typename SINK_PROVIDER>
         struct logger{
             template<typename DECLARED_SOURCE, typename... PARAMs>
-            static void log(const PARAMs&... ps){ //todo: apply a static_if solution
-                if (std::is_same<LOGGER_SOURCE, DECLARED_SOURCE>::value) {
+            static void log(const PARAMs&... ps){ 
+                if constexpr (std::is_same<LOGGER_SOURCE, DECLARED_SOURCE>::value) {
                     FORMATTER::format(SINK_PROVIDER::sink(), ps...);
                 }
             }
