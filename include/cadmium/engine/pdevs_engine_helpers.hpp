@@ -143,46 +143,28 @@ namespace cadmium {
             using type=typename coordinate_tuple_impl<TIME, MT, std::tuple_size<MT<float>>::value, LOGGER>::type;
         };
 
-        //init every subcooridnator in the coordination tuple
-        template <typename TIME, typename  CST, std::size_t S>
-        struct init_subcoordinators_impl{
-            static void value(const TIME& t, CST& cs){
-                std::get<S-1>(cs).init(t);
-                init_subcoordinators_impl<TIME, CST, S-1>::value(t, cs);
-                return;
-            }
-        };
+        //Generic tuple for_each function
+        template<typename TUPLE, typename FUNC>
+        void for_each(TUPLE& ts, FUNC&& f) {
 
-        template <typename TIME, typename  CST>
-        struct init_subcoordinators_impl<TIME, CST, 1>{
-            static void value(const TIME& t, CST& cs){
-                std::get<0>(cs).init(t);
-                return;
-            }
-        };
+            auto for_each_fold_expression = [&f](auto &... e)->void { (f(e) , ...); };
+            std::apply(for_each_fold_expression, ts);
+        }
 
+        //initialize subcoordinators
         template<typename TIME, typename CST>
-        void init_subcoordinators(const TIME& t, CST& cs ) {
-            init_subcoordinators_impl<TIME, CST, std::tuple_size<CST>::value>::value(t, cs);
+        void init_subcoordinators(const TIME& t, CST& cs) {
+
+            auto init_coordinator = [&t](auto & c)->void { c.init(t); };
+            for_each<CST>(cs, init_coordinator);
         }
 
         //populate the outbox of every subcoordinator recursively
-        template<typename TIME, typename CST, std::size_t S>
-        struct collect_outputs_in_subcoordinators_impl{
-            static void run(const TIME& t, CST& cs){
-                std::get<S-1>(cs).collect_outputs(t);
-                collect_outputs_in_subcoordinators_impl<TIME, CST, S-1>::run(t, cs);
-            }
-        };
-
         template<typename TIME, typename CST>
-        struct collect_outputs_in_subcoordinators_impl<TIME, CST, 0>{
-            static void run(const TIME& t, CST& cs){}
-        };
+        void collect_outputs_in_subcoordinators(const TIME& t, CST& cs) {
 
-        template<typename TIME, typename CST>
-        void collect_outputs_in_subcoordinators(const TIME& t, CST& cs){
-            collect_outputs_in_subcoordinators_impl<TIME, CST, std::tuple_size<CST>::value>::run(t, cs);
+            auto collect_output = [&t](auto & c)->void { c.collect_outputs(t); };
+            for_each<CST>(cs, collect_output);
         }
 
         //get the engine  from a tuple of engines that is simulating the model provided
@@ -265,25 +247,10 @@ namespace cadmium {
         }
 
         //advance the simulation in every subengine
-        template <typename TIME, typename CST, std::size_t S>
-        struct advance_simulation_in_subengines_impl{
-            static void run(const TIME& t, CST& cst){
-                std::get<S-1>(cst).advance_simulation(t);
-                advance_simulation_in_subengines_impl<TIME, CST, S-1>::run(t, cst);
-            }
-        };
-
         template <typename TIME, typename CST>
-        struct advance_simulation_in_subengines_impl<TIME, CST, 0>{
-            static void run(const TIME& t, CST& cst){
-                //nothing to do here
-            }
-        };
-
-        template <typename TIME, typename CST>
-        void advance_simulation_in_subengines(const TIME& t, CST& subcoordinators){
-            advance_simulation_in_subengines_impl<TIME, CST, std::tuple_size<CST>::value>::run(t, subcoordinators);
-            return;
+        void advance_simulation_in_subengines(const TIME& t, CST& subcoordinators) {
+            auto advance_simulation = [&t](auto & c) -> void { c.advance_simulation(t); };
+            for_each<CST>(subcoordinators, advance_simulation);
         }
 
 
@@ -408,7 +375,7 @@ namespace cadmium {
                 return (b.messages.empty() && ...);
             };
             return std::apply(check_empty, box);
-        };
+        }
 
         //priting messages
         template<size_t s, typename... T>
