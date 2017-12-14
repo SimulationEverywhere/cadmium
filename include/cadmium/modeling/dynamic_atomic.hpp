@@ -16,14 +16,12 @@ namespace cadmium {
             // Required types interface
             using state_type = ATOMIC<TIME>::state_type;
 
-            // Required members interface
-            state_type* state;
-
             // wrapped atomic model;
             ATOMIC<TIME> model;
 
-
         public:
+            // Required members interface
+            state_type* state;
 
             dynamic_atomic() {
 
