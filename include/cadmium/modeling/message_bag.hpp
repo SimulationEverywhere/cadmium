@@ -31,6 +31,8 @@
 #include <tuple>
 
 namespace cadmium {
+using dynamic_bag=std::vector<boost::any>
+
 template<typename T>
 using bag=std::vector<T>;
 
