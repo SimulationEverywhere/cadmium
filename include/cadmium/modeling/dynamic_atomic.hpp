@@ -42,18 +42,20 @@ namespace cadmium {
         template<typename TIME, template<typename T> class ATOMIC>
         class dynamic_atomic : atomic {
 
+            // wrapped atomic model;
+            ATOMIC<TIME> model;
+
+        public:
+
             // Required types interface
             using state_type = typename ATOMIC<TIME>::state_type;
             using output_ports = typename ATOMIC<TIME>::output_ports;
             using input_ports = typename ATOMIC<TIME>::input_ports;
 
+            // Model input and output types
             using output_bags = typename make_message_bags<output_ports>::type;
             using input_bags = typename make_message_bags<input_ports>::type;
 
-            // wrapped atomic model;
-            ATOMIC<TIME> model;
-
-        public:
             // Required members interface
             state_type state;
 
