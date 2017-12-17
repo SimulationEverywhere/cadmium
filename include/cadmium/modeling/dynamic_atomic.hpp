@@ -43,7 +43,7 @@ namespace cadmium {
         class dynamic_atomic : atomic {
 
             // wrapped atomic model;
-            ATOMIC<TIME> model;
+            ATOMIC<TIME> _model;
 
         public:
 
@@ -61,39 +61,39 @@ namespace cadmium {
 
             dynamic_atomic() {
                 static_assert(cadmium::concept::is_atomic<ATOMIC>::value, "This is not an atomic model");
-                state = model.state;
+                state = _model.state;
             };
 
             void internal_transition() {
-                this->model.internal_transition();
-                state = model.state;
+                _model.internal_transition();
+                state = _model.state;
             };
 
             void external_transition(TIME e, std::map<std::type_index, boost::any> bag) {
 
                 input_bags bags;
                 cadmium::modeling::fill_bags_from_map(bag, bags);
-                this->model.external_transition(e, bags);
-                state = model.state;
+                _model.external_transition(e, bags);
+                state = _model.state;
             };
 
             void confluence_transition(TIME e, std::map<std::type_index, boost::any> bag) {
 
                 input_bags bags;
                 cadmium::modeling::fill_bags_from_map(bag, bags);
-                this->model.confluence_transition(e, bags);
-                state = model.state;
+                this->_model.confluence_transition(e, bags);
+                state = _model.state;
             };
 
             std::map<std::type_index, boost::any> output() const {
 
                 std::map<std::type_index, boost::any> bags;
-                cadmium::modeling::fill_map_from_bags(this->model.output(), bags);
+                cadmium::modeling::fill_map_from_bags(_model.output(), bags);
                 return bags;
             };
 
             TIME time_advance() const {
-                return this->model.time_advance();
+                return _model.time_advance();
             };
         };
 
