@@ -44,7 +44,7 @@ namespace cadmium {
         }
 
         template<typename BST>
-        void fill_bags_from_map(std::map<std::type_index, boost::any>& bags, BST& bs) {
+        void fill_bags_from_map(cadmium::dynamic_message_bags& bags, BST& bs) {
 
             auto add_messages_to_bag = [&bags](auto & b)->void {
                 using bag_type = decltype(b);
@@ -56,7 +56,7 @@ namespace cadmium {
         }
 
         template<typename BST>
-        void fill_map_from_bags(BST& bs, std::map<std::type_index, boost::any>& bags) {
+        void fill_map_from_bags(BST& bs, cadmium::dynamic_message_bags& bags) {
 
             auto add_messages_to_map = [&bags](auto & b)->void {
                 using bag_type = decltype(b);

@@ -30,9 +30,12 @@
 #include <vector>
 #include <tuple>
 #include <boost/any.hpp>
+#include <typeindex>
+#include <map>
 
 namespace cadmium {
 using dynamic_bag=std::vector<boost::any>;
+using dynamic_message_bags=std::map<std::type_index, boost::any>;
 
 template<typename T>
 using bag=std::vector<T>;

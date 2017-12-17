@@ -39,7 +39,7 @@ namespace cadmium {
 
         using cadmium::dynamic_bag;
 
-        template<typename TIME, template<typename T> class ATOMIC>
+        template<template<typename T> class ATOMIC, typename TIME>
         class dynamic_atomic : atomic {
 
             // wrapped atomic model;
@@ -69,34 +69,33 @@ namespace cadmium {
                 state = _model.state;
             };
 
-            void external_transition(TIME e, std::map<std::type_index, boost::any> bag) {
+            void external_transition(TIME e, cadmium::dynamic_message_bags dynamic_bags) {
 
                 input_bags bags;
-                cadmium::modeling::fill_bags_from_map(bag, bags);
+                cadmium::modeling::fill_bags_from_map(dynamic_bags, bags);
                 _model.external_transition(e, bags);
                 state = _model.state;
             };
 
-            void confluence_transition(TIME e, std::map<std::type_index, boost::any> bag) {
+            void confluence_transition(TIME e, cadmium::dynamic_message_bags dynamic_bags) {
 
                 input_bags bags;
-                cadmium::modeling::fill_bags_from_map(bag, bags);
+                cadmium::modeling::fill_bags_from_map(dynamic_bags, bags);
                 this->_model.confluence_transition(e, bags);
                 state = _model.state;
             };
 
-            std::map<std::type_index, boost::any> output() const {
+            cadmium::dynamic_message_bags output() const {
 
-                std::map<std::type_index, boost::any> bags;
-                cadmium::modeling::fill_map_from_bags(_model.output(), bags);
-                return bags;
+                cadmium::dynamic_message_bags dynamic_bags;
+                cadmium::modeling::fill_map_from_bags(_model.output(), dynamic_bags);
+                return dynamic_bags;
             };
 
             TIME time_advance() const {
                 return _model.time_advance();
             };
         };
-
     }
 }
 
