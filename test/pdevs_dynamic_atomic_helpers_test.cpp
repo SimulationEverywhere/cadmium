@@ -61,7 +61,7 @@ BOOST_AUTO_TEST_SUITE( pdevs_dynamic_atomic_helpers_test_suite )
             input_bags bs_tuple;
             cadmium::modeling::fill_bags_from_map<input_bags>(bs_map, bs_tuple);
             BOOST_CHECK_EQUAL(bag_0.messages.size(), cadmium::get_messages<test_in_0>(bs_tuple).size());
-            BOOST_CHECK_EQUAL(bag_1.messages.size(), cadmium::get_messages<test_in_>(bs_tuple).size());
+            BOOST_CHECK_EQUAL(bag_1.messages.size(), cadmium::get_messages<test_in_1>(bs_tuple).size());
     }
 
     BOOST_AUTO_TEST_CASE(fill_map_from_bags_test){
