@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2013-2016, Laouen Mayal Louan Belloli
+ * Copyright (c) 2017, Laouen Mayal Louan Belloli
  * Carleton University, Universidad de Buenos Aires
  * All rights reserved.
  *
@@ -35,7 +35,7 @@
 namespace cadmium {
     namespace modeling {
 
-        //Generic tuple for_each function
+        // Generic tuple for_each function
         template<typename TUPLE, typename FUNC>
         void for_each(TUPLE& ts, FUNC&& f) {
 
@@ -43,6 +43,13 @@ namespace cadmium {
             std::apply(for_each_fold_expression, ts);
         }
 
+        /**
+         * @brief Insert all the previously casted message bags of bags in the typed bs message bags.
+         *
+         * @tparam BST The message bag tuple to fill from the dynamic_message_bags.
+         * @param bags - The dynamic_message_bags that carries the message to be placed in the bs parameter.
+         * @param bs  - The BST message bags that will be filled with the bags messages.
+         */
         template<typename BST>
         void fill_bags_from_map(cadmium::dynamic_message_bags& bags, BST& bs) {
 
@@ -55,6 +62,13 @@ namespace cadmium {
             for_each<BST>(bs, add_messages_to_bag);
         }
 
+        /**
+         * @brief Insert all the message bs of bags in bags by an implicit conversion of them to boost::any.
+         *
+         * @tparam BST The message bag tuple that carries the messages to fill the dynamic_message_bags.
+         * @param bags - The dynamic_message_bag that will be filled with the bs messages.
+         * @param bs  - The BST message bag that carries the message to be placed in the bags parameter.
+         */
         template<typename BST>
         void fill_map_from_bags(BST& bs, cadmium::dynamic_message_bags& bags) {
 

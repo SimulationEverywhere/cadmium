@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2013-2016, Laouen Mayal Louan Belloli
+ * Copyright (c) 2017, Laouen Mayal Louan Belloli
  * Carleton University, Universidad de Buenos Aires
  * All rights reserved.
  *
@@ -32,23 +32,27 @@
 #include <cadmium/modeling/atomic.hpp>
 #include <cadmium/modeling/message_bag.hpp>
 #include <cadmium/concept/concept_helpers.hpp>
-#include "dynamic_atomic_helpers.hpp"
+#include <cadmium/modeling/dynamic_atomic_helpers.hpp>
 
 namespace cadmium {
     namespace modeling {
 
-        using cadmium::dynamic_bag;
-
+        /**
+         * @brief dynamic_atomic is a derived class from the base classes atomic and ATOMIC<TIME>
+         * this allow using any ATOMIC<TIME> valid class with pointers as an atomic (first abase class) pointer.
+         *
+         * @details
+         * Because ATOMIC<TIME> methods arity are template dependent, this wrapper class uses
+         * cadmium::dynamic_message_bags as these methods parameter and it forwards a correct
+         * translation to the corresponding type in the wrapped ATOMIC<TIME> base class method.
+         *
+         * @tparam ATOMIC a valid atomic model class
+         * @tparam TIME a valid TIME class to use along with the atomic model class as ATOMIC<TIME>
+         */
         template<template<typename T> class ATOMIC, typename TIME>
-        class dynamic_atomic : atomic {
-
-            // wrapped atomic model;
-            ATOMIC<TIME> _model;
-
+        class dynamic_atomic : public atomic, public ATOMIC<TIME> {
         public:
 
-            // Required types interface
-            using state_type = typename ATOMIC<TIME>::state_type;
             using output_ports = typename ATOMIC<TIME>::output_ports;
             using input_ports = typename ATOMIC<TIME>::input_ports;
 
@@ -56,44 +60,35 @@ namespace cadmium {
             using output_bags = typename make_message_bags<output_ports>::type;
             using input_bags = typename make_message_bags<input_ports>::type;
 
-            // Required members interface
-            state_type state;
-
             dynamic_atomic() {
                 static_assert(cadmium::concept::is_atomic<ATOMIC>::value, "This is not an atomic model");
-                state = _model.state;
-            };
-
-            void internal_transition() {
-                _model.internal_transition();
-                state = _model.state;
             };
 
             void external_transition(TIME e, cadmium::dynamic_message_bags dynamic_bags) {
-
+                // Translate from dynamic_message_bag to template dependent input_bags type.
                 input_bags bags;
                 cadmium::modeling::fill_bags_from_map(dynamic_bags, bags);
-                _model.external_transition(e, bags);
-                state = _model.state;
+
+                // Forwards the translated value to the wrapped ATOMIC<TIME> class method.
+                external_transition(e, bags);
             };
 
             void confluence_transition(TIME e, cadmium::dynamic_message_bags dynamic_bags) {
-
+                // Translate from dynamic_message_bag to template dependent input_bags type.
                 input_bags bags;
                 cadmium::modeling::fill_bags_from_map(dynamic_bags, bags);
-                this->_model.confluence_transition(e, bags);
-                state = _model.state;
+
+                // Forwards the translated value to the wrapped ATOMIC<TIME> class method.
+                confluence_transition(e, bags);
             };
 
             cadmium::dynamic_message_bags output() const {
-
                 cadmium::dynamic_message_bags dynamic_bags;
-                cadmium::modeling::fill_map_from_bags(_model.output(), dynamic_bags);
-                return dynamic_bags;
-            };
+                output_bags bags = output();
 
-            TIME time_advance() const {
-                return _model.time_advance();
+                // Translate from template dependent output_bags type to dynamic_message_bag.
+                cadmium::modeling::fill_map_from_bags(bags, dynamic_bags);
+                return dynamic_bags;
             };
         };
     }

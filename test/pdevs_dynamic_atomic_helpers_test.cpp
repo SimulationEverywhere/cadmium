@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2013-2016, Laouen Mayal Louan Belloli
+ * Copyright (c) 2017, Laouen Mayal Louan Belloli
  * Carleton University, Universidad de Buenos Aires
  * All rights reserved.
  *

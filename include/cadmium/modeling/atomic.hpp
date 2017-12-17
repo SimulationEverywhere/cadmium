@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2013-2016, Laouen Mayal Louan Belloli
+ * Copyright (c) 2017, Laouen Mayal Louan Belloli
  * Carleton University, Universidad de Buenos Aires
  * All rights reserved.
  *
@@ -28,11 +28,13 @@
 #define CADMIUM_ATOMIC_HPP
 
 namespace cadmium {
-namespace modeling {
+    namespace modeling {
 
-class atomic { };
-
-}
+        /**
+         * @brief Empty class to allow pointer based polymorphism between classes derived from atomic.
+         */
+        class atomic { };
+    }
 }
 
 #endif // CADMIUM_ATOMIC_HPP

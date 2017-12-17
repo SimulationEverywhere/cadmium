@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2013-2016, Laouen Mayal Louan Belloli
+ * Copyright (c) 2017, Laouen Mayal Louan Belloli
  * Carleton University, Universidad de Buenos Aires
  * All rights reserved.
  *
@@ -43,6 +43,7 @@ BOOST_AUTO_TEST_SUITE( pdevs_dynamic_atomic_test_suite )
         cadmium::modeling::dynamic_atomic<int_accumulator, float> wrapped_model;
         BOOST_CHECK(typeid(model.state) == typeid(wrapped_model.state));
         BOOST_CHECK(model.state == wrapped_model.state);
+        BOOST_CHECK(!std::get<1>(wrapped_model.state));
     }
 
 BOOST_AUTO_TEST_SUITE_END()
