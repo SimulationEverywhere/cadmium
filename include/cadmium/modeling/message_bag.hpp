@@ -29,9 +29,10 @@
 
 #include <vector>
 #include <tuple>
+#include <boost/any.hpp>
 
 namespace cadmium {
-using dynamic_bag=std::vector<boost::any>
+using dynamic_bag=std::vector<boost::any>;
 
 template<typename T>
 using bag=std::vector<T>;
