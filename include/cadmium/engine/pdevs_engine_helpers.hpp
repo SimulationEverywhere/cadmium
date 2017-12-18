@@ -37,6 +37,7 @@
 #include <cadmium/concept/concept_helpers.hpp>
 #include <cadmium/modeling/message_bag.hpp>
 #include <cadmium/logger/common_loggers.hpp>
+#include <cadmium/logger/common_loggers_helpers.hpp>
 
 
 namespace cadmium {
