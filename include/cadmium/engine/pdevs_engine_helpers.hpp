@@ -377,6 +377,22 @@ namespace cadmium {
             return std::apply(check_empty, box);
         }
 
+        //Checking all dynamic bag of inbox or outbox are empty
+        template<class BOX>
+        decltype(auto) all_bags_empty(dynamic_message_bags const& dynamic_bag) {
+            auto empty = [&dynamic_bag](auto const& b) -> bool {
+                using bag_type = decltype(b);
+                return boost::any_cast<bag_type>(dynamic_bag.at(typeid(b))).messages.empty();
+            };
+            auto check_empty = [&empty](auto const&... b)->decltype(auto) {
+                return (empty(b) && ...);
+            };
+
+            // the box is used to get all the port types to use as keys.
+            BOX box;
+            return std::apply(check_empty, box);
+        }
+
         //priting messages
         template<size_t s, typename... T>
         struct print_messages_by_port_impl{
