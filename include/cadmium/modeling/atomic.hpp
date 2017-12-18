@@ -1,6 +1,6 @@
 /**
- * Copyright (c) 2013-2015, Damian Vicino
- * Carleton University, Universite de Nice-Sophia Antipolis
+ * Copyright (c) 2017, Laouen Mayal Louan Belloli
+ * Carleton University, Universidad de Buenos Aires
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,56 +24,17 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CADMIUM_MESSAGE_BAG_HPP
-#define CADMIUM_MESSAGE_BAG_HPP
-
-#include <vector>
-#include <tuple>
-#include <boost/any.hpp>
-#include <typeindex>
-#include <map>
+#ifndef CADMIUM_ATOMIC_HPP
+#define CADMIUM_ATOMIC_HPP
 
 namespace cadmium {
-using dynamic_bag=std::vector<boost::any>;
-using dynamic_message_bags=std::map<std::type_index, boost::any>;
+    namespace modeling {
 
-template<typename T>
-using bag=std::vector<T>;
-
-template<typename PORT>
-struct message_bag{
-    using port=PORT;
-    using message_type=typename PORT::message_type;
-
-    bag<message_type> messages;
-
-    message_bag(){}
-
-    message_bag(std::initializer_list<message_type> l) : messages{l} {}
-};
-
-template<typename... Ps>
-std::tuple<message_bag<Ps>...> make_message_bags_impl(std::tuple<Ps...>){
-    return std::tuple<message_bag<Ps>...>{};
+        /**
+         * @brief Empty class to allow pointer based polymorphism between classes derived from atomic.
+         */
+        class atomic { };
+    }
 }
 
-template<typename T>
-struct make_message_bags{
-    using type=decltype(make_message_bags_impl(T{}));
-};
-
-
-template<typename PORT, typename T>
-bag<typename message_bag<PORT>::message_type> & get_messages(T& mbs){
-    return std::get<message_bag<PORT>>(mbs).messages;
-}
-
-template<typename PORT, typename T>
-const bag<typename message_bag<PORT>::message_type> & get_messages(const T& mbs){
-    return std::get<message_bag<PORT>>(mbs).messages;
-}
-
-}
-
-#endif // CADMIUM_MESSAGE_BAG_HPP
-
+#endif // CADMIUM_ATOMIC_HPP
