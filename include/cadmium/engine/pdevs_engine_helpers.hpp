@@ -47,61 +47,6 @@ namespace cadmium {
         template<template<typename T> class MODEL, typename TIME, typename LOGGER>
         class simulator;
 
-        // Displaying all messages in a bag
-        //printing all messages in bags, if the support the << operator to ostream
-        template <typename T>
-        struct is_streamable {
-        private:
-            template <typename U>
-            static decltype(std::cout << std::declval<U>(), void(), std::true_type()) test(int);
-            template <typename>
-            static std::false_type test(...);
-        public:
-            using type=decltype(test<T>(0));
-            static constexpr auto value=type::value;
-        };
-
-        template<typename T>
-        constexpr bool is_streamable_v(){
-            return is_streamable<T>::value;
-        }
-
-        template<typename T, typename V=typename is_streamable<T>::type>
-        struct value_or_name;
-
-        template<typename T>
-        struct value_or_name<T, std::true_type>{
-            static void print(std::ostream& os, const T& v){
-                os << v;
-            }
-        };
-
-        template<typename T>
-        struct value_or_name<T, std::false_type>{
-            static void print(std::ostream& os, const T& v){
-                os << "obscure message of type ";
-                os << boost::typeindex::type_id<T>().pretty_name();
-            }
-        };
-
-
-        template<typename T>
-        std::ostream& implode(std::ostream& os, const T& collection){
-             os << "{";
-             auto it = std::begin(collection);
-             if (it != std::end(collection)) {
-                value_or_name<typename T::value_type>::print(os, *it);
-                ++it;
-             }
-             while (it != std::end(collection)){
-                os << ", ";
-                value_or_name<typename T::value_type>::print(os, *it);
-                ++it;
-             }
-             os << "}";
-             return os;
-        }
-
         //finding the min next from a tuple of coordinators and simulators
         template<typename T, std::size_t S>
         struct min_next_in_tuple_impl {
@@ -215,13 +160,13 @@ namespace cadmium {
                      oss << " in port ";
                      oss << boost::typeindex::type_id<external_output_port>().pretty_name();
                      oss << " has ";
-                     implode(oss, to);
+                     logger::implode(oss, to);
                      oss << " routed from ";
                      oss << boost::typeindex::type_id<submodel_output_port>().pretty_name();
                      oss << " of model ";
                      oss << boost::typeindex::type_id<submodel_from>().pretty_name();
                      oss << " with messages ";
-                     implode(oss, from);
+                    logger::implode(oss, from);
                      return oss.str();
                 };
                 LOGGER::template log<cadmium::logger::logger_message_routing,
@@ -283,13 +228,13 @@ namespace cadmium {
                      oss << " of model ";
                      oss << boost::typeindex::type_id<to_model>().pretty_name();
                      oss << " has ";
-                     implode(oss, to);
+                    logger::implode(oss, to);
                      oss << " routed from ";
                      oss << boost::typeindex::type_id<from_port>().pretty_name();
                      oss << " of model ";
                      oss << boost::typeindex::type_id<from_model>().pretty_name();
                      oss << " with messages ";
-                     implode(oss, from);
+                    logger::implode(oss, from);
                      return oss.str();
                 };
                 LOGGER::template log<cadmium::logger::logger_message_routing,
@@ -336,11 +281,11 @@ namespace cadmium {
                      oss << " of model ";
                      oss << boost::typeindex::type_id<to_model>().pretty_name();
                      oss << " has ";
-                     implode(oss, to);
+                    logger::implode(oss, to);
                      oss << " routed from ";
                      oss << boost::typeindex::type_id<from_port>().pretty_name();
                      oss << " with messages ";
-                     implode(oss, from);
+                    logger::implode(oss, from);
                      return oss.str();
                 };
                 LOGGER::template log<cadmium::logger::logger_message_routing,
@@ -391,41 +336,6 @@ namespace cadmium {
             // the box is used to get all the port types to use as keys.
             BOX box;
             return std::apply(check_empty, box);
-        }
-
-        //priting messages
-        template<size_t s, typename... T>
-        struct print_messages_by_port_impl{
-            using current_bag=typename std::tuple_element<s-1, std::tuple<T...>>::type;
-            static void run(std::ostream& os, const std::tuple<T...>& b){
-                print_messages_by_port_impl<s-1, T...>::run(os, b);
-                os << ", ";
-                os << boost::typeindex::type_id<typename current_bag::port>().pretty_name();
-                os << ": ";
-                implode(os, cadmium::get_messages<typename current_bag::port>(b));
-            }
-        };
-
-        template<typename... T>
-        struct print_messages_by_port_impl<1, T...>{
-            using current_bag=typename std::tuple_element<0, std::tuple<T...>>::type;
-            static void run(std::ostream& os, const std::tuple<T...>& b){
-                os << boost::typeindex::type_id<typename current_bag::port>().pretty_name();
-                os << ": ";
-                implode(os, cadmium::get_messages<typename current_bag::port>(b));
-            }
-        };
-
-        template<typename... T>
-        struct print_messages_by_port_impl<0, T...>{
-            static void run(std::ostream& os, const std::tuple<T...>& b){}
-        };
-
-        template <typename... T>
-        void print_messages_by_port(std::ostream& os, const std::tuple<T...>& b){
-               os << "[";
-               print_messages_by_port_impl<sizeof...(T), T...>::run(os, b);
-               os << "]";
         }
     }
 
