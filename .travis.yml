@@ -1,13 +1,35 @@
 language: cpp
 sudo: required
-os: osx
-osx_image: xcode9.2
-compiler: 
-  - clang
-before_install:
-- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then rvm get stable || true; fi
-- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update || true; fi
-- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install cmake || brew upgrade cmake || true; fi
-- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install boost-build || brew upgrade cmake || true; fi
+env: 
+  global:
+# Workaround for https://github.com/travis-ci/travis-ci/issues/4681
+  matrix:
+    - TRAVIS_EMPTY_JOB_WORKAROUND=true
+
+matrix:
+  exclude:
+    - env: TRAVIS_EMPTY_JOB_WORKAROUND=true
+
+  include:
+    - os: linux
+      dist: trusty
+      env: CC=gcc-7 CXX=g++-7 BOOST_ROOT=/usr/include/boost 
+      compiler: gcc
+      before_install:
+          - sudo -E apt-add-repository -y "ppa:ubuntu-toolchain-r/test"
+          - sudo apt-get update
+          - sudo apt-get install g++-7
+          - export BOOST_URL="https://downloads.sourceforge.net/project/boost/boost/1.63.0/boost_1_63_0.tar.gz"
+          - mkdir -p /tmp/boost
+          - wget --quiet -O - ${BOOST_URL} | tar --strip-components=1 -xz -C /tmp/boost  || exit 1
+          - cd /tmp/boost/tools/build && ./bootstrap.sh && ./b2 install --prefix=/tmp/b2
+          - export PATH=/tmp/b2/bin:${PATH}
+          - cd /tmp/boost && b2 toolset=gcc cxxflags="-std=c++14 ${CXXFLAGS}"
+    - os: osx
+      osx_image: xcode9.2
+      env:
+      before_install:
+          - brew upgrade boost cmake
+
 script:
   - cmake -G "Unix Makefiles" . && make && make test  
