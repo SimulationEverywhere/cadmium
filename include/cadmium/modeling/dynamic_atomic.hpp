@@ -62,7 +62,6 @@ namespace cadmium {
 
             dynamic_atomic() {
                 static_assert(cadmium::concept::is_atomic<ATOMIC>::value, "This is not an atomic model");
-                cadmium::concept::atomic_model_assert<MODEL>();
             };
 
             void external_transition(TIME e, cadmium::dynamic_message_bags dynamic_bags) {
