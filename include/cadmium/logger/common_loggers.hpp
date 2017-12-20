@@ -100,6 +100,62 @@ namespace cadmium {
         struct not_matching_source :public logger_source{};
         using not_logger=logger<not_matching_source, verbatim_formatter, cout_sink_provider>;
 
+        template<template<typename T> class MODEL, typename TIME>
+        struct coordinator_formatter {
+
+            using model_type=MODEL<TIME>;
+
+            static std::string log_info_init(TIME t) {
+                std::ostringstream oss;
+                oss << "Coordinator for model ";
+                oss << boost::typeindex::type_id<model_type>().pretty_name();
+                oss << " initialized to time ";
+                oss << t;
+                return oss.str();
+            };
+
+            static std::string log_info_collect(TIME t) {
+                std::ostringstream oss;
+                oss << "Coordinator for model ";
+                oss << boost::typeindex::type_id<model_type>().pretty_name();
+                oss << " collecting output at time ";
+                oss << t;
+                return oss.str();
+            };
+
+            static std::string log_routing_collect() {
+                std::ostringstream oss;
+                oss << "EOC for model ";
+                oss << boost::typeindex::type_id<model_type>().pretty_name();
+                return oss.str();
+            };
+
+            static std::string log_info_advance(const TIME& from, const TIME& to) {
+                std::ostringstream oss;
+                oss << "Coordinator for model ";
+                oss << boost::typeindex::type_id<model_type>().pretty_name();
+                oss << " advancing simulation from time ";
+                oss << from;
+                oss << " to ";
+                oss << to;
+                return oss.str();
+            };
+
+            static std::string log_routing_ic_collect() {
+                std::ostringstream oss;
+                oss << "IC for model ";
+                oss << boost::typeindex::type_id<model_type>().pretty_name();
+                return oss.str();
+            };
+
+            static std::string log_routing_eic_collect() {
+                std::ostringstream oss;
+                oss << "EIC for model ";
+                oss << boost::typeindex::type_id<model_type>().pretty_name();
+                return oss.str();
+            };
+        };
+
         template <template<typename T> class MODEL, typename TIME>
         struct simulator_formatter {
 
