@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2013-2017, Damian Vicino
+ * Copyright (c) 2013-2017, Damian Vicino, Laouen M. L. Belloli
  * Carleton University, Universite de Nice-Sophia Antipolis
  * All rights reserved.
  *
