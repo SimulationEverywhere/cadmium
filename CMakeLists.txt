@@ -5,13 +5,21 @@ set (Cadmium_VERSION_MAJOR 0)
 set (Cadmium_VERSION_MINOR 2)
 set (Cadmium_VERSION_PATCH 3)
 
+include(CheckCXXCompilerFlag)
+
 find_package(Boost COMPONENTS unit_test_framework REQUIRED)
 
 add_library(Cadmium INTERFACE)
 
 include_directories(include ${Boost_INCLUDE_DIRS})
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic -std=c++1z")
+# Check for standard to use
+check_cxx_compiler_flag(-std=c++17 HAVE_FLAG_STD_CXX17)
+if(HAVE_FLAG_STD_CXX17)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic --std=c++17")
+else()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic --std=c++1z")
+endif()
 
 enable_testing()
 # Unit tests
