@@ -34,6 +34,7 @@
 #include <cadmium/engine/pdevs_engine_helpers.hpp>
 #include <cadmium/logger/common_loggers.hpp>
 #include <cadmium/modeling/dynamic_atomic.hpp>
+#include <cadmium/modeling/dynamic_models_helpers.hpp>
 
 
 /**
@@ -201,8 +202,8 @@ namespace cadmium {
             TIME _last;
             TIME _next;
 
-            dynamic_message_bags _outbox;
-            dynamic_message_bags _inbox;
+            dynamic_message_bags _outbox = modeling::create_empty_dynamic_message_bags<out_bags_type>();
+            dynamic_message_bags _inbox = modeling::create_empty_dynamic_message_bags<in_bags_type>();
 
         public:
             using dynamic_model_type=typename modeling::dynamic_atomic<MODEL, TIME>;
@@ -230,17 +231,18 @@ namespace cadmium {
                 LOGGER::template log<cadmium::logger::logger_info, decltype(formatter::log_info_collect), TIME>(formatter::log_info_collect, t);
 
                 //cleanning the inbox and producing outbox
-                _inbox = dynamic_message_bags();
+                _inbox = modeling::create_empty_dynamic_message_bags<in_bags_type>();;
 
                 if (_next < t){
                     throw std::domain_error("Trying to obtain output when not internal event is scheduled");
                 } else if (_next == t) {
                     _outbox = _model.output();
                 } else {
-                    _outbox = dynamic_message_bags();
+                    _outbox = modeling::create_empty_dynamic_message_bags<out_bags_type>();
                 }
 
-                LOGGER::template log<cadmium::logger::logger_messages, decltype(formatter::log_messages_collect), out_bags_type>(formatter::log_messages_collect, _outbox);
+                // TODO: create correct logger for this
+                //LOGGER::template log<cadmium::logger::logger_messages, decltype(formatter::log_messages_collect), out_bags_type>(formatter::log_messages_collect, _outbox);
             }
 
             /**
@@ -264,7 +266,7 @@ namespace cadmium {
             */
             void advance_simulation(TIME t) {
                 //clean outbox because messages are routed before calling this funtion at a higher level
-                _outbox = dynamic_message_bags();
+                _outbox = modeling::create_empty_dynamic_message_bags<out_bags_type>();
 
                 LOGGER::template log<cadmium::logger::logger_info, decltype(formatter::log_info_advance), TIME>(formatter::log_info_advance, _last, t);
                 LOGGER::template log<cadmium::logger::logger_local_time, decltype(formatter::log_local_time), TIME>(formatter::log_local_time, _last, t);
@@ -283,7 +285,7 @@ namespace cadmium {
                         _last = t;
                         _next = _last + _model.time_advance();
                         //clean inbox because they were processed already
-                        _inbox = dynamic_message_bags();
+                        _inbox = modeling::create_empty_dynamic_message_bags<in_bags_type>();;
                     } else { //no input available
                         if (t != _next) {
                             //throw std::domain_error("Trying to execute internal transition at wrong time");
