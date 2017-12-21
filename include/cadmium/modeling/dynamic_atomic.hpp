@@ -32,7 +32,8 @@
 #include <cadmium/modeling/model.hpp>
 #include <cadmium/modeling/message_bag.hpp>
 #include <cadmium/concept/concept_helpers.hpp>
-#include <cadmium/modeling/dynamic_atomic_helpers.hpp>
+#include <cadmium/concept/atomic_model_assert.hpp>
+#include <cadmium/modeling/dynamic_models_helpers.hpp>
 
 namespace cadmium {
     namespace modeling {
@@ -52,9 +53,10 @@ namespace cadmium {
         template<template<typename T> class ATOMIC, typename TIME>
         class dynamic_atomic : public model, public ATOMIC<TIME> {
         public:
+            using model_type=ATOMIC<TIME>;
 
-            using output_ports = typename ATOMIC<TIME>::output_ports;
-            using input_ports = typename ATOMIC<TIME>::input_ports;
+            using output_ports = typename model_type::output_ports;
+            using input_ports = typename model_type::input_ports;
 
             // Model input and output types
             using output_bags = typename make_message_bags<output_ports>::type;
@@ -62,6 +64,7 @@ namespace cadmium {
 
             dynamic_atomic() {
                 static_assert(cadmium::concept::is_atomic<ATOMIC>::value, "This is not an atomic model");
+                cadmium::concept::atomic_model_assert<ATOMIC>();
             };
 
             void external_transition(TIME e, cadmium::dynamic_message_bags dynamic_bags) {
@@ -69,7 +72,7 @@ namespace cadmium {
                 input_bags bags;
                 cadmium::modeling::fill_bags_from_map(dynamic_bags, bags);
 
-                // Forwards the translated value to the wrapped ATOMIC<TIME> class method.
+                // Forwards the translated value to the wrapped model_type class method.
                 external_transition(e, bags);
             };
 
@@ -78,7 +81,7 @@ namespace cadmium {
                 input_bags bags;
                 cadmium::modeling::fill_bags_from_map(dynamic_bags, bags);
 
-                // Forwards the translated value to the wrapped ATOMIC<TIME> class method.
+                // Forwards the translated value to the wrapped model_type class method.
                 confluence_transition(e, bags);
             };
 
