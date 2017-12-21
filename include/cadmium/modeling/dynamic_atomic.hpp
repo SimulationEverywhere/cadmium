@@ -73,7 +73,7 @@ namespace cadmium {
                 cadmium::modeling::fill_bags_from_map(dynamic_bags, bags);
 
                 // Forwards the translated value to the wrapped model_type class method.
-                external_transition(e, bags);
+                model_type::external_transition(e, bags);
             };
 
             void confluence_transition(TIME e, cadmium::dynamic_message_bags dynamic_bags) {
@@ -82,12 +82,12 @@ namespace cadmium {
                 cadmium::modeling::fill_bags_from_map(dynamic_bags, bags);
 
                 // Forwards the translated value to the wrapped model_type class method.
-                confluence_transition(e, bags);
+                model_type::confluence_transition(e, bags);
             };
 
-            cadmium::dynamic_message_bags output() const {
+            cadmium::dynamic_message_bags output() {
                 cadmium::dynamic_message_bags dynamic_bags;
-                output_bags bags = output();
+                output_bags bags = model_type::output();
 
                 // Translate from template dependent output_bags type to dynamic_message_bag.
                 cadmium::modeling::fill_map_from_bags(bags, dynamic_bags);

@@ -49,6 +49,25 @@ namespace cadmium {
         }
 
         /**
+         * @brief Constructs an empty dynamic_message_bag with all the bs tuple members as keys of empties message bags.
+         *
+         * @tparam BST The message bag tuple.
+         */
+        template<typename BST>
+        cadmium::dynamic_message_bags create_empty_dynamic_message_bags() {
+
+            cadmium::dynamic_message_bags bags;
+            auto create_empty_bag = [&bags](auto & b)->void {
+                using bag_type = decltype(b);
+
+                bags[typeid(bag_type)] = b;
+            };
+            BST bs;
+            for_each<BST>(bs, create_empty_bag);
+            return bags;
+        }
+
+        /**
          * @brief Insert all the previously casted message bags of bags in the typed bs message bags.
          *
          * @tparam BST The message bag tuple to fill from the dynamic_message_bags.
