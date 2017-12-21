@@ -31,9 +31,14 @@
 #include <typeindex>
 #include <boost/any.hpp>
 #include <map>
+#include <memory>
 
 namespace cadmium {
     namespace modeling {
+
+        using models_map=std::map<std::type_index, std::shared_ptr<model>>;
+        using ports_vector=std::vector<std::type_index>;
+        using links_vector=std::vector<std::vector<std::type_index>>;
 
         // Generic tuple for_each function
         template<typename TUPLE, typename FUNC>
@@ -78,6 +83,37 @@ namespace cadmium {
                 bags[typeid(bag_type)] = b;
             };
             for_each<BST>(bs, add_messages_to_map);
+        }
+
+        bool is_in(const std::type_index& port, const ports_vector& ports) {
+            return std::find(ports.cbegin(), ports.cend(), port) != ports.cend();
+        }
+
+        bool valid_ic_links(const models_map& models, const links_vector& ic) {
+            for (auto & link : ic) {
+                if (link.size() != 4 || models.find(link[0]) == models.cend() || models.find(link[3]) == models.cend()) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        bool valid_eic_links(const models_map& models, const ports_vector& input_ports, const links_vector& eic) {
+            for (auto & link : eic) {
+                if (link.size() != 3 || models.find(link[1]) == models.cend() || is_in(link[0], input_ports)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        bool valid_eoc_links(const models_map& models, const ports_vector& output_ports, const links_vector& eoc) {
+            for (auto & link : eoc) {
+                if (link.size() != 3 || models.find(link[0]) == models.cend() || is_in(link[2], output_ports)) {
+                    return false;
+                }
+            }
+            return true;
         }
     }
 }

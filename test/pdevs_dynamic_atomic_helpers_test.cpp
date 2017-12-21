@@ -30,7 +30,7 @@
 #include <cadmium/engine/pdevs_simulator.hpp>
 #include <cadmium/engine/pdevs_coordinator.hpp>
 #include <cadmium/basic_model/generator.hpp>
-#include <cadmium/modeling/dynamic_atomic_helpers.hpp>
+#include <cadmium/modeling/dynamic_models_helpers.hpp>
 #include <typeindex>
 
 /**
