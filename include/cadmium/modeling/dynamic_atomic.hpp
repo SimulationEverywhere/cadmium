@@ -29,7 +29,7 @@
 
 #include <map>
 #include <boost/any.hpp>
-#include <cadmium/modeling/atomic.hpp>
+#include <cadmium/modeling/model.hpp>
 #include <cadmium/modeling/message_bag.hpp>
 #include <cadmium/concept/concept_helpers.hpp>
 #include <cadmium/modeling/dynamic_atomic_helpers.hpp>
@@ -50,7 +50,7 @@ namespace cadmium {
          * @tparam TIME a valid TIME class to use along with the atomic model class as ATOMIC<TIME>
          */
         template<template<typename T> class ATOMIC, typename TIME>
-        class dynamic_atomic : public atomic, public ATOMIC<TIME> {
+        class dynamic_atomic : public model, public ATOMIC<TIME> {
         public:
 
             using output_ports = typename ATOMIC<TIME>::output_ports;

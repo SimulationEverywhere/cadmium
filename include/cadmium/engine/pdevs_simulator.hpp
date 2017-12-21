@@ -169,7 +169,7 @@ namespace cadmium {
         };
 
         template<typename TIME>
-        class abstract_dynamic_simulator {
+        class dynamic_engine {
         public:
             virtual void init(TIME initial_time) = 0;
             virtual TIME next() const noexcept = 0;
@@ -190,7 +190,7 @@ namespace cadmium {
          * @tparam LOGGER - The logger type used to log simulation information as model states.
          */
         template<template<typename T> class MODEL, typename TIME, typename LOGGER>
-        class dynamic_simulator : public abstract_dynamic_simulator<TIME> {
+        class dynamic_simulator : public dynamic_engine<TIME> {
             using formatter=typename cadmium::logger::simulator_formatter<MODEL, TIME>;
 
             using input_ports=typename modeling::dynamic_atomic<MODEL, TIME>::input_ports;

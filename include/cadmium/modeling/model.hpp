@@ -33,7 +33,7 @@ namespace cadmium {
         /**
          * @brief Empty class to allow pointer based polymorphism between classes derived from atomic.
          */
-        class atomic { };
+        class model { };
     }
 }
 
