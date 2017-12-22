@@ -114,7 +114,7 @@ namespace cadmium {
                 external_transition(TIME{}, std::move(mbs));
             }
 
-            typename make_message_bags<output_ports>::type output() {
+            typename make_message_bags<output_ports>::type output() const {
                 if (!std::get<on_reset>(state)) {
                     throw std::logic_error("Output function called while not on reset state");
                 }

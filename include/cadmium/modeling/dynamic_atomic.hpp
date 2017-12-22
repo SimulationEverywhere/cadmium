@@ -85,7 +85,7 @@ namespace cadmium {
                 model_type::confluence_transition(e, bags);
             };
 
-            cadmium::dynamic_message_bags output() {
+            cadmium::dynamic_message_bags output() const {
                 cadmium::dynamic_message_bags dynamic_bags;
                 output_bags bags = model_type::output();
 
