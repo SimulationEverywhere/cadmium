@@ -80,7 +80,7 @@ namespace cadmium {
                 assert(false); //test should not call confluence
             }
             
-            typename make_message_bags<output_ports>::type output() {
+            typename make_message_bags<output_ports>::type output() const {
                 typename make_message_bags<output_ports>::type outmb;
                 get_messages<defs::out>(outmb).emplace_back(1);
                 return outmb;
