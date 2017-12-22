@@ -194,12 +194,12 @@ BOOST_AUTO_TEST_CASE( accumulator_model_dynamic_simulation_test )
     s.collect_outputs(4.0f);
     auto o = s.outbox();
     output = boost::any_cast<cadmium::message_bag<int_accumulator_defs::sum>>(o[typeid(output)]);
-    BOOST_CHECK_EQUAL(output.messages.size(), 1);
-    BOOST_CHECK_EQUAL(output.messages.at(0), 10);
+    BOOST_CHECK(output.messages.size() == 1);
+    BOOST_CHECK(output.messages.at(0) == 10);
 
     s.inbox(empty_input);
     s.advance_simulation(4.0f);
-    BOOST_CHECK_EQUAL(s.next(), std::numeric_limits<float>::infinity());
+    BOOST_CHECK(s.next() == std::numeric_limits<float>::infinity());
 
     //internal transition resets counter
     s.inbox(input_bags);
@@ -208,8 +208,8 @@ BOOST_AUTO_TEST_CASE( accumulator_model_dynamic_simulation_test )
     s.collect_outputs(5.0f);
     o = s.outbox();
     output = boost::any_cast<cadmium::message_bag<int_accumulator_defs::sum>>(o[typeid(output)]);
-    BOOST_CHECK_EQUAL(output.messages.size(), 1);
-    BOOST_CHECK_EQUAL(output.messages.at(0), 0);
+    BOOST_CHECK(output.messages.size() == 1);
+    BOOST_CHECK(output.messages.at(0) == 0);
     s.inbox(empty_input);
     s.advance_simulation(5.0f);
     BOOST_CHECK(s.next() == std::numeric_limits<float>::infinity());
@@ -224,8 +224,8 @@ BOOST_AUTO_TEST_CASE( accumulator_model_dynamic_simulation_test )
     s.collect_outputs(6.0f);
     o = s.outbox();
     output = boost::any_cast<cadmium::message_bag<int_accumulator_defs::sum>>(o[typeid(output)]);
-    BOOST_CHECK_EQUAL(output.messages.size(), 1);
-    BOOST_CHECK_EQUAL(output.messages.at(0), 10);
+    BOOST_CHECK(output.messages.size() == 1);
+    BOOST_CHECK(output.messages.at(0) == 10);
     s.inbox(empty_input);
     s.advance_simulation(6.0f);
     BOOST_CHECK(s.next() == std::numeric_limits<float>::infinity());
