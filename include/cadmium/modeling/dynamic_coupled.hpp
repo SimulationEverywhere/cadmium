@@ -42,18 +42,18 @@ namespace cadmium {
             models_map _models;
             ports_vector _input_ports;
             ports_vector _output_ports;
-            links_vector _eic;
-            links_vector _eoc;
-            links_vector _ic;
+            EC_vector _eic;
+            EC_vector _eoc;
+            IC_vector _ic;
 
         public:
             dynamic_coupled(
                     models_map models,
                     ports_vector input_ports,
                     ports_vector output_ports,
-                    links_vector eic,
-                    links_vector eoc,
-                    links_vector ic
+                    EC_vector eic,
+                    EC_vector eoc,
+                    IC_vector ic
             ) {
                 assert(valid_ic_links(models, ic));
                 assert(valid_eic_links(models, input_ports, eic));
@@ -65,6 +65,26 @@ namespace cadmium {
                 _eic = eic;
                 _eoc = eoc;
                 _ic = ic;
+            }
+
+            dynamic_coupled(
+                    initializer_list_models_map models,
+                    initilizer_list_ports_vector input_ports,
+                    initilizer_list_ports_vector output_ports,
+                    initializer_list_EC_vector eic,
+                    initializer_list_EC_vector eoc,
+                    initializer_list_IC_vector ic
+            ) {
+                _models = models;
+                _input_ports = input_ports;
+                _output_ports = output_ports;
+                _eic = eic;
+                _eoc = eoc;
+                _ic = ic;
+
+                assert(valid_ic_links(_models, _ic));
+                assert(valid_eic_links(_models, _input_ports, _eic));
+                assert(valid_eoc_links(_models, _output_ports, _eoc));
             }
         };
 

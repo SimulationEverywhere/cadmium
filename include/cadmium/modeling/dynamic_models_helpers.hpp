@@ -36,9 +36,18 @@
 namespace cadmium {
     namespace modeling {
 
+        using dynamic_EC=std::tuple<std::type_index, std::type_index, std::type_index>;
+        using dynamic_IC=std::tuple<std::type_index, std::type_index, std::type_index, std::type_index>;
+
         using models_map=std::map<std::type_index, std::shared_ptr<model>>;
         using ports_vector=std::vector<std::type_index>;
-        using links_vector=std::vector<std::vector<std::type_index>>;
+        using EC_vector=std::vector<dynamic_EC>;
+        using IC_vector=std::vector<dynamic_IC>;
+
+        using initializer_list_models_map=std::initializer_list<std::pair<std::type_index, std::shared_ptr<model>>>;
+        using initilizer_list_ports_vector=std::initializer_list<std::type_index>;
+        using initializer_list_EC_vector=std::initializer_list<dynamic_EC>;
+        using initializer_list_IC_vector=std::initializer_list<dynamic_IC>;
 
         // Generic tuple for_each function
         template<typename TUPLE, typename FUNC>
@@ -108,27 +117,27 @@ namespace cadmium {
             return std::find(ports.cbegin(), ports.cend(), port) != ports.cend();
         }
 
-        bool valid_ic_links(const models_map& models, const links_vector& ic) {
+        bool valid_ic_links(const models_map& models, const IC_vector& ic) {
             for (auto & link : ic) {
-                if (link.size() != 4 || models.find(link[0]) == models.cend() || models.find(link[3]) == models.cend()) {
+                if (models.find(std::get<0>(link)) == models.cend() || models.find(std::get<2>(link)) == models.cend()) {
                     return false;
                 }
             }
             return true;
         }
 
-        bool valid_eic_links(const models_map& models, const ports_vector& input_ports, const links_vector& eic) {
+        bool valid_eic_links(const models_map& models, const ports_vector& input_ports, const EC_vector& eic) {
             for (auto & link : eic) {
-                if (link.size() != 3 || models.find(link[1]) == models.cend() || is_in(link[0], input_ports)) {
+                if (models.find(std::get<1>(link)) == models.cend() || is_in(std::get<0>(link), input_ports)) {
                     return false;
                 }
             }
             return true;
         }
 
-        bool valid_eoc_links(const models_map& models, const ports_vector& output_ports, const links_vector& eoc) {
+        bool valid_eoc_links(const models_map& models, const ports_vector& output_ports, const EC_vector& eoc) {
             for (auto & link : eoc) {
-                if (link.size() != 3 || models.find(link[0]) == models.cend() || is_in(link[2], output_ports)) {
+                if (models.find(std::get<0>(link)) == models.cend() || is_in(std::get<2>(link), output_ports)) {
                     return false;
                 }
             }
