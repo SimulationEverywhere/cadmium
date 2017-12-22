@@ -118,30 +118,22 @@ namespace cadmium {
         }
 
         bool valid_ic_links(const models_map& models, const IC_vector& ic) {
-            for (auto & link : ic) {
-                if (models.find(std::get<0>(link)) == models.cend() || models.find(std::get<2>(link)) == models.cend()) {
-                    return false;
-                }
-            }
-            return true;
+            return std::all_of(ic.cbegin(), ic.cend(), [&models](const auto& link) -> bool {
+                return models.find(std::get<0>(link)) == models.cend() || models.find(std::get<2>(link)) == models.cend();
+            });
         }
 
         bool valid_eic_links(const models_map& models, const ports_vector& input_ports, const EC_vector& eic) {
-            for (auto & link : eic) {
-                if (models.find(std::get<1>(link)) == models.cend() || is_in(std::get<0>(link), input_ports)) {
-                    return false;
-                }
-            }
-            return true;
+            return std::all_of(eic.cbegin(), eic.cend(), [&models, &input_ports](const auto& link) -> bool {
+                return models.find(std::get<1>(link)) == models.cend() || is_in(std::get<0>(link), input_ports);
+            });
         }
 
         bool valid_eoc_links(const models_map& models, const ports_vector& output_ports, const EC_vector& eoc) {
-            for (auto & link : eoc) {
-                if (models.find(std::get<0>(link)) == models.cend() || is_in(std::get<2>(link), output_ports)) {
-                    return false;
-                }
-            }
-            return true;
+
+            return std::all_of(eoc.cbegin(), eoc.cend(), [&models, &output_ports](const auto& link) -> bool {
+                return models.find(std::get<0>(link)) == models.cend() || is_in(std::get<2>(link), output_ports);
+            });
         }
     }
 }
