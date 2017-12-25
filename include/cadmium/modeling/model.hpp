@@ -31,6 +31,24 @@ namespace cadmium {
     namespace modeling {
 
         /**
+         * @brief Empty atomic model class to allow dynamic cast atomic model without knowing the m
+         * model type. The only thing to know is the TIME, which is the same for all models.
+         *
+         * @note This class derives the model class to allow pointer based polymorphism between
+         * atomic and coupled models
+         *
+         * @tparam TIME - The class representing the model time.
+         */
+        template<typename TIME>
+        class atomic_model : model {
+            virtual void internal_transition() = 0;
+            virtual void external_transition(TIME e, cadmium::dynamic_message_bags dynamic_bags) = 0;
+            virtual void confluence_transition(TIME e, cadmium::dynamic_message_bags dynamic_bags) = 0;
+            virtual cadmium::dynamic_message_bags output() const = 0;
+            virtual TIME time_advance() const = 0;
+        };
+
+        /**
          * @brief Empty class to allow pointer based polymorphism between classes derived from atomic.
          */
         class model { };
