@@ -51,7 +51,7 @@ namespace cadmium {
          * @tparam TIME a valid TIME class to use along with the atomic model class as ATOMIC<TIME>
          */
         template<template<typename T> class ATOMIC, typename TIME>
-        class dynamic_atomic : public model, public ATOMIC<TIME> {
+        class dynamic_atomic : public atomic_model, public ATOMIC<TIME> {
         public:
             using model_type=ATOMIC<TIME>;
 
