@@ -38,6 +38,8 @@
   */
 BOOST_AUTO_TEST_SUITE( pdevs_dynamic_engine_helpers_test_suite )
     BOOST_AUTO_TEST_CASE(check_all_bags_empty_on_dynamic_empty_box_is_true){
+//This test is suppose to pass only in CPP17 compilers, skipping in older compilers
+#if __cplusplus > 201702
         //Define a tuple of bags (static version)
         struct test_in_0: public cadmium::in_port<int>{};
         struct test_in_1: public cadmium::in_port<double>{};
@@ -51,9 +53,14 @@ BOOST_AUTO_TEST_SUITE( pdevs_dynamic_engine_helpers_test_suite )
         
         //Check the created box has only empty bags
         BOOST_CHECK(cadmium::engine::all_bags_empty_dynamic<input_bags>(empty_box));
+#else
+        BOOST_WARN_MESSAGE(false, "Skippping check_all_bags_empty_on_dynamic_empty_box_is_true test because compiler is not C++17 compliant");
+#endif
     }
 
     BOOST_AUTO_TEST_CASE(check_all_bags_empty_on_dynamic_non_empty_box_is_false){
+//This test is suppose to pass only in CPP17 compilers, skipping in older compilers
+#if __cplusplus > 201702
         //Create a box with bags with messages
         struct test_in_0: public cadmium::in_port<int>{};
         struct test_in_1: public cadmium::in_port<double>{};
@@ -75,6 +82,9 @@ BOOST_AUTO_TEST_SUITE( pdevs_dynamic_engine_helpers_test_suite )
         
         //check there is at least a bag that is not empty
         BOOST_CHECK(!cadmium::engine::all_bags_empty_dynamic<input_bags>(bs_map));
+#else
+        BOOST_WARN_MESSAGE(false, "Skippping check_all_bags_empty_on_dynamic_non_empty_box_is_false test because compiler is not C++17 compliant");
+#endif
     }
 
 BOOST_AUTO_TEST_SUITE_END()
