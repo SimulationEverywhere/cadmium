@@ -26,16 +26,12 @@
 
 
 #define BOOST_TEST_DYN_LINK
-#include <limits>
 #include <boost/test/unit_test.hpp>
-#include <boost/any.hpp>
 #include <cadmium/logger/tuple_to_ostream.hpp>
 
 #include <cadmium/basic_model/accumulator.hpp>
 #include <cadmium/basic_model/generator.hpp>
 #include <cadmium/engine/pdevs_simulator.hpp>
-#include <cadmium/modeling/message_bag.hpp>
-#include <cadmium/engine/pdevs_engine_helpers.hpp>
 
 
 
@@ -277,3 +273,4 @@ BOOST_AUTO_TEST_CASE( generator_model_simulation_test )
 BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE_END()
+

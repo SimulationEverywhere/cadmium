@@ -32,6 +32,7 @@
 #include <boost/any.hpp>
 #include <map>
 #include <memory>
+#include <cadmium/modeling/message_bag.hpp>
 
 namespace cadmium {
     namespace modeling {
