@@ -44,6 +44,8 @@ BOOST_AUTO_TEST_SUITE( pdevs_dynamic_simulator_suite )
 BOOST_AUTO_TEST_SUITE( pdevs_accumulator_suite )
 BOOST_AUTO_TEST_CASE( accumulator_model_dynamic_simulation_test )
 {
+//This test is suppose to pass only in CPP17 compilers, skipping in older compilers
+#if __cplusplus > 201702
     //construct a simulator for an accumulator
     using simulator_t=cadmium::engine::dynamic_simulator<int_accumulator, float, cadmium::logger::not_logger>;
     simulator_t s;
@@ -123,6 +125,9 @@ BOOST_AUTO_TEST_CASE( accumulator_model_dynamic_simulation_test )
     s.inbox(empty_input);
     s.advance_simulation(6.0f);
     BOOST_CHECK(s.next() == std::numeric_limits<float>::infinity());
+#else
+    BOOST_WARN_MESSAGE(false, "Skippping accumulator_model_dynamic_simulation_test test because compiler is not C++17 compliant");
+#endif
 }
 
 BOOST_AUTO_TEST_SUITE_END()
