@@ -31,5 +31,8 @@ matrix:
       before_install:
           - brew upgrade boost cmake
 
+  allow_failures:
+          - os: linux
+
 script:
   - cmake -G "Unix Makefiles" . && make && make test  
