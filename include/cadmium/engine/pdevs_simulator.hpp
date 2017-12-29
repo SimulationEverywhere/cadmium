@@ -276,7 +276,7 @@ namespace cadmium {
                 } else if (_next < t) {
                     throw std::domain_error("Event received for executing after next internal event");
                 } else {
-                    if (!cadmium::engine::all_bags_empty_dynamic<in_bags_type>(_inbox)) { //input available
+                    if (!cadmium::engine::dynamic_all_bags_empty<in_bags_type>(_inbox)) { //input available
                         if (t == _next) { //confluence
                             _model.confluence_transition(t - _last, _inbox);
                         } else { //external

@@ -52,7 +52,7 @@ BOOST_AUTO_TEST_SUITE( pdevs_dynamic_engine_helpers_test_suite )
         auto empty_box = cadmium::modeling::create_empty_dynamic_message_bags<input_bags>();
         
         //Check the created box has only empty bags
-        BOOST_CHECK(cadmium::engine::all_bags_empty_dynamic<input_bags>(empty_box));
+        BOOST_CHECK(cadmium::engine::dynamic_all_bags_empty<input_bags>(empty_box));
 #else
         BOOST_WARN_MESSAGE(false, "Skippping check_all_bags_empty_on_dynamic_empty_box_is_true test because compiler is not C++17 compliant");
 #endif
@@ -81,7 +81,7 @@ BOOST_AUTO_TEST_SUITE( pdevs_dynamic_engine_helpers_test_suite )
         cadmium::modeling::fill_map_from_bags(bs_tuple, bs_map);
         
         //check there is at least a bag that is not empty
-        BOOST_CHECK(!cadmium::engine::all_bags_empty_dynamic<input_bags>(bs_map));
+        BOOST_CHECK(!cadmium::engine::dynamic_all_bags_empty<input_bags>(bs_map));
 #else
         BOOST_WARN_MESSAGE(false, "Skippping check_all_bags_empty_on_dynamic_non_empty_box_is_false test because compiler is not C++17 compliant");
 #endif
