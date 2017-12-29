@@ -86,7 +86,7 @@ namespace cadmium {
                 return outmb;
             }
             
-            TIME time_advance() {
+            TIME time_advance() const {
                 return (state == 1 ? TIME{}: std::numeric_limits<TIME>::infinity());
             }
         };

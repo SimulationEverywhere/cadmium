@@ -51,7 +51,7 @@ namespace cadmium {
          * @tparam TIME a valid TIME class to use along with the atomic model class as ATOMIC<TIME>
          */
         template<template<typename T> class ATOMIC, typename TIME>
-        class dynamic_atomic : public atomic_model, public ATOMIC<TIME> {
+        class dynamic_atomic : public atomic_model<TIME>, public ATOMIC<TIME> {
         public:
             using model_type=ATOMIC<TIME>;
 
@@ -66,6 +66,11 @@ namespace cadmium {
                 static_assert(cadmium::concept::is_atomic<ATOMIC>::value, "This is not an atomic model");
                 cadmium::concept::atomic_model_assert<ATOMIC>();
             };
+
+            // This method must be declared to declare all atomic_model virtual methods are defined
+            void internal_transition() {
+                model_type::internal_transition();
+            }
 
             void external_transition(TIME e, cadmium::dynamic_message_bags dynamic_bags) {
                 // Translate from dynamic_message_bag to template dependent input_bags type.
@@ -92,6 +97,10 @@ namespace cadmium {
                 // Translate from template dependent output_bags type to dynamic_message_bag.
                 cadmium::modeling::fill_map_from_bags(bags, dynamic_bags);
                 return dynamic_bags;
+            };
+
+            TIME time_advance() const {
+                return model_type::time_advance();
             };
         };
     }

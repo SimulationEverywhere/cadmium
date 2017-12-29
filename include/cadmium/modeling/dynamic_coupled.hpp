@@ -38,15 +38,14 @@ namespace cadmium {
 
         template<typename TIME>
         class dynamic_coupled : model {
-
+        public:
             models_map _models;
             ports_vector _input_ports;
             ports_vector _output_ports;
             EC_vector _eic;
             EC_vector _eoc;
-            IC_vector _ic;
 
-        public:
+            IC_vector _ic;
             dynamic_coupled(
                     models_map models,
                     ports_vector input_ports,

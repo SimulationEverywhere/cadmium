@@ -90,8 +90,10 @@ namespace cadmium {
             auto add_messages_to_bag = [&bags](auto & b)->void {
                 using bag_type = decltype(b);
 
-                bag_type b2 = boost::any_cast<bag_type>(bags.at(typeid(bag_type)));
-                b.messages.insert(b.messages.end(), b2.messages.begin(), b2.messages.end());
+                if (bags.find(typeid(b)) != bags.end()) {
+                    bag_type b2 = boost::any_cast<bag_type>(bags.at(typeid(b)));
+                    b.messages.insert(b.messages.end(), b2.messages.begin(), b2.messages.end());
+                }
             };
             for_each<BST>(bs, add_messages_to_bag);
         }
@@ -120,20 +122,23 @@ namespace cadmium {
 
         bool valid_ic_links(const models_map& models, const IC_vector& ic) {
             return std::all_of(ic.cbegin(), ic.cend(), [&models](const auto& link) -> bool {
-                return models.find(std::get<0>(link)) == models.cend() || models.find(std::get<2>(link)) == models.cend();
+                return models.find(std::get<0>(link)) == models.cend() ||
+                        models.find(std::get<2>(link)) == models.cend();
             });
         }
 
         bool valid_eic_links(const models_map& models, const ports_vector& input_ports, const EC_vector& eic) {
             return std::all_of(eic.cbegin(), eic.cend(), [&models, &input_ports](const auto& link) -> bool {
-                return models.find(std::get<1>(link)) == models.cend() || is_in(std::get<0>(link), input_ports);
+                return models.find(std::get<1>(link)) == models.cend() ||
+                        is_in(std::get<0>(link), input_ports);
             });
         }
 
         bool valid_eoc_links(const models_map& models, const ports_vector& output_ports, const EC_vector& eoc) {
 
             return std::all_of(eoc.cbegin(), eoc.cend(), [&models, &output_ports](const auto& link) -> bool {
-                return models.find(std::get<0>(link)) == models.cend() || is_in(std::get<2>(link), output_ports);
+                return models.find(std::get<0>(link)) == models.cend() ||
+                        is_in(std::get<2>(link), output_ports);
             });
         }
     }
