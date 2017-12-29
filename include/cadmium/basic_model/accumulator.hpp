@@ -124,7 +124,7 @@ namespace cadmium {
                 return outmb;
             }
 
-            TIME time_advance() {
+            TIME time_advance() const {
                 //we assume default constructor of time is 0 and infinity is defined in numeric_limits
                 return (std::get<on_reset>(state) ? TIME{} : std::numeric_limits<TIME>::infinity());
             }

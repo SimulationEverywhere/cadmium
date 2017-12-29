@@ -38,6 +38,7 @@
 #include <cadmium/modeling/message_bag.hpp>
 #include <cadmium/logger/common_loggers.hpp>
 #include <cadmium/logger/common_loggers_helpers.hpp>
+#include <cadmium/modeling/model.hpp>
 
 
 namespace cadmium {
@@ -326,12 +327,16 @@ namespace cadmium {
         //Checking all dynamic bag of inbox or outbox are empty
         template<class BOX>
         decltype(auto) dynamic_all_bags_empty(dynamic_message_bags const& dynamic_bag) {
-            auto empty = [&dynamic_bag](auto const& b) -> bool {
+            auto is_empty = [&dynamic_bag](auto const& b) -> bool {
                 using bag_type = decltype(b);
-                return boost::any_cast<bag_type>(dynamic_bag.at(typeid(b))).messages.empty();
+                if (dynamic_bag.find(typeid(b)) != dynamic_bag.cend()) {
+                    return boost::any_cast<bag_type>(dynamic_bag.at(typeid(b))).messages.empty();
+                }
+                // A not declared bag in the dynamic_bag is the same as a bag with empty messages
+                return true;
             };
-            auto check_empty = [&empty](auto const&... b)->decltype(auto) {
-                return (empty(b) && ...);
+            auto check_empty = [&is_empty](auto const&... b)->decltype(auto) {
+                return (is_empty(b) && ...);
             };
 
             // the box is used to get all the port types to use as keys.
