@@ -325,7 +325,7 @@ namespace cadmium {
 
         //Checking all dynamic bag of inbox or outbox are empty
         template<class BOX>
-        decltype(auto) all_bags_empty_dynamic(dynamic_message_bags const& dynamic_bag) {
+        decltype(auto) dynamic_all_bags_empty(dynamic_message_bags const& dynamic_bag) {
             auto empty = [&dynamic_bag](auto const& b) -> bool {
                 using bag_type = decltype(b);
                 return boost::any_cast<bag_type>(dynamic_bag.at(typeid(b))).messages.empty();
