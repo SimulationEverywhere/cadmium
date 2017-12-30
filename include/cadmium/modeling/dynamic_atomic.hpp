@@ -30,83 +30,86 @@
 #include <map>
 #include <boost/any.hpp>
 #include <cadmium/modeling/model.hpp>
-#include <cadmium/modeling/message_bag.hpp>
+#include <cadmium/modeling/dynamic_message_bag.hpp>
 #include <cadmium/concept/concept_helpers.hpp>
 #include <cadmium/concept/atomic_model_assert.hpp>
 #include <cadmium/modeling/dynamic_models_helpers.hpp>
 
 namespace cadmium {
-    namespace modeling {
+    namespace dynamic {
+        namespace modeling {
 
-        /**
-         * @brief dynamic_atomic is a derived class from the base classes atomic and ATOMIC<TIME>
-         * this allow using any ATOMIC<TIME> valid class with pointers as an atomic (first abase class) pointer.
-         *
-         * @details
-         * Because ATOMIC<TIME> methods arity are template dependent, this wrapper class uses
-         * cadmium::dynamic_message_bags as these methods parameter and it forwards a correct
-         * translation to the corresponding type in the wrapped ATOMIC<TIME> base class method.
-         *
-         * @tparam ATOMIC a valid atomic model class
-         * @tparam TIME a valid TIME class to use along with the atomic model class as ATOMIC<TIME>
-         */
-        template<template<typename T> class ATOMIC, typename TIME>
-        class dynamic_atomic : public atomic_model<TIME>, public ATOMIC<TIME> {
-        public:
-            using model_type=ATOMIC<TIME>;
+            /**
+             * @brief atomic is a derived class from the base classes atomic_bastract and ATOMIC<TIME>
+             * this allow using any ATOMIC<TIME> valid class with pointers as an atomic_abstract
+             * (first abase class) pointer.
+             *
+             * @details
+             * Because ATOMIC<TIME> methods arity are template dependent, this wrapper class uses
+             * cadmium::dynamic::message_bags as these methods parameter and it forwards a correct
+             * translation to the corresponding type in the wrapped ATOMIC<TIME> base class method.
+             *
+             * @tparam ATOMIC a valid atomic model class
+             * @tparam TIME a valid TIME class to use along with the atomic model class as ATOMIC<TIME>
+             */
+            template<template<typename T> class ATOMIC, typename TIME>
+            class atomic : public atomic_abstract<TIME>, public ATOMIC<TIME> {
+            public:
+                using model_type=ATOMIC<TIME>;
 
-            using output_ports = typename model_type::output_ports;
-            using input_ports = typename model_type::input_ports;
+                using output_ports = typename model_type::output_ports;
+                using input_ports = typename model_type::input_ports;
 
-            // Model input and output types
-            using output_bags = typename make_message_bags<output_ports>::type;
-            using input_bags = typename make_message_bags<input_ports>::type;
+                // Model input and output types
+                using output_bags = typename make_message_bags<output_ports>::type;
+                using input_bags = typename make_message_bags<input_ports>::type;
 
-            dynamic_atomic() {
-                static_assert(cadmium::concept::is_atomic<ATOMIC>::value, "This is not an atomic model");
-                cadmium::concept::atomic_model_assert<ATOMIC>();
-            }
+                atomic() {
+                    static_assert(cadmium::concept::is_atomic<ATOMIC>::value, "This is not an atomic model");
+                    cadmium::concept::atomic_model_assert<ATOMIC>();
+                }
 
-            constexpr std::string get_id() const {
-                return boost::typeindex::type_id<model_type>().pretty_name();
-            }
+                constexpr std::string get_id() const {
+                    return boost::typeindex::type_id<model_type>().pretty_name();
+                }
 
-            // This method must be declared to declare all atomic_model virtual methods are defined
-            void internal_transition() {
-                model_type::internal_transition();
-            }
+                // This method must be declared to declare all atomic_abstract virtual methods are defined
+                void internal_transition() {
+                    model_type::internal_transition();
+                }
 
-            void external_transition(TIME e, cadmium::dynamic_message_bags dynamic_bags) {
-                // Translate from dynamic_message_bag to template dependent input_bags type.
-                input_bags bags;
-                cadmium::modeling::fill_bags_from_map(dynamic_bags, bags);
+                void external_transition(TIME e, cadmium::dynamic::message_bags bags) {
+                    // Translate from dynamic_message_bag to template dependent input_bags type.
+                    input_bags tuple_bags;
+                    fill_bags_from_map(bags, tuple_bags);
 
-                // Forwards the translated value to the wrapped model_type class method.
-                model_type::external_transition(e, bags);
-            }
+                    // Forwards the translated value to the wrapped model_type class method.
+                    model_type::external_transition(e, tuple_bags);
+                }
 
-            void confluence_transition(TIME e, cadmium::dynamic_message_bags dynamic_bags) {
-                // Translate from dynamic_message_bag to template dependent input_bags type.
-                input_bags bags;
-                cadmium::modeling::fill_bags_from_map(dynamic_bags, bags);
+                void confluence_transition(TIME e, cadmium::dynamic::message_bags bags) {
+                    // Translate from dynamic_message_bag to template dependent input_bags type.
+                    input_bags tuple_bags;
+                    fill_bags_from_map(bags, tuple_bags);
 
-                // Forwards the translated value to the wrapped model_type class method.
-                model_type::confluence_transition(e, bags);
-            }
+                    // Forwards the translated value to the wrapped model_type class method.
+                    model_type::confluence_transition(e, tuple_bags);
+                }
 
-            cadmium::dynamic_message_bags output() const {
-                cadmium::dynamic_message_bags dynamic_bags;
-                output_bags bags = model_type::output();
+                cadmium::dynamic::message_bags output() const {
+                    cadmium::dynamic::message_bags bags;
+                    output_bags tuple_bags = model_type::output();
 
-                // Translate from template dependent output_bags type to dynamic_message_bag.
-                cadmium::modeling::fill_map_from_bags(bags, dynamic_bags);
-                return dynamic_bags;
-            }
+                    // Translate from template dependent output_bags type to dynamic_message_bag.
+                    fill_map_from_bags(tuple_bags, bags);
+                    return bags;
+                }
 
-            TIME time_advance() const {
-                return model_type::time_advance();
+                TIME time_advance() const {
+                    return model_type::time_advance();
+                }
             };
-        };
+        }
     }
 }
 

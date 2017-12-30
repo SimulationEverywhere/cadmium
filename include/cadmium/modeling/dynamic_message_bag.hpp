@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2017, Laouen Mayal Louan Belloli
+ * Copyright (c) 2017, Laouen M. L. Belloli
  * Carleton University, Universidad de Buenos Aires
  * All rights reserved.
  *
@@ -24,26 +24,18 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifndef CADMIUM_DYNAMIC_MESSAGE_BAG_HPP
+#define CADMIUM_DYNAMIC_MESSAGE_BAG_HPP
 
-#define BOOST_TEST_DYN_LINK
-#include <boost/test/unit_test.hpp>
-#include <cadmium/basic_model/accumulator.hpp>
-#include <cadmium/modeling/dynamic_atomic.hpp>
+#include <boost/any.hpp>
+#include <typeindex>
+#include <map>
+#include <vector>
 
-/**
-  * This test is for the dynamic atomic class that wraps an atomic model to make it pointer friendly
-  */
-template<typename TIME>
-using int_accumulator=cadmium::basic_models::accumulator<int, TIME>;
-
-BOOST_AUTO_TEST_SUITE( pdevs_dynamic_atomic_test_suite )
-
-    BOOST_AUTO_TEST_CASE(create_dynamic_atomic_test) {
-        int_accumulator<float> model;
-        cadmium::dynamic::modeling::atomic<int_accumulator, float> wrapped_model;
-
-        static_assert(std::is_same<decltype(model.state), decltype(wrapped_model.state)>::value);
-        BOOST_CHECK(model.state == wrapped_model.state);
+namespace cadmium {
+    namespace dynamic {
+        using message_bags = std::map<std::type_index, boost::any>;
     }
+}
 
-BOOST_AUTO_TEST_SUITE_END()
+#endif //CADMIUM_DYNAMIC_MESSAGE_BAG_HPP

@@ -33,36 +33,8 @@
 #include <cadmium/modeling/dynamic_models_helpers.hpp>
 
 namespace cadmium {
-    namespace modeling {
-        namespace dynamic {
-
-            struct EOC {
-                std::string _from;
-                std::type_index _from_port;
-                std::type_index _to_port;
-
-                EOC(std::string from, std::type_index from_port, std::type_index to_port)
-                : _from(from), _from_port(from_port), _to_port(to_port) {}
-            };
-
-            struct EIC {
-                std::string _to;
-                std::type_index _to_port;
-                std::type_index _from_port;
-
-                EIC(std::string to, std::type_index to_port, std::type_index from_port)
-                : _to(to), _to_port(to_port), _from_port(from_port) {}
-            };
-
-            struct IC {
-                std::string _to;
-                std::string _from;
-                std::type_index _to_port;
-                std::type_index _from_port;
-
-                IC(std::string to, std::string from, std::type_index to_port, std::type_index from_port)
-                : _to(to), _from(from), _to_port(to_port), _from_port(from_port) {}
-            };
+    namespace dynamic {
+        namespace modeling {
 
             template<typename TIME>
             class coupled : model {
