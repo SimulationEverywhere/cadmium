@@ -65,7 +65,11 @@ namespace cadmium {
             dynamic_atomic() {
                 static_assert(cadmium::concept::is_atomic<ATOMIC>::value, "This is not an atomic model");
                 cadmium::concept::atomic_model_assert<ATOMIC>();
-            };
+            }
+
+            constexpr std::string get_id() const {
+                return boost::typeindex::type_id<model_type>().pretty_name();
+            }
 
             // This method must be declared to declare all atomic_model virtual methods are defined
             void internal_transition() {
@@ -79,7 +83,7 @@ namespace cadmium {
 
                 // Forwards the translated value to the wrapped model_type class method.
                 model_type::external_transition(e, bags);
-            };
+            }
 
             void confluence_transition(TIME e, cadmium::dynamic_message_bags dynamic_bags) {
                 // Translate from dynamic_message_bag to template dependent input_bags type.
@@ -88,7 +92,7 @@ namespace cadmium {
 
                 // Forwards the translated value to the wrapped model_type class method.
                 model_type::confluence_transition(e, bags);
-            };
+            }
 
             cadmium::dynamic_message_bags output() const {
                 cadmium::dynamic_message_bags dynamic_bags;
@@ -97,7 +101,7 @@ namespace cadmium {
                 // Translate from template dependent output_bags type to dynamic_message_bag.
                 cadmium::modeling::fill_map_from_bags(bags, dynamic_bags);
                 return dynamic_bags;
-            };
+            }
 
             TIME time_advance() const {
                 return model_type::time_advance();

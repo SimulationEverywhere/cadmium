@@ -34,59 +34,97 @@
 
 namespace cadmium {
     namespace modeling {
+        namespace dynamic {
 
+            struct EOC {
+                std::string _from;
+                std::type_index _from_port;
+                std::type_index _to_port;
 
-        template<typename TIME>
-        class dynamic_coupled : model {
-        public:
-            models_map _models;
-            ports_vector _input_ports;
-            ports_vector _output_ports;
-            EC_vector _eic;
-            EC_vector _eoc;
+                EOC(std::string from, std::type_index from_port, std::type_index to_port)
+                : _from(from), _from_port(from_port), _to_port(to_port) {}
+            };
 
-            IC_vector _ic;
-            dynamic_coupled(
-                    models_map models,
-                    ports_vector input_ports,
-                    ports_vector output_ports,
-                    EC_vector eic,
-                    EC_vector eoc,
-                    IC_vector ic
-            ) {
-                assert(valid_ic_links(models, ic));
-                assert(valid_eic_links(models, input_ports, eic));
-                assert(valid_eoc_links(models, output_ports, eoc));
+            struct EIC {
+                std::string _to;
+                std::type_index _to_port;
+                std::type_index _from_port;
 
-                _models = models;
-                _input_ports = input_ports;
-                _output_ports = output_ports;
-                _eic = eic;
-                _eoc = eoc;
-                _ic = ic;
-            }
+                EIC(std::string to, std::type_index to_port, std::type_index from_port)
+                : _to(to), _to_port(to_port), _from_port(from_port) {}
+            };
 
-            dynamic_coupled(
-                    initializer_list_models_map models,
-                    initilizer_list_ports_vector input_ports,
-                    initilizer_list_ports_vector output_ports,
-                    initializer_list_EC_vector eic,
-                    initializer_list_EC_vector eoc,
-                    initializer_list_IC_vector ic
-            ) {
-                _models = models;
-                _input_ports = input_ports;
-                _output_ports = output_ports;
-                _eic = eic;
-                _eoc = eoc;
-                _ic = ic;
+            struct IC {
+                std::string _to;
+                std::string _from;
+                std::type_index _to_port;
+                std::type_index _from_port;
 
-                assert(valid_ic_links(_models, _ic));
-                assert(valid_eic_links(_models, _input_ports, _eic));
-                assert(valid_eoc_links(_models, _output_ports, _eoc));
-            }
-        };
+                IC(std::string to, std::string from, std::type_index to_port, std::type_index from_port)
+                : _to(to), _from(from), _to_port(to_port), _from_port(from_port) {}
+            };
 
+            template<typename TIME>
+            class coupled : model {
+            public:
+                Models _models;
+                Ports _input_ports;
+                Ports _output_ports;
+                EICs _eic;
+                EOCs _eoc;
+                ICs _ic;
+
+                std::string _id;
+
+                coupled(
+                        std::string id,
+                        Models models,
+                        Ports input_ports,
+                        Ports output_ports,
+                        EICs eic,
+                        EOCs eoc,
+                        ICs ic
+                ) {
+                    _id = id;
+                    _models = models;
+                    _input_ports = input_ports;
+                    _output_ports = output_ports;
+                    _eic = eic;
+                    _eoc = eoc;
+                    _ic = ic;
+
+                    assert(valid_ic_links(_models, _ic));
+                    assert(valid_eic_links(_models, _input_ports, _eic));
+                    assert(valid_eoc_links(_models, _output_ports, _eoc));
+                }
+
+                coupled(
+                        std::string id,
+                        initializer_list_Models models,
+                        initilizer_list_Ports input_ports,
+                        initilizer_list_Ports output_ports,
+                        initializer_list_EICs eic,
+                        initializer_list_EOCs eoc,
+                        initializer_list_ICs ic
+                ) {
+                    _id = id;
+                    _models = models;
+                    _input_ports = input_ports;
+                    _output_ports = output_ports;
+                    _eic = eic;
+                    _eoc = eoc;
+                    _ic = ic;
+
+                    assert(valid_ic_links(_models, _ic));
+                    assert(valid_eic_links(_models, _input_ports, _eic));
+                    assert(valid_eoc_links(_models, _output_ports, _eoc));
+                }
+
+                std::string get_id() const {
+                    return _id;
+                }
+            };
+        }
     }
 }
 
