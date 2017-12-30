@@ -33,7 +33,9 @@ namespace cadmium {
         /**
          * @brief Empty class to allow pointer based polymorphism between classes derived from atomic.
          */
-        class model { };
+        class model {
+            virtual std::string get_id() const = 0;
+        };
 
         /**
          * @brief Empty atomic model class to allow dynamic cast atomic model without knowing the m
@@ -46,6 +48,7 @@ namespace cadmium {
          */
         template<typename TIME>
         class atomic_model : model {
+            virtual std::string get_id() const = 0;
             virtual void internal_transition() = 0;
             virtual void external_transition(TIME e, cadmium::dynamic_message_bags dynamic_bags) = 0;
             virtual void confluence_transition(TIME e, cadmium::dynamic_message_bags dynamic_bags) = 0;

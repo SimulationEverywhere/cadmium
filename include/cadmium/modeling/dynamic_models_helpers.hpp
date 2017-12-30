@@ -36,19 +36,27 @@
 
 namespace cadmium {
     namespace modeling {
+        namespace dynamic {
+            // Forward declaration
+            struct EIC;
+            struct EOC;
+            struct IC;
+        }
 
         using dynamic_EC=std::tuple<std::type_index, std::type_index, std::type_index>;
         using dynamic_IC=std::tuple<std::type_index, std::type_index, std::type_index, std::type_index>;
 
-        using models_map=std::map<std::type_index, std::shared_ptr<model>>;
-        using ports_vector=std::vector<std::type_index>;
-        using EC_vector=std::vector<dynamic_EC>;
-        using IC_vector=std::vector<dynamic_IC>;
+        using Models = std::vector<std::shared_ptr<model>>;
+        using Ports = std::vector<std::type_index>;
+        using EICs = std::vector<dynamic::EIC>;
+        using EOCs = std::vector<dynamic::EOC>;
+        using ICs = std::vector<dynamic::IC>;
 
-        using initializer_list_models_map=std::initializer_list<std::pair<std::type_index, std::shared_ptr<model>>>;
-        using initilizer_list_ports_vector=std::initializer_list<std::type_index>;
-        using initializer_list_EC_vector=std::initializer_list<dynamic_EC>;
-        using initializer_list_IC_vector=std::initializer_list<dynamic_IC>;
+        using initializer_list_Models = std::initializer_list<std::shared_ptr<model>>;
+        using initilizer_list_Ports = std::initializer_list<std::type_index>;
+        using initializer_list_EOCs = std::initializer_list<dynamic::EOC>;
+        using initializer_list_EICs = std::initializer_list<dynamic::EIC>;
+        using initializer_list_ICs = std::initializer_list<dynamic::IC>;
 
         // Generic tuple for_each function
         template<typename TUPLE, typename FUNC>
@@ -116,29 +124,34 @@ namespace cadmium {
             for_each<BST>(bs, add_messages_to_map);
         }
 
-        bool is_in(const std::type_index& port, const ports_vector& ports) {
+        bool is_in(const std::type_index& port, const Ports& ports) {
             return std::find(ports.cbegin(), ports.cend(), port) != ports.cend();
         }
 
-        bool valid_ic_links(const models_map& models, const IC_vector& ic) {
+        bool valid_ic_links(const Models& models, const ICs& ic) {
             return std::all_of(ic.cbegin(), ic.cend(), [&models](const auto& link) -> bool {
-                return models.find(std::get<0>(link)) == models.cend() ||
-                        models.find(std::get<2>(link)) == models.cend();
+                return std::find_if (models.cbegin(), models.cend(), [&link](const auto& m) -> bool {
+                    return m.get_id() == link._from;
+                }) != models.cend() &&
+                        std::find_if (models.cbegin(), models.cend(), [&link](const auto& m) -> bool {
+                            return m.get_id() == link._to;
+                        }) != models.cend();
             });
         }
 
-        bool valid_eic_links(const models_map& models, const ports_vector& input_ports, const EC_vector& eic) {
+        bool valid_eic_links(const Models& models, const Ports& input_ports, const EICs& eic) {
             return std::all_of(eic.cbegin(), eic.cend(), [&models, &input_ports](const auto& link) -> bool {
-                return models.find(std::get<1>(link)) == models.cend() ||
-                        is_in(std::get<0>(link), input_ports);
+                return std::find_if (models.cbegin(), models.cend(), [&link](const auto& m) -> bool {
+                    return m.get_id() == link._to;
+                }) != models.cend() && is_in(link._from_port, input_ports);
             });
         }
 
-        bool valid_eoc_links(const models_map& models, const ports_vector& output_ports, const EC_vector& eoc) {
-
+        bool valid_eoc_links(const Models& models, const Ports& output_ports, const EOCs& eoc) {
             return std::all_of(eoc.cbegin(), eoc.cend(), [&models, &output_ports](const auto& link) -> bool {
-                return models.find(std::get<0>(link)) == models.cend() ||
-                        is_in(std::get<2>(link), output_ports);
+                return std::find_if (models.cbegin(), models.cend(), [&link](const auto& m) -> bool {
+                    return m.get_id() == link._from;
+                }) != models.cend() && is_in(link._to_port, output_ports);
             });
         }
     }
