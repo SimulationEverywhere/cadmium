@@ -24,49 +24,37 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CADMIUM_ATOMIC_HPP
-#define CADMIUM_ATOMIC_HPP
+#ifndef CADMIUM_PDEVS_DYNAMIC_ENGINE_HELPERS_HPP
+#define CADMIUM_PDEVS_DYNAMIC_ENGINE_HELPERS_HPP
 
+#include <cadmium/modeling/message_bag.hpp>
 #include <cadmium/modeling/dynamic_message_bag.hpp>
+#include <boost/any.hpp>
 
 namespace cadmium {
     namespace dynamic {
-        namespace modeling {
-            /**
-             * @brief Empty class to allow pointer based polymorphism between classes derived from atomic.
-             */
-            class model {
-            public:
-                virtual std::string get_id() const = 0;
-            };
+        namespace engine {
+            //Checking all dynamic bag of inbox or outbox are empty
+            template<class BOX>
+            decltype(auto) all_bags_empty(cadmium::dynamic::message_bags const& dynamic_bag) {
+                auto is_empty = [&dynamic_bag](auto const& b) -> bool {
+                    using bag_type = decltype(b);
+                    if (dynamic_bag.find(typeid(b)) != dynamic_bag.cend()) {
+                        return boost::any_cast<bag_type>(dynamic_bag.at(typeid(b))).messages.empty();
+                    }
+                    // A not declared bag in the dynamic_bag is the same as a bag with empty messages
+                    return true;
+                };
+                auto check_empty = [&is_empty](auto const&... b)->decltype(auto) {
+                    return (is_empty(b) && ...);
+                };
 
-            /**
-             * @brief Empty atomic model class to allow dynamic cast atomic model without knowing the m
-             * model type. The only thing to know is the TIME, which is the same for all models.
-             *
-             * @note This class derives the model class to allow pointer based polymorphism between
-             * atomic and coupled models
-             *
-             * @tparam TIME - The class representing the model time.
-             */
-            template<typename TIME>
-            class atomic_abstract : model {
-                virtual std::string get_id() const = 0;
-
-                virtual void internal_transition() = 0;
-
-                virtual void
-                external_transition(TIME e, cadmium::dynamic::message_bags dynamic_bags) = 0;
-
-                virtual void
-                confluence_transition(TIME e, cadmium::dynamic::message_bags dynamic_bags) = 0;
-
-                virtual dynamic::message_bags output() const = 0;
-
-                virtual TIME time_advance() const = 0;
-            };
+                // the box is used to get all the port types to use as keys.
+                BOX box;
+                return std::apply(check_empty, box);
+            }
         }
     }
 }
 
-#endif // CADMIUM_ATOMIC_HPP
+#endif //CADMIUM_PDEVS_DYNAMIC_ENGINE_HELPERS_HPP

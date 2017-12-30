@@ -1,6 +1,6 @@
 /**
  * Copyright (c) 2013-2017, Damian Vicino, Laouen M. L. Belloli
- * Carleton University, Universite de Nice-Sophia Antipolis
+ * Carleton University, Universite de Nice-Sophia Antipolis, Universidad de Buenos Aires
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,7 +38,6 @@
 #include <cadmium/modeling/message_bag.hpp>
 #include <cadmium/logger/common_loggers.hpp>
 #include <cadmium/logger/common_loggers_helpers.hpp>
-#include <cadmium/modeling/model.hpp>
 
 
 namespace cadmium {
@@ -321,26 +320,6 @@ namespace cadmium {
             auto check_empty = [](auto const&... b)->decltype(auto) {
                 return (b.messages.empty() && ...);
             };
-            return std::apply(check_empty, box);
-        }
-
-        //Checking all dynamic bag of inbox or outbox are empty
-        template<class BOX>
-        decltype(auto) dynamic_all_bags_empty(dynamic_message_bags const& dynamic_bag) {
-            auto is_empty = [&dynamic_bag](auto const& b) -> bool {
-                using bag_type = decltype(b);
-                if (dynamic_bag.find(typeid(b)) != dynamic_bag.cend()) {
-                    return boost::any_cast<bag_type>(dynamic_bag.at(typeid(b))).messages.empty();
-                }
-                // A not declared bag in the dynamic_bag is the same as a bag with empty messages
-                return true;
-            };
-            auto check_empty = [&is_empty](auto const&... b)->decltype(auto) {
-                return (is_empty(b) && ...);
-            };
-
-            // the box is used to get all the port types to use as keys.
-            BOX box;
             return std::apply(check_empty, box);
         }
     }

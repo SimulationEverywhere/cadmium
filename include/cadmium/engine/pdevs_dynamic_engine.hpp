@@ -24,49 +24,38 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CADMIUM_ATOMIC_HPP
-#define CADMIUM_ATOMIC_HPP
+#ifndef CADMIUM_PDEVS_DYNAMIC_ENGINE_HPP
+#define CADMIUM_PDEVS_DYNAMIC_ENGINE_HPP
 
 #include <cadmium/modeling/dynamic_message_bag.hpp>
 
 namespace cadmium {
     namespace dynamic {
-        namespace modeling {
-            /**
-             * @brief Empty class to allow pointer based polymorphism between classes derived from atomic.
-             */
-            class model {
-            public:
-                virtual std::string get_id() const = 0;
-            };
+        namespace engine {
 
             /**
-             * @brief Empty atomic model class to allow dynamic cast atomic model without knowing the m
-             * model type. The only thing to know is the TIME, which is the same for all models.
+             * @brief Abstract class to allow pointer polymorphism between dynamic::coordinator
+             * and dynamic::atomic
              *
-             * @note This class derives the model class to allow pointer based polymorphism between
-             * atomic and coupled models
-             *
-             * @tparam TIME - The class representing the model time.
+             * @tparam TIME
              */
             template<typename TIME>
-            class atomic_abstract : model {
-                virtual std::string get_id() const = 0;
+            class engine {
+            public:
+                virtual void init(TIME initial_time) = 0;
 
-                virtual void internal_transition() = 0;
+                virtual TIME next() const noexcept = 0;
 
-                virtual void
-                external_transition(TIME e, cadmium::dynamic::message_bags dynamic_bags) = 0;
+                virtual void collect_outputs(const TIME &t) = 0;
 
-                virtual void
-                confluence_transition(TIME e, cadmium::dynamic::message_bags dynamic_bags) = 0;
+                virtual cadmium::dynamic::message_bags outbox() const = 0;
 
-                virtual dynamic::message_bags output() const = 0;
+                virtual void inbox(cadmium::dynamic::message_bags in) = 0;
 
-                virtual TIME time_advance() const = 0;
+                virtual void advance_simulation(TIME t) = 0;
             };
         }
     }
 }
 
-#endif // CADMIUM_ATOMIC_HPP
+#endif //CADMIUM_PDEVS_DYNAMIC_ENGINE_HPP

@@ -31,8 +31,10 @@
 
 #include <cadmium/basic_model/accumulator.hpp>
 #include <cadmium/basic_model/generator.hpp>
-#include <cadmium/engine/pdevs_simulator.hpp>
-
+#include <cadmium/modeling/dynamic_message_bag.hpp>
+#include <cadmium/engine/pdevs_dynamic_simulator.hpp>
+#include <cadmium/logger/common_loggers.hpp>
+#include <cadmium/modeling/dynamic_models_helpers.hpp>
 
 
 template<typename TIME>
@@ -47,8 +49,9 @@ BOOST_AUTO_TEST_CASE( accumulator_model_dynamic_simulation_test )
 //This test is suppose to pass only in CPP17 compilers, skipping in older compilers
 #if __cplusplus > 201702
     //construct a simulator for an accumulator
-    using simulator_t=cadmium::engine::dynamic_simulator<int_accumulator, float, cadmium::logger::not_logger>;
-    simulator_t s;
+    std::shared_ptr<cadmium::dynamic::modeling::atomic_abstract<float>> spModel;
+    spModel.reset(new cadmium::basic_models::accumulator<int, float>());
+    cadmium::dynamic::engine::simulator<float, cadmium::logger::not_logger> s(spModel);
     s.init(0.0f);
 
     BOOST_CHECK(s.next()==std::numeric_limits<float>::infinity());
@@ -64,8 +67,8 @@ BOOST_AUTO_TEST_CASE( accumulator_model_dynamic_simulation_test )
     bag_0.messages.assign(std::initializer_list<int>{1, 2, 3, 4});
     bag_1.messages.clear();
 
-    cadmium::dynamic_message_bags input_bags;
-    cadmium::dynamic_message_bags empty_input = cadmium::modeling::create_empty_dynamic_message_bags<in_bags_type>();
+    cadmium::dynamic::message_bags input_bags;
+    cadmium::dynamic::message_bags empty_input = cadmium::dynamic::modeling::create_empty_message_bags<in_bags_type>();
 
     input_bags[typeid(bag_0)] = bag_0;
     input_bags[typeid(bag_1)] = bag_1;
