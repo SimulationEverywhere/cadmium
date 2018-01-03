@@ -42,7 +42,6 @@ template<typename TIME>
 using int_accumulator=cadmium::basic_models::accumulator<int, TIME>;
 using int_accumulator_defs=cadmium::basic_models::accumulator_defs<int>;
 
-using dynamic_accumulator=cadmium::dynamic::modeling::atomic<int_accumulator, float>;
 BOOST_AUTO_TEST_SUITE( pdevs_dynamic_simulator_suite )
 
 BOOST_AUTO_TEST_SUITE( pdevs_accumulator_suite )
@@ -51,7 +50,7 @@ BOOST_AUTO_TEST_CASE( accumulator_model_dynamic_simulation_test )
 //This test is suppose to pass only in CPP17 compilers, skipping in older compilers
 #if __cplusplus > 201702
     //construct a simulator for an accumulator
-    std::shared_ptr<cadmium::dynamic::modeling::atomic_abstract<float>> upModel = std::make_shared<dynamic_accumulator>();
+    std::shared_ptr<cadmium::dynamic::modeling::atomic_abstract<float>> upModel = cadmium::dynamic::modeling::make_atomic_model<int_accumulator, float>();
     cadmium::dynamic::engine::simulator<float, cadmium::logger::not_logger> s(upModel);
 
     s.init(0.0f);

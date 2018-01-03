@@ -32,6 +32,7 @@
 #include <cadmium/engine/pdevs_dynamic_simulator.hpp>
 #include <cadmium/engine/pdevs_dynamic_engine.hpp>
 #include <cadmium/modeling/dynamic_message_bag.hpp>
+#include "pdevs_dynamic_engine_helpers.hpp"
 
 namespace cadmium {
     namespace dynamic {
@@ -39,23 +40,20 @@ namespace cadmium {
 
             template<typename TIME, typename LOGGER>
             class coordinator {
-                //TODO: implement correct coordinator formatter that does not depend on the MODEL template parameter
+                //TODO(Lao): implement correct coordinator formatter that does not depend on the MODEL template parameter
                 //using formatter=typename cadmium::logger::coordinator_formatter<MODEL, TIME>;
 
-                //types for subcoordination
-                template<typename P>
-//            using submodels_type=typename MODEL<TIME>::template models<P>;
-//            using in_bags_type=typename make_message_bags<typename MODEL<TIME>::input_ports>::type;
-//            using out_bags_type=typename make_message_bags<typename MODEL<TIME>::output_ports>::type;
-//            using eic=typename MODEL<TIME>::external_input_couplings;
-//            using eoc=typename MODEL<TIME>::external_output_couplings;
-//            using ic=typename MODEL<TIME>::internal_couplings;
                 using subcoordinators_type = typename std::vector<std::shared_ptr<engine<TIME>>>;
 
                 //MODEL is assumed valid, the whole model tree is checked at "runner level" to fail fast
                 TIME _last; //last transition time
                 TIME _next; // next transition scheduled
                 subcoordinators_type _subcoordinators;
+
+                //couplings
+                cadmium::dynamic::modeling::EICs _eic;
+                cadmium::dynamic::modeling::EOCs _eoc;
+                cadmium::dynamic::modeling::ICs _ic;
 
                 dynamic::message_bags _inbox;
                 dynamic::message_bags _outbox;
@@ -69,7 +67,9 @@ namespace cadmium {
                  */
                 coordinator() = delete;
 
-                coordinator(model_type coupled_model) {
+                coordinator(model_type coupled_model)
+                : _eic(coupled_model._eic), _eoc(coupled_model._eoc), _ic(coupled_model._ic)
+                {
 
                     for(auto& m : coupled_model._models) {
                         std::shared_ptr<cadmium::dynamic::modeling::coupled<TIME>> m_coupled = std::dynamic_pointer_cast<cadmium::dynamic::modeling::coupled<TIME>>(m);
@@ -85,7 +85,7 @@ namespace cadmium {
                         }
                     }
 
-                    // TODO: implement the link structures
+                    // TODO(Lao): implement the link structures, I think I don't need to do anything bu store the EIC, EOC and IC
                 }
 
                 /**
@@ -97,10 +97,9 @@ namespace cadmium {
 
                     _last = t;
                     //init all subcoordinators and find next transition time.
-
-                    cadmium::engine::init_subcoordinators<TIME, subcoordinators_type>(t, _subcoordinators);
+                    cadmium::dynamic::engine::init_subcoordinators<TIME>(t, _subcoordinators);
                     //find the one with the lowest next time
-                    _next = cadmium::engine::min_next_in_tuple<subcoordinators_type>(_subcoordinators);
+                    _next = cadmium::dynamic::engine::min_next_in_subcoordinators<TIME>(_subcoordinators);
                 }
 
                 /**
@@ -127,8 +126,9 @@ namespace cadmium {
                     } else if (_next == t) {
                         //log EOC
                         //LOGGER::template log<cadmium::logger::logger_message_routing, decltype(formatter::log_routing_collect)>(formatter::log_routing_collect);
+
                         //fill all outboxes and clean the inboxes in the lower levels recursively
-                        cadmium::engine::collect_outputs_in_subcoordinators<TIME, subcoordinators_type>(t, _subcoordinators);
+                        cadmium::dynamic::engine::collect_outputs_in_subcoordinators(t, _subcoordinators);
                         //use the EOC mapping to compose current level output
                         _outbox = collect_messages_by_eoc<TIME, eoc, out_bags_type, subcoordinators_type, LOGGER>(_subcoordinators);
                     }

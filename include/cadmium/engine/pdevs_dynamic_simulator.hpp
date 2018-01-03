@@ -87,7 +87,7 @@ namespace cadmium {
                     _inbox = cadmium::dynamic::message_bags();
 
                     if (_next < t) {
-                        throw std::domain_error("Trying to obtain output when not internal event is scheduled");
+                        throw std::domain_error("Trying to obtain output in a higher time than the next scheduled internal event");
                     } else if (_next == t) {
                         _outbox = _model->output();
                     } else {
