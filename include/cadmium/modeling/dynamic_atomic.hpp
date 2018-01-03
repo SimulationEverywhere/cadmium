@@ -69,7 +69,7 @@ namespace cadmium {
                     cadmium::concept::atomic_model_assert<ATOMIC>();
                 }
 
-                constexpr std::string get_id() const {
+                std::string get_id() const {
                     return boost::typeindex::type_id<model_type>().pretty_name();
                 }
 

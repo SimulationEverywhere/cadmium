@@ -32,6 +32,7 @@
 #include <cadmium/basic_model/accumulator.hpp>
 #include <cadmium/basic_model/generator.hpp>
 #include <cadmium/modeling/dynamic_message_bag.hpp>
+#include <cadmium/modeling/dynamic_atomic.hpp>
 #include <cadmium/engine/pdevs_dynamic_simulator.hpp>
 #include <cadmium/logger/common_loggers.hpp>
 #include <cadmium/modeling/dynamic_models_helpers.hpp>
@@ -41,6 +42,7 @@ template<typename TIME>
 using int_accumulator=cadmium::basic_models::accumulator<int, TIME>;
 using int_accumulator_defs=cadmium::basic_models::accumulator_defs<int>;
 
+using dynamic_accumulator=cadmium::dynamic::modeling::atomic<int_accumulator, float>;
 BOOST_AUTO_TEST_SUITE( pdevs_dynamic_simulator_suite )
 
 BOOST_AUTO_TEST_SUITE( pdevs_accumulator_suite )
@@ -49,9 +51,9 @@ BOOST_AUTO_TEST_CASE( accumulator_model_dynamic_simulation_test )
 //This test is suppose to pass only in CPP17 compilers, skipping in older compilers
 #if __cplusplus > 201702
     //construct a simulator for an accumulator
-    std::shared_ptr<cadmium::dynamic::modeling::atomic_abstract<float>> spModel;
-    spModel.reset(new cadmium::basic_models::accumulator<int, float>());
-    cadmium::dynamic::engine::simulator<float, cadmium::logger::not_logger> s(spModel);
+    std::unique_ptr<cadmium::dynamic::modeling::atomic_abstract<float>> upModel = std::make_unique<dynamic_accumulator>();
+    cadmium::dynamic::engine::simulator<float, cadmium::logger::not_logger> s(std::move(upModel));
+
     s.init(0.0f);
 
     BOOST_CHECK(s.next()==std::numeric_limits<float>::infinity());

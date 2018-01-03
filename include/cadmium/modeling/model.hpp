@@ -51,6 +51,7 @@ namespace cadmium {
              */
             template<typename TIME>
             class atomic_abstract : model {
+            public:
                 virtual std::string get_id() const = 0;
 
                 virtual void internal_transition() = 0;
