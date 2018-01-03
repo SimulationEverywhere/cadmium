@@ -48,7 +48,7 @@ namespace cadmium {
                 using model_type=typename cadmium::dynamic::modeling::atomic_abstract<TIME>;
                 // using formatter=typename cadmium::logger::simulator_formatter<MODEL, TIME>;
 
-                std::shared_ptr<cadmium::dynamic::modeling::atomic_abstract<TIME>> _model;
+                std::unique_ptr<cadmium::dynamic::modeling::atomic_abstract<TIME>> _model;
                 TIME _last;
                 TIME _next;
 
@@ -59,9 +59,8 @@ namespace cadmium {
 
                 simulator() = delete;
 
-                simulator(std::shared_ptr<cadmium::dynamic::modeling::atomic_abstract<TIME>> model) {
-                    _model = model;
-                }
+                simulator(std::unique_ptr<cadmium::dynamic::modeling::atomic_abstract<TIME>> model)
+                : _model(std::move(model)) {}
 
                 /**
                  * @brief sets the last and next times according to the initial_time parameter.
