@@ -109,6 +109,13 @@ namespace cadmium {
                     return model_type::time_advance();
                 }
             };
+
+            // TODO(Lao): move this function to the file dynamic_models_helpers, a forward declaration of class atomic must be done.
+            template <template<typename T> class ATOMIC, typename TIME>
+            std::shared_ptr<cadmium::dynamic::modeling::atomic_abstract<TIME>> make_atomic_model() {
+                std::shared_ptr<cadmium::dynamic::modeling::atomic_abstract<TIME>> spModel = std::make_shared<cadmium::dynamic::modeling::atomic<ATOMIC, TIME>>();
+                return spModel;
+            }
         }
     }
 }
