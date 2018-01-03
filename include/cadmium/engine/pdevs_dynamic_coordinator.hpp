@@ -50,7 +50,7 @@ namespace cadmium {
 //            using eic=typename MODEL<TIME>::external_input_couplings;
 //            using eoc=typename MODEL<TIME>::external_output_couplings;
 //            using ic=typename MODEL<TIME>::internal_couplings;
-                using subcoordinators_type=typename std::vector<std::shared_ptr<engine<TIME>>>;
+                using subcoordinators_type = typename std::vector<std::shared_ptr<engine<TIME>>>;
 
                 //MODEL is assumed valid, the whole model tree is checked at "runner level" to fail fast
                 TIME _last; //last transition time
@@ -72,8 +72,8 @@ namespace cadmium {
                 coordinator(model_type coupled_model) {
 
                     for(auto& m : coupled_model._models) {
-                        std::shared_ptr<cadmium::dynamic::modeling::coupled<TIME>> m_coupled = std::dynamic_pointer_cast<cadmium::dynamic::modeling::coupled<TIME>>(m.second);
-                        std::shared_ptr<cadmium::dynamic::modeling::atomic_abstract<TIME>> m_atomic = std::dynamic_pointer_cast<cadmium::dynamic::modeling::atomic_abstract<TIME>>(m.second);
+                        std::shared_ptr<cadmium::dynamic::modeling::coupled<TIME>> m_coupled = std::dynamic_pointer_cast<cadmium::dynamic::modeling::coupled<TIME>>(m);
+                        std::shared_ptr<cadmium::dynamic::modeling::atomic_abstract<TIME>> m_atomic = std::dynamic_pointer_cast<cadmium::dynamic::modeling::atomic_abstract<TIME>>(m);
 
                         if (m_coupled == nullptr) {
                             assert(m_atomic != nullptr);
@@ -84,6 +84,8 @@ namespace cadmium {
                             _subcoordinators.push_back(coordinator);
                         }
                     }
+
+                    // TODO: implement the link structures
                 }
 
                 /**

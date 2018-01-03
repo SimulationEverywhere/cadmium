@@ -56,15 +56,15 @@ namespace cadmium {
                         EICs eic,
                         EOCs eoc,
                         ICs ic
-                ) {
-                    _id = id;
-                    _models = models;
-                    _input_ports = input_ports;
-                    _output_ports = output_ports;
-                    _eic = eic;
-                    _eoc = eoc;
-                    _ic = ic;
-
+                ) :
+                        _id(id),
+                        _models(models),
+                        _input_ports(input_ports),
+                        _output_ports(output_ports),
+                        _eic(eic),
+                        _eoc(eoc),
+                        _ic(ic)
+                {
                     assert(valid_ic_links(_models, _ic));
                     assert(valid_eic_links(_models, _input_ports, _eic));
                     assert(valid_eoc_links(_models, _output_ports, _eoc));
@@ -78,15 +78,15 @@ namespace cadmium {
                         initializer_list_EICs eic,
                         initializer_list_EOCs eoc,
                         initializer_list_ICs ic
-                ) {
-                    _id = id;
-                    _models = models;
-                    _input_ports = input_ports;
-                    _output_ports = output_ports;
-                    _eic = eic;
-                    _eoc = eoc;
-                    _ic = ic;
-
+                ) :
+                        _id(id),
+                        _models(models),
+                        _input_ports(input_ports),
+                        _output_ports(output_ports),
+                        _eic(eic),
+                        _eoc(eoc),
+                        _ic(ic)
+                {
                     assert(valid_ic_links(_models, _ic));
                     assert(valid_eic_links(_models, _input_ports, _eic));
                     assert(valid_eoc_links(_models, _output_ports, _eoc));
