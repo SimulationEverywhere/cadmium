@@ -31,10 +31,58 @@
 #include <typeindex>
 #include <map>
 #include <vector>
+#include <cadmium/modeling/message_bag.hpp>
 
 namespace cadmium {
     namespace dynamic {
         using message_bags = std::map<std::type_index, boost::any>;
+
+        class link_abstract {
+        public:
+            virtual std::type_index from_type_index() const = 0;
+            virtual std::type_index to_type_index() const = 0;
+            virtual void pass_messages(boost::any& bag_from, boost::any& bag_to) const = 0;
+            virtual boost::any pass_messages_to_new_bag(boost::any& bag_from) const = 0;
+        };
+
+        template<typename PORT_FROM, typename PORT_TO>
+        class link : public link_abstract {
+        public:
+            using from_message_type = typename PORT_FROM::message_type;
+            using from_message_bag_type = typename cadmium::message_bag<PORT_FROM>;
+            using to_message_type = typename PORT_TO::message_type;
+            using to_message_bag_type = typename cadmium::message_bag<PORT_TO>;
+
+            link() {}
+
+            // TODO(Lao): check if the any_cast with the assignment keeps the reference or create a copy
+            void pass_messages(boost::any& bag_from, boost::any& bag_to) const {
+                from_message_bag_type b_from = boost::any_cast<from_message_bag_type>(bag_from);
+                to_message_bag_type* b_to = boost::any_cast<to_message_bag_type>(&bag_to);
+                b_to->messages.insert(b_to->messages.end(), b_from.messages.begin(), b_from.messages.end());
+            }
+
+            boost::any pass_messages_to_new_bag(boost::any& bag_from) const {
+                from_message_bag_type b_from = boost::any_cast<from_message_bag_type>(bag_from);
+                to_message_bag_type b_to;
+                b_to.messages.insert(b_to.messages.end(), b_from.messages.begin(), b_from.messages.end());
+                return b_to;
+            }
+
+            std::type_index from_type_index() const {
+                return typeid(from_message_bag_type);
+            }
+
+            std::type_index to_type_index() const {
+                return typeid(to_message_bag_type);
+            }
+        };
+
+        template <typename PORT_FROM, typename PORT_TO>
+        std::shared_ptr<link_abstract> make_link() {
+            std::shared_ptr<link_abstract> spLink = std::make_shared<link<PORT_FROM, PORT_TO>>();
+            return spLink;
+        }
     }
 }
 
