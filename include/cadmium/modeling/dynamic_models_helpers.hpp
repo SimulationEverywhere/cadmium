@@ -112,10 +112,11 @@ namespace cadmium {
             cadmium::dynamic::message_bags create_empty_message_bags() {
 
                 cadmium::dynamic::message_bags bags;
-                auto create_empty_bag = [&bags](auto &b) -> void {
+                auto create_empty_bag = [&bags](auto b) -> void {
                     using bag_type = decltype(b);
+                    using port_type = typename bag_type::port;
 
-                    bags[typeid(bag_type::port)] = b;
+                    bags[typeid(port_type)] = b;
                 };
                 BST bs;
                 for_each<BST>(bs, create_empty_bag);
