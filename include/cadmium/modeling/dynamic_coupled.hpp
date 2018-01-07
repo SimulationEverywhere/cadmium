@@ -31,6 +31,7 @@
 #include <cassert>
 #include <cadmium/modeling/model.hpp>
 #include <cadmium/modeling/dynamic_models_helpers.hpp>
+#include <boost/type_index.hpp>
 
 namespace cadmium {
     namespace dynamic {
