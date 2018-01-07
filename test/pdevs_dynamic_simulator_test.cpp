@@ -75,7 +75,7 @@ BOOST_AUTO_TEST_CASE( accumulator_model_dynamic_simulation_test )
     input_bags[typeid(bag_1)] = bag_1;
 
     //advance simulator
-    s.inbox(input_bags);
+    s._inbox = input_bags;
     s.advance_simulation(3.0f);
     BOOST_CHECK(s.next() == std::numeric_limits<float>::infinity());
 
@@ -86,7 +86,7 @@ BOOST_AUTO_TEST_CASE( accumulator_model_dynamic_simulation_test )
     input_bags[typeid(bag_0)] = bag_0;
     input_bags[typeid(bag_1)] = bag_1;
 
-    s.inbox(input_bags);
+    s._inbox = input_bags;
     s.advance_simulation(4.0f); //here time is referring to absolute chronology, we are in simulation context.
     BOOST_CHECK(s.next() == 4.0f );
 
@@ -97,12 +97,12 @@ BOOST_AUTO_TEST_CASE( accumulator_model_dynamic_simulation_test )
     BOOST_CHECK(output.messages.size() == 1);
     BOOST_CHECK(output.messages.at(0) == 10);
 
-    s.inbox(empty_input);
+    s._inbox = empty_input;
     s.advance_simulation(4.0f);
     BOOST_CHECK(s.next() == std::numeric_limits<float>::infinity());
 
     //internal transition resets counter
-    s.inbox(input_bags);
+    s._inbox = input_bags;
     s.advance_simulation(5.0f);
     BOOST_CHECK(s.next() == 5.0f);
     s.collect_outputs(5.0f);
@@ -110,7 +110,7 @@ BOOST_AUTO_TEST_CASE( accumulator_model_dynamic_simulation_test )
     output = boost::any_cast<cadmium::message_bag<int_accumulator_defs::sum>>(o[typeid(output)]);
     BOOST_CHECK(output.messages.size() == 1);
     BOOST_CHECK(output.messages.at(0) == 0);
-    s.inbox(empty_input);
+    s._inbox = empty_input;
     s.advance_simulation(5.0f);
     BOOST_CHECK(s.next() == std::numeric_limits<float>::infinity());
 
@@ -118,7 +118,7 @@ BOOST_AUTO_TEST_CASE( accumulator_model_dynamic_simulation_test )
     bag_0.messages.assign(std::initializer_list<int>{1, 2, 3, 4});
     input_bags[typeid(bag_0)] = bag_0;
 
-    s.inbox(input_bags);
+    s._inbox = input_bags;
     s.advance_simulation(6.0f);
     BOOST_CHECK(s.next() == 6.0f);
     s.collect_outputs(6.0f);
@@ -126,7 +126,8 @@ BOOST_AUTO_TEST_CASE( accumulator_model_dynamic_simulation_test )
     output = boost::any_cast<cadmium::message_bag<int_accumulator_defs::sum>>(o[typeid(output)]);
     BOOST_CHECK(output.messages.size() == 1);
     BOOST_CHECK(output.messages.at(0) == 10);
-    s.inbox(empty_input);
+
+    s._inbox = empty_input;
     s.advance_simulation(6.0f);
     BOOST_CHECK(s.next() == std::numeric_limits<float>::infinity());
 #else

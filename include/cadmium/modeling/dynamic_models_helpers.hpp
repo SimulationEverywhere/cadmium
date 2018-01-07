@@ -39,36 +39,53 @@
 namespace cadmium {
     namespace dynamic {
         namespace modeling {
-            // Forward declaration
-//            struct EIC;
-//            struct EOC;
-//            struct IC;
+
+            // Generic tuple for_each function
+            template<typename TUPLE, typename FUNC>
+            void for_each(TUPLE &ts, FUNC &&f) {
+
+                auto for_each_fold_expression = [&f](auto &... e) -> void { (f(e), ...); };
+                std::apply(for_each_fold_expression, ts);
+            }
+
             struct EOC {
                 std::string _from;
-                std::type_index _from_port;
-                std::type_index _to_port;
+                std::shared_ptr<cadmium::dynamic::link_abstract> _link;
 
-                EOC(std::string from, std::type_index from_port, std::type_index to_port)
-                        : _from(from), _from_port(from_port), _to_port(to_port) {}
+                EOC() = delete;
+
+                EOC(std::string from, std::shared_ptr<cadmium::dynamic::link_abstract> l)
+                        : _from(from), _link(l) {}
+
+                EOC(const EOC& other)
+                        : _from(other._from), _link(other._link) {}
             };
 
             struct EIC {
                 std::string _to;
-                std::type_index _to_port;
-                std::type_index _from_port;
+                std::shared_ptr<cadmium::dynamic::link_abstract> _link;
 
-                EIC(std::string to, std::type_index to_port, std::type_index from_port)
-                        : _to(to), _to_port(to_port), _from_port(from_port) {}
+                EIC() = delete;
+
+                EIC(std::string to, std::shared_ptr<cadmium::dynamic::link_abstract> l)
+                        : _to(to), _link(l) {}
+
+                EIC(const EIC& other)
+                        : _to(other._to), _link(other._link) {}
             };
 
             struct IC {
                 std::string _to;
                 std::string _from;
-                std::type_index _to_port;
-                std::type_index _from_port;
+                std::shared_ptr<cadmium::dynamic::link_abstract> _link;
 
-                IC(std::string to, std::string from, std::type_index to_port, std::type_index from_port)
-                        : _to(to), _from(from), _to_port(to_port), _from_port(from_port) {}
+                IC() = delete;
+
+                IC(std::string to, std::string from, std::shared_ptr<cadmium::dynamic::link_abstract> l)
+                        : _to(to), _from(from), _link(l) {}
+
+                IC(const IC& other)
+                        : _to(other._to), _from(other._from), _link(other._link) {}
             };
 
             using dynamic_EC=std::tuple<std::type_index, std::type_index, std::type_index>;
@@ -86,12 +103,82 @@ namespace cadmium {
             using initializer_list_EICs = std::initializer_list<EIC>;
             using initializer_list_ICs = std::initializer_list<IC>;
 
-            // Generic tuple for_each function
-            template<typename TUPLE, typename FUNC>
-            void for_each(TUPLE &ts, FUNC &&f) {
+            template<typename PORTS>
+            cadmium::dynamic::modeling::Ports make_ports() {
+                cadmium::dynamic::modeling::Ports ret;
+                auto add_port = [&ret] (auto &p) -> void {
+                    std::type_index port_type_index = typeid(p);
+                    ret.push_back(port_type_index);
+                };
+                PORTS ports;
+                for_each<PORTS>(ports, add_port);
+                return ret;
+            }
 
-                auto for_each_fold_expression = [&f](auto &... e) -> void { (f(e), ...); };
-                std::apply(for_each_fold_expression, ts);
+            /**
+             * @brief Constructs the correct cadmium::dynamic::modeling::EICs object from the original cadmium std::tuple<EIC..> type
+             *
+             * @pre The original cadmium EIC types must contain a model with default constructor and with the method get_id()
+             * for this purpose coupled models can be made as a derived class from cadmium::dynamic::modeling::coupled with the constructor
+             * set with a custom id.
+             *
+             * @tparam EICS - the type of the original cadmium EIC tuple.
+             * @tparam TIME - the model time type
+             * @return The constructed cadmium::dynamic::modeling::EICs object
+             */
+            template<typename EICS, typename TIME>
+            cadmium::dynamic::modeling::EICs make_EICs() {
+                cadmium::dynamic::modeling::EICs ret;
+                auto add_eic = [&ret] (auto &e) -> void {
+
+                    using EIC_type = decltype(e);
+                    using model_type = typename EIC_type::template submodel<TIME>;
+                    using from_port_type = typename EIC_type::external_input_port;
+                    using to_port_type = typename EIC_type::submodel_input_port;
+
+                    //Note: models must have a default constructor if is not the case, it will not work.
+                    model_type sp_model = std::make_shared<model_type>();
+                    std::string to = sp_model->get_id();
+
+                    std::shared_ptr<cadmium::dynamic::link_abstract> new_link = cadmium::dynamic::make_link<from_port_type, to_port_type>();
+                    ret.emplace_back(to, new_link);
+                };
+                EICS eics;
+                for_each<EICS>(eics, add_eic);
+                return ret;
+            }
+
+            /**
+             * @brief Constructs the correct cadmium::dynamic::modeling::EOCs object from the original cadmium std::tuple<EOC..> type
+             *
+             * @pre The original cadmium EOC types must contain a model with default constructor and with the method get_id()
+             * for this purpose coupled models can be made as a derived class from cadmium::dynamic::modeling::coupled with the constructor
+             * set with a custom id.
+             *
+             * @tparam EOCS - the type of the original cadmium EIC tuple.
+             * @tparam TIME - the model time type
+             * @return The constructed cadmium::dynamic::modeling::EICs object
+             */
+            template<typename EOCS, typename TIME>
+            cadmium::dynamic::modeling::EOCs make_EOCs() {
+                cadmium::dynamic::modeling::EOCs ret;
+                auto add_eoc = [&ret] (auto &e) -> void {
+
+                    using EOC_type = decltype(e);
+                    using model_type = typename EOC_type::template submodel<TIME>;
+                    using from_port_type = typename EOC_type::submodel_output_port;
+                    using to_port_type = typename EOC_type::external_output_port;
+
+                    //Note: models must have a default constructor if is not the case, it will not work.
+                    model_type sp_model = std::make_shared<model_type>();
+                    std::string to = sp_model->get_id();
+
+                    std::shared_ptr<cadmium::dynamic::link_abstract> new_link = cadmium::dynamic::make_link<from_port_type, to_port_type>();
+                    ret.emplace_back(to, new_link);
+                };
+                EOCS eocs;
+                for_each<EOCS>(eocs, add_eoc);
+                return ret;
             }
 
             /**
@@ -176,7 +263,7 @@ namespace cadmium {
                                                            [&link](const auto &m) -> bool {
                                                                return m->get_id() == link._to;
                                                            }) != models.cend() &&
-                                              is_in(link._from_port, input_ports);
+                                              is_in(link._link->from_type_index(), input_ports);
                                    });
             }
 
@@ -187,7 +274,7 @@ namespace cadmium {
                                                            [&link](const auto &m) -> bool {
                                                                return m->get_id() == link._from;
                                                            }) != models.cend() &&
-                                              is_in(link._to_port, output_ports);
+                                              is_in(link._link->to_type_index(), output_ports);
                                    });
             }
         }

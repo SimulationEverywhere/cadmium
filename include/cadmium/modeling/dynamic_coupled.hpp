@@ -37,7 +37,7 @@ namespace cadmium {
         namespace modeling {
 
             template<typename TIME>
-            class coupled : model {
+            class coupled : public cadmium::dynamic::modeling::model {
             public:
                 Models _models;
                 Ports _input_ports;
@@ -47,6 +47,18 @@ namespace cadmium {
                 ICs _ic;
 
                 std::string _id;
+
+                coupled() = delete;
+
+                coupled(
+                        std::string id
+                ) :
+                        _id(id)
+                {
+                    assert(valid_ic_links(_models, _ic));
+                    assert(valid_eic_links(_models, _input_ports, _eic));
+                    assert(valid_eoc_links(_models, _output_ports, _eoc));
+                }
 
                 coupled(
                         std::string id,
@@ -92,7 +104,7 @@ namespace cadmium {
                     assert(valid_eoc_links(_models, _output_ports, _eoc));
                 }
 
-                std::string get_id() const {
+                std::string get_id() const override {
                     return _id;
                 }
             };

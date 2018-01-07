@@ -50,7 +50,7 @@ namespace cadmium {
              * @tparam TIME - The class representing the model time.
              */
             template<typename TIME>
-            class atomic_abstract : model {
+            class atomic_abstract : public cadmium::dynamic::modeling::model {
             public:
                 virtual std::string get_id() const = 0;
 

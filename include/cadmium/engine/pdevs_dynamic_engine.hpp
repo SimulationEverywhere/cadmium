@@ -44,15 +44,17 @@ namespace cadmium {
             public:
                 virtual void init(TIME initial_time) = 0;
 
+                virtual std::string get_model_id() const = 0;
+
                 virtual TIME next() const noexcept = 0;
 
                 virtual void collect_outputs(const TIME &t) = 0;
 
                 virtual cadmium::dynamic::message_bags outbox() const = 0;
 
-                virtual void inbox(cadmium::dynamic::message_bags in) = 0;
+                virtual cadmium::dynamic::message_bags& inbox() = 0;
 
-                virtual void advance_simulation(TIME t) = 0;
+                virtual void advance_simulation(const TIME &t) = 0;
             };
         }
     }

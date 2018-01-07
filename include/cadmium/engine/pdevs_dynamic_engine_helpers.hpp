@@ -29,8 +29,9 @@
 
 #include <cadmium/modeling/message_bag.hpp>
 #include <cadmium/modeling/dynamic_message_bag.hpp>
-#include <boost/any.hpp>
 #include <cadmium/engine/pdevs_dynamic_engine.hpp>
+
+#include <boost/any.hpp>
 
 namespace cadmium {
     namespace dynamic {
@@ -57,6 +58,36 @@ namespace cadmium {
 
             template<typename TIME>
             using subcoordinators_type = typename std::vector<std::shared_ptr<cadmium::dynamic::engine::engine<TIME>>>;
+            using external_port_couplings = typename std::map<std::string, std::vector<std::shared_ptr<cadmium::dynamic::link_abstract>>>;
+
+            template<typename TIME>
+            using external_couplings = typename std::vector<
+                    std::pair<
+                            std::shared_ptr<cadmium::dynamic::engine::engine<TIME>>,
+                            std::vector<std::shared_ptr<cadmium::dynamic::link_abstract>>
+                    >
+            >;
+
+            template<typename TIME>
+            using internal_coupling = std::pair<
+                    std::pair<
+                            std::shared_ptr<cadmium::dynamic::engine::engine<TIME>>, // from model
+                            std::shared_ptr<cadmium::dynamic::engine::engine<TIME>> // to model
+                    >,
+                    std::vector<std::shared_ptr<cadmium::dynamic::link_abstract>>
+            >;
+
+            template<typename TIME>
+            using internal_couplings = typename std::vector<internal_coupling<TIME>>;
+
+            template<typename TIME>
+            using external_coupling = std::pair<
+                    std::shared_ptr<cadmium::dynamic::engine::engine<TIME>>,
+                    std::vector<std::shared_ptr<cadmium::dynamic::link_abstract>>
+            >;
+
+            template<typename TIME>
+            using external_couplings = typename std::vector<external_coupling<TIME>>;
 
             template<typename TIME>
             void init_subcoordinators(TIME t, subcoordinators_type<TIME>& subcoordinators) {
@@ -65,9 +96,54 @@ namespace cadmium {
             }
 
             template<typename TIME>
+            void advance_simulation_in_subengines(TIME t, subcoordinators_type<TIME>& subcoordinators) {
+                auto advance_time= [&t](auto & c)->void { c->advance_simulation(t); };
+                std::for_each(subcoordinators.begin(), subcoordinators.end(), advance_time);
+            }
+
+            template<typename TIME>
             void collect_outputs_in_subcoordinators(TIME t, subcoordinators_type<TIME>& subcoordinators) {
                 auto collect_output = [&t](auto & c)->void { c->collect_outputs(t); };
                 std::for_each(subcoordinators.begin(), subcoordinators.end(), collect_output);
+            }
+
+            //TODO(Lao): add logger
+            template<typename TIME>
+            cadmium::dynamic::message_bags collect_messages_by_eoc(const external_couplings<TIME>& coupling) {
+                cadmium::dynamic::message_bags ret;
+                auto collect_output = [&ret](auto & c)->void {
+                    cadmium::dynamic::message_bags outbox = c.first->outbox();
+                    for (const auto& l : c.second) {
+                        l->route_messages(outbox, ret);
+                    }
+                };
+                std::for_each(coupling.begin(), coupling.end(), collect_output);
+                return ret;
+            }
+
+            //TODO(Lao): add logger
+            template<typename TIME>
+            void route_external_input_coupled_messages_on_subcoordinators(cadmium::dynamic::message_bags inbox, const external_couplings<TIME>& coupling) {
+                auto route_messages = [&inbox](auto & c)->void {
+                    for (const auto& l : c.second) {
+                        auto& to_inbox = c.first->inbox();
+                        l->route_messages(inbox, to_inbox);
+                    }
+                };
+                std::for_each(coupling.begin(), coupling.end(), route_messages);
+            }
+
+            //TODO(Lao): add logger
+            template<typename TIME>
+            void route_internal_coupled_messages_on_subcoordinators(const internal_couplings<TIME>& coupling) {
+                auto route_messages = [](auto & c)->void {
+                    for (const auto& l : c.second) {
+                        auto& from_inbox = c.first.first->inbox();
+                        auto& to_inbox = c.first.second->inbox();
+                        l->route_messages(from_inbox, to_inbox);
+                    }
+                };
+                std::for_each(coupling.begin(), coupling.end(), route_messages);
             }
 
             template<typename TIME>
@@ -81,42 +157,6 @@ namespace cadmium {
                 );
                 return *std::min_element(next_times.begin(), next_times.end());
             }
-
-            template <typename TIME>
-            static void collect_messages_by_eoc(const subcoordinators_type<TIME>& subcoordinators){
-                //process one coupling
-                std::vector<cadmium::dynamic::message_bags> outputs(subcoordinators.size());
-                std::transform(
-                        subcoordinators.cbegin(),
-                        subcoordinators.cend(),
-                        outputs.begin(),
-                        [] (const auto& c) -> cadmium::dynamic::message_bags { return c->output(); }
-                );
-
-
-                auto from_bag = get_engine_by_model<submodel_from, CST>(cst).outbox();
-                auto& from_messages = get_messages<submodel_output_port>(from_bag);
-                auto& to_messages = get_messages<external_output_port>(messages);
-                to_messages.insert(to_messages.end(), from_messages.begin(), from_messages.end());
-
-//TODO(Lao): implement logs
-                //log
-//                auto log_routing_collect = [](decltype(from_messages) from, decltype(to_messages) to) -> std::string {
-//                    std::ostringstream oss;
-//                    oss << " in port ";
-//                    oss << boost::typeindex::type_id<external_output_port>().pretty_name();
-//                    oss << " has ";
-//                    logger::implode(oss, to);
-//                    oss << " routed from ";
-//                    oss << boost::typeindex::type_id<submodel_output_port>().pretty_name();
-//                    oss << " of model ";
-//                    oss << boost::typeindex::type_id<submodel_from>().pretty_name();
-//                    oss << " with messages ";
-//                    logger::implode(oss, from);
-//                    return oss.str();
-//                };
-//                LOGGER::template log<cadmium::logger::logger_message_routing,
-            };
         }
     }
 }
