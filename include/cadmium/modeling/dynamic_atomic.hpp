@@ -54,6 +54,8 @@ namespace cadmium {
              */
             template<template<typename T> class ATOMIC, typename TIME>
             class atomic : public atomic_abstract<TIME>, public ATOMIC<TIME> {
+                cadmium::dynamic::modeling::Ports _input_ports;
+                cadmium::dynamic::modeling::Ports _output_ports;
             public:
                 using model_type=ATOMIC<TIME>;
 
@@ -67,10 +69,20 @@ namespace cadmium {
                 atomic() {
                     static_assert(cadmium::concept::is_atomic<ATOMIC>::value, "This is not an atomic model");
                     cadmium::concept::atomic_model_assert<ATOMIC>();
+                    _input_ports = cadmium::dynamic::modeling::create_dynamic_ports<input_ports>();
+                    _output_ports = cadmium::dynamic::modeling::create_dynamic_ports<output_ports>();
                 }
 
                 std::string get_id() const override {
                     return boost::typeindex::type_id<model_type>().pretty_name();
+                }
+
+                cadmium::dynamic::modeling::Ports get_input_ports() const override {
+                    return _input_ports;
+                }
+
+                cadmium::dynamic::modeling::Ports get_output_ports() const override {
+                    return _output_ports;
                 }
 
                 // This method must be declared to declare all atomic_abstract virtual methods are defined

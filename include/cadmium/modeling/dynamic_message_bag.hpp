@@ -48,7 +48,7 @@ namespace cadmium {
         };
 
         //TODO(Lao): add logger, check if the logger can be made transparently for the user,
-        //TODO: if not, the message should be made in the simulator instead.
+        //f not, the message should be made in the simulator instead.
         template<typename PORT_FROM, typename PORT_TO>
         class link : public link_abstract {
         public:

@@ -66,7 +66,6 @@ namespace cadmium {
                  */
                 coordinator() = delete;
 
-                //TODO(Lao): add EIC, EOC and IC submodels port checking
                 coordinator(std::shared_ptr<model_type> coupled_model) :
                         _model_id(coupled_model->get_id())
                 {

@@ -32,6 +32,8 @@
 #include <boost/any.hpp>
 #include <map>
 #include <memory>
+#include <algorithm>
+
 #include <cadmium/modeling/message_bag.hpp>
 #include <cadmium/modeling/dynamic_message_bag.hpp>
 #include <cadmium/modeling/model.hpp>
@@ -47,61 +49,6 @@ namespace cadmium {
                 auto for_each_fold_expression = [&f](auto &... e) -> void { (f(e), ...); };
                 std::apply(for_each_fold_expression, ts);
             }
-
-            struct EOC {
-                std::string _from;
-                std::shared_ptr<cadmium::dynamic::link_abstract> _link;
-
-                EOC() = delete;
-
-                EOC(std::string from, std::shared_ptr<cadmium::dynamic::link_abstract> l)
-                        : _from(from), _link(l) {}
-
-                EOC(const EOC& other)
-                        : _from(other._from), _link(other._link) {}
-            };
-
-            struct EIC {
-                std::string _to;
-                std::shared_ptr<cadmium::dynamic::link_abstract> _link;
-
-                EIC() = delete;
-
-                EIC(std::string to, std::shared_ptr<cadmium::dynamic::link_abstract> l)
-                        : _to(to), _link(l) {}
-
-                EIC(const EIC& other)
-                        : _to(other._to), _link(other._link) {}
-            };
-
-            struct IC {
-                std::string _to;
-                std::string _from;
-                std::shared_ptr<cadmium::dynamic::link_abstract> _link;
-
-                IC() = delete;
-
-                IC(std::string to, std::string from, std::shared_ptr<cadmium::dynamic::link_abstract> l)
-                        : _to(to), _from(from), _link(l) {}
-
-                IC(const IC& other)
-                        : _to(other._to), _from(other._from), _link(other._link) {}
-            };
-
-            using dynamic_EC=std::tuple<std::type_index, std::type_index, std::type_index>;
-            using dynamic_IC=std::tuple<std::type_index, std::type_index, std::type_index, std::type_index>;
-
-            using Models = std::vector<std::shared_ptr<cadmium::dynamic::modeling::model>>;
-            using Ports = std::vector<std::type_index>;
-            using EICs = std::vector<EIC>;
-            using EOCs = std::vector<EOC>;
-            using ICs = std::vector<IC>;
-
-            using initializer_list_Models = std::initializer_list<std::shared_ptr<cadmium::dynamic::modeling::model>>;
-            using initilizer_list_Ports = std::initializer_list<std::type_index>;
-            using initializer_list_EOCs = std::initializer_list<EOC>;
-            using initializer_list_EICs = std::initializer_list<EIC>;
-            using initializer_list_ICs = std::initializer_list<IC>;
 
             /**
              * @brief Constructs an empty dynamic_message_bag with all the bs tuple members as keys of empties message bags.
@@ -121,6 +68,24 @@ namespace cadmium {
                 BST bs;
                 for_each<BST>(bs, create_empty_bag);
                 return bags;
+            }
+
+            /**
+             * @brief Constructs a cadmium::dynamic::Ports all the bs tuple members type_idex.
+             *
+             * @tparam BST The message bag tuple.
+             */
+            template<typename BST>
+            cadmium::dynamic::modeling::Ports create_dynamic_ports() {
+
+                cadmium::dynamic::modeling::Ports ret;
+                auto create_empty_bag = [&ret](auto b) -> void {
+                    std::type_index port_type_index = typeid(decltype(b));
+                    ret.push_back(port_type_index);
+                };
+                BST bs;
+                for_each<BST>(bs, create_empty_bag);
+                return ret;
             }
 
             /**
@@ -179,11 +144,25 @@ namespace cadmium {
                 return std::all_of(ic.cbegin(), ic.cend(), [&models](const auto &link) -> bool {
                     return std::find_if(models.cbegin(), models.cend(),
                                         [&link](const auto &m) -> bool {
-                                            return m->get_id() == link._from;
+                                            cadmium::dynamic::modeling::Ports output_ports = m->get_output_ports();
+                                            std::type_index from_port_type = link._link->from_port_type_index();
+                                            return m->get_id() == link._from &&
+                                                    std::find(
+                                                            output_ports.begin(),
+                                                            output_ports.end(),
+                                                            from_port_type
+                                                    ) != output_ports.end();
                                         }) != models.cend() &&
                            std::find_if(models.cbegin(), models.cend(),
                                         [&link](const auto &m) -> bool {
-                                            return m->get_id() == link._to;
+                                            cadmium::dynamic::modeling::Ports input_ports = m->get_input_ports();
+                                            std::type_index to_port_type = link._link->to_port_type_index();
+                                            return m->get_id() == link._to &&
+                                                   std::find(
+                                                           input_ports.begin(),
+                                                           input_ports.end(),
+                                                           to_port_type
+                                                   ) != input_ports.end();
                                         }) != models.cend();
                 });
             }
@@ -191,10 +170,18 @@ namespace cadmium {
             bool valid_eic_links(const Models &models, const Ports &input_ports, const EICs &eic) {
                 return std::all_of(eic.cbegin(), eic.cend(),
                                    [&models, &input_ports](const auto &link) -> bool {
-                                       return std::find_if(models.cbegin(), models.cend(),
-                                                           [&link](const auto &m) -> bool {
-                                                               return m->get_id() == link._to;
-                                                           }) != models.cend() &&
+                                       return std::find_if(
+                                               models.cbegin(), models.cend(),
+                                               [&link](const auto &m) -> bool {
+                                                   cadmium::dynamic::modeling::Ports input_ports = m->get_input_ports();
+                                                   std::type_index to_port_type = link._link->to_port_type_index();
+                                                   return m->get_id() == link._to &&
+                                                           std::find(
+                                                                   input_ports.begin(),
+                                                                   input_ports.end(),
+                                                                   to_port_type
+                                                           ) != input_ports.end();
+                                               }) != models.cend() &&
                                               is_in(link._link->from_port_type_index(), input_ports);
                                    });
             }
@@ -202,10 +189,19 @@ namespace cadmium {
             bool valid_eoc_links(const Models &models, const Ports &output_ports, const EOCs &eoc) {
                 return std::all_of(eoc.cbegin(), eoc.cend(),
                                    [&models, &output_ports](const auto &link) -> bool {
-                                       return std::find_if(models.cbegin(), models.cend(),
-                                                           [&link](const auto &m) -> bool {
-                                                               return m->get_id() == link._from;
-                                                           }) != models.cend() &&
+                                       return std::find_if(
+                                               models.cbegin(),
+                                               models.cend(),
+                                               [&link](const auto &m) -> bool { // searches for a model with the same id and port
+                                                   cadmium::dynamic::modeling::Ports output_ports = m->get_output_ports();
+                                                   std::type_index from_port_type = link._link->from_port_type_index();
+                                                   return m->get_id() == link._from &&
+                                                           std::find(
+                                                                   output_ports.begin(),
+                                                                   output_ports.end(),
+                                                                   from_port_type
+                                                           ) != output_ports.end();
+                                               }) != models.cend() &&
                                               is_in(link._link->to_port_type_index(), output_ports);
                                    });
             }
