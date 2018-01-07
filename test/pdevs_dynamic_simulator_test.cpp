@@ -71,8 +71,8 @@ BOOST_AUTO_TEST_CASE( accumulator_model_dynamic_simulation_test )
     cadmium::dynamic::message_bags input_bags;
     cadmium::dynamic::message_bags empty_input = cadmium::dynamic::modeling::create_empty_message_bags<in_bags_type>();
 
-    input_bags[typeid(bag_0)] = bag_0;
-    input_bags[typeid(bag_1)] = bag_1;
+    input_bags[typeid(int_accumulator_defs::add)] = bag_0;
+    input_bags[typeid(int_accumulator_defs::reset)] = bag_1;
 
     //advance simulator
     s._inbox = input_bags;
@@ -83,8 +83,8 @@ BOOST_AUTO_TEST_CASE( accumulator_model_dynamic_simulation_test )
     bag_0.messages.clear();
     bag_1.messages.emplace_back();
 
-    input_bags[typeid(bag_0)] = bag_0;
-    input_bags[typeid(bag_1)] = bag_1;
+    input_bags[typeid(int_accumulator_defs::add)] = bag_0;
+    input_bags[typeid(int_accumulator_defs::reset)] = bag_1;
 
     s._inbox = input_bags;
     s.advance_simulation(4.0f); //here time is referring to absolute chronology, we are in simulation context.
@@ -93,7 +93,7 @@ BOOST_AUTO_TEST_CASE( accumulator_model_dynamic_simulation_test )
     //out provides the accumulated result
     s.collect_outputs(4.0f);
     auto o = s.outbox();
-    output = boost::any_cast<cadmium::message_bag<int_accumulator_defs::sum>>(o[typeid(output)]);
+    output = boost::any_cast<cadmium::message_bag<int_accumulator_defs::sum>>(o.at(typeid(int_accumulator_defs::sum)));
     BOOST_CHECK(output.messages.size() == 1);
     BOOST_CHECK(output.messages.at(0) == 10);
 
@@ -107,7 +107,7 @@ BOOST_AUTO_TEST_CASE( accumulator_model_dynamic_simulation_test )
     BOOST_CHECK(s.next() == 5.0f);
     s.collect_outputs(5.0f);
     o = s.outbox();
-    output = boost::any_cast<cadmium::message_bag<int_accumulator_defs::sum>>(o[typeid(output)]);
+    output = boost::any_cast<cadmium::message_bag<int_accumulator_defs::sum>>(o.at(typeid(int_accumulator_defs::sum)));
     BOOST_CHECK(output.messages.size() == 1);
     BOOST_CHECK(output.messages.at(0) == 0);
     s._inbox = empty_input;
@@ -116,14 +116,14 @@ BOOST_AUTO_TEST_CASE( accumulator_model_dynamic_simulation_test )
 
     //simultaneous external input in both ports increments and schedules reset
     bag_0.messages.assign(std::initializer_list<int>{1, 2, 3, 4});
-    input_bags[typeid(bag_0)] = bag_0;
+    input_bags[typeid(int_accumulator_defs::add)] = bag_0;
 
     s._inbox = input_bags;
     s.advance_simulation(6.0f);
     BOOST_CHECK(s.next() == 6.0f);
     s.collect_outputs(6.0f);
     o = s.outbox();
-    output = boost::any_cast<cadmium::message_bag<int_accumulator_defs::sum>>(o[typeid(output)]);
+    output = boost::any_cast<cadmium::message_bag<int_accumulator_defs::sum>>(o.at(typeid(int_accumulator_defs::sum)));
     BOOST_CHECK(output.messages.size() == 1);
     BOOST_CHECK(output.messages.at(0) == 10);
 
