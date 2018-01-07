@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2017, Laouen Mayal Louan Belloli, Damian Vicino
+ * Copyright (c) 2017, Laouen M. L. Belloli, Damian Vicino
  * Carleton University, Universidad de Buenos Aires
  * All rights reserved.
  *

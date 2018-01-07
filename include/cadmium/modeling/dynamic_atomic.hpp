@@ -69,43 +69,43 @@ namespace cadmium {
                     cadmium::concept::atomic_model_assert<ATOMIC>();
                 }
 
-                std::string get_id() const {
+                std::string get_id() const override {
                     return boost::typeindex::type_id<model_type>().pretty_name();
                 }
 
                 // This method must be declared to declare all atomic_abstract virtual methods are defined
-                void internal_transition() {
+                void internal_transition() override {
                     model_type::internal_transition();
                 }
 
-                void external_transition(TIME e, cadmium::dynamic::message_bags bags) {
+                void external_transition(TIME e, cadmium::dynamic::message_bags bags) override {
                     // Translate from dynamic_message_bag to template dependent input_bags type.
                     input_bags tuple_bags;
-                    fill_bags_from_map(bags, tuple_bags);
+                    cadmium::dynamic::modeling::fill_bags_from_map(bags, tuple_bags);
 
                     // Forwards the translated value to the wrapped model_type class method.
                     model_type::external_transition(e, tuple_bags);
                 }
 
-                void confluence_transition(TIME e, cadmium::dynamic::message_bags bags) {
+                void confluence_transition(TIME e, cadmium::dynamic::message_bags bags) override {
                     // Translate from dynamic_message_bag to template dependent input_bags type.
                     input_bags tuple_bags;
-                    fill_bags_from_map(bags, tuple_bags);
+                    cadmium::dynamic::modeling::fill_bags_from_map(bags, tuple_bags);
 
                     // Forwards the translated value to the wrapped model_type class method.
                     model_type::confluence_transition(e, tuple_bags);
                 }
 
-                cadmium::dynamic::message_bags output() const {
+                cadmium::dynamic::message_bags output() const override {
                     cadmium::dynamic::message_bags bags;
                     output_bags tuple_bags = model_type::output();
 
                     // Translate from template dependent output_bags type to dynamic_message_bag.
-                    fill_map_from_bags(tuple_bags, bags);
+                    cadmium::dynamic::modeling::fill_map_from_bags(tuple_bags, bags);
                     return bags;
                 }
 
-                TIME time_advance() const {
+                TIME time_advance() const override {
                     return model_type::time_advance();
                 }
             };

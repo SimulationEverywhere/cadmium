@@ -41,10 +41,11 @@ namespace cadmium {
         public:
             virtual std::type_index from_type_index() const = 0;
             virtual std::type_index to_type_index() const = 0;
-            virtual void pass_messages(boost::any& bag_from, boost::any& bag_to) const = 0;
-            virtual boost::any pass_messages_to_new_bag(boost::any& bag_from) const = 0;
+            virtual void route_messages(const cadmium::dynamic::message_bags& bags_from, cadmium::dynamic::message_bags& bags_to) const = 0;
         };
 
+        //TODO(Lao): add logger, check if the logger can be made transparently for the user,
+        //TODO: if not, the message should be made in the simulator instead.
         template<typename PORT_FROM, typename PORT_TO>
         class link : public link_abstract {
         public:
@@ -53,28 +54,52 @@ namespace cadmium {
             using to_message_type = typename PORT_TO::message_type;
             using to_message_bag_type = typename cadmium::message_bag<PORT_TO>;
 
-            link() {}
+            link() {
+                static_assert(
+                        std::is_same<from_message_type, to_message_type>::value,
+                        "FROM_PORT message type and TO_PORT message types must be the same type");
+            }
 
-            // TODO(Lao): check if the any_cast with the assignment keeps the reference or create a copy
-            void pass_messages(boost::any& bag_from, boost::any& bag_to) const {
+            std::type_index from_type_index() const override {
+                return typeid(from_message_bag_type);
+            }
+
+            std::type_index to_type_index() const override {
+                return typeid(to_message_bag_type);
+            }
+
+            void pass_messages(const boost::any& bag_from, boost::any& bag_to) const {
                 from_message_bag_type b_from = boost::any_cast<from_message_bag_type>(bag_from);
                 to_message_bag_type* b_to = boost::any_cast<to_message_bag_type>(&bag_to);
                 b_to->messages.insert(b_to->messages.end(), b_from.messages.begin(), b_from.messages.end());
             }
 
-            boost::any pass_messages_to_new_bag(boost::any& bag_from) const {
+            boost::any pass_messages_to_new_bag(const boost::any& bag_from) const {
                 from_message_bag_type b_from = boost::any_cast<from_message_bag_type>(bag_from);
                 to_message_bag_type b_to;
                 b_to.messages.insert(b_to.messages.end(), b_from.messages.begin(), b_from.messages.end());
                 return b_to;
             }
 
-            std::type_index from_type_index() const {
-                return typeid(from_message_bag_type);
+            /**
+             * @note This methods assumes the port is defined in the message_bagas parameter bag,
+             * if is not the case, the function throws a std::map out of range exception.
+             *
+             * @param bags - The cadmium::dynamic::message_bags to check if there is messages in the from port
+             * @return true if there is messages, otherwise false
+             */
+            bool there_is_messages_to_route(const cadmium::dynamic::message_bags& bags) const {
+                return boost::any_cast<from_message_bag_type>(bags.at(this->from_type_index())).messages.size() > 0;
             }
 
-            std::type_index to_type_index() const {
-                return typeid(to_message_bag_type);
+            void route_messages(const cadmium::dynamic::message_bags& bags_from, cadmium::dynamic::message_bags& bags_to) const override {
+                if (bags_from.find(this->from_type_index()) != bags_from.end()) {
+                    if (bags_to.find(this->to_type_index()) != bags_to.end()) {
+                        this->pass_messages(bags_from.at(this->from_type_index()), bags_to.at(this->to_type_index()));
+                    } else if (this->there_is_messages_to_route(bags_from)) {
+                        bags_to[this->to_type_index()] = this->pass_messages_to_new_bag(bags_from.at(this->from_type_index()));
+                    }
+                }
             }
         };
 
