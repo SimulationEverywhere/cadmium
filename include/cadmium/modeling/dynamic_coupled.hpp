@@ -108,6 +108,15 @@ namespace cadmium {
                 std::string get_id() const override {
                     return _id;
                 }
+
+                cadmium::dynamic::modeling::Ports get_input_ports() const override {
+                    return _input_ports;
+                }
+
+                cadmium::dynamic::modeling::Ports get_output_ports() const override {
+                    return _output_ports;
+                }
+
             };
         }
     }

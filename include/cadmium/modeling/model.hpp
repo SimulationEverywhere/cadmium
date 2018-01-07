@@ -32,12 +32,68 @@
 namespace cadmium {
     namespace dynamic {
         namespace modeling {
+
+            struct EOC {
+                std::string _from;
+                std::shared_ptr<cadmium::dynamic::link_abstract> _link;
+
+                EOC() = delete;
+
+                EOC(std::string from, std::shared_ptr<cadmium::dynamic::link_abstract> l)
+                        : _from(from), _link(l) {}
+
+                EOC(const EOC& other)
+                        : _from(other._from), _link(other._link) {}
+            };
+
+            struct EIC {
+                std::string _to;
+                std::shared_ptr<cadmium::dynamic::link_abstract> _link;
+
+                EIC() = delete;
+
+                EIC(std::string to, std::shared_ptr<cadmium::dynamic::link_abstract> l)
+                        : _to(to), _link(l) {}
+
+                EIC(const EIC& other)
+                        : _to(other._to), _link(other._link) {}
+            };
+
+            struct IC {
+                std::string _to;
+                std::string _from;
+                std::shared_ptr<cadmium::dynamic::link_abstract> _link;
+
+                IC() = delete;
+
+                IC(std::string to, std::string from, std::shared_ptr<cadmium::dynamic::link_abstract> l)
+                        : _to(to), _from(from), _link(l) {}
+
+                IC(const IC& other)
+                        : _to(other._to), _from(other._from), _link(other._link) {}
+            };
+
+            using dynamic_EC=std::tuple<std::type_index, std::type_index, std::type_index>;
+            using dynamic_IC=std::tuple<std::type_index, std::type_index, std::type_index, std::type_index>;
+
+            using Ports = std::vector<std::type_index>;
+            using EICs = std::vector<EIC>;
+            using EOCs = std::vector<EOC>;
+            using ICs = std::vector<IC>;
+
+            using initilizer_list_Ports = std::initializer_list<std::type_index>;
+            using initializer_list_EOCs = std::initializer_list<EOC>;
+            using initializer_list_EICs = std::initializer_list<EIC>;
+            using initializer_list_ICs = std::initializer_list<IC>;
+
             /**
              * @brief Empty class to allow pointer based polymorphism between classes derived from atomic.
              */
             class model {
             public:
                 virtual std::string get_id() const = 0;
+                virtual cadmium::dynamic::modeling::Ports get_input_ports() const = 0;
+                virtual cadmium::dynamic::modeling::Ports get_output_ports() const = 0;
             };
 
             /**
@@ -52,20 +108,19 @@ namespace cadmium {
             template<typename TIME>
             class atomic_abstract : public cadmium::dynamic::modeling::model {
             public:
-                virtual std::string get_id() const = 0;
-
+                virtual std::string get_id() const override = 0;
+                virtual cadmium::dynamic::modeling::Ports get_input_ports() const override = 0;
+                virtual cadmium::dynamic::modeling::Ports get_output_ports() const override = 0;
+                // atomic model methods
                 virtual void internal_transition() = 0;
-
-                virtual void
-                external_transition(TIME e, cadmium::dynamic::message_bags dynamic_bags) = 0;
-
-                virtual void
-                confluence_transition(TIME e, cadmium::dynamic::message_bags dynamic_bags) = 0;
-
+                virtual void external_transition(TIME e, cadmium::dynamic::message_bags dynamic_bags) = 0;
+                virtual void confluence_transition(TIME e, cadmium::dynamic::message_bags dynamic_bags) = 0;
                 virtual dynamic::message_bags output() const = 0;
-
                 virtual TIME time_advance() const = 0;
             };
+
+            using Models = std::vector<std::shared_ptr<cadmium::dynamic::modeling::model>>;
+            using initializer_list_Models = std::initializer_list<std::shared_ptr<cadmium::dynamic::modeling::model>>;
         }
     }
 }
