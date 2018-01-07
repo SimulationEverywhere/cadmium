@@ -33,6 +33,7 @@
 #include <cadmium/basic_model/generator.hpp>
 #include <cadmium/modeling/coupled_model.hpp>
 #include <cadmium/modeling/dynamic_atomic.hpp>
+#include <cadmium/modeling/dynamic_model_translator.hpp>
 
 BOOST_AUTO_TEST_SUITE( pdevs_coordinator_test_suite )
 
@@ -45,8 +46,8 @@ BOOST_AUTO_TEST_SUITE( pdevs_coordinator_test_suite )
     BOOST_AUTO_TEST_CASE( empty_coupled_model_coordinator ) {
         std::shared_ptr<cadmium::dynamic::modeling::coupled<float>> coupled = std::make_shared<custom_id_coupled<float>>();
         cadmium::dynamic::engine::coordinator<float, cadmium::logger::not_logger> c(coupled);
-        BOOST_CHECK_EQUAL(coupled->get_id(), "custom_id_coupled");
-        BOOST_CHECK_EQUAL(coupled->get_id(), c.get_model_id());
+        BOOST_CHECK(coupled->get_id() == "custom_id_coupled");
+        BOOST_CHECK(coupled->get_id() == c.get_model_id());
     }
 
     struct test_tick {};
@@ -62,10 +63,14 @@ BOOST_AUTO_TEST_SUITE( pdevs_coordinator_test_suite )
         float period() const override {
             return 1.0f; //using float for time in this test, ticking every second
         }
+
         test_tick output_message() const override {
             return test_tick();
         }
     };
+
+    template<typename TIME>
+    using dynamic_test_generator = cadmium::dynamic::modeling::atomic<test_generator, TIME>;
 
     struct coupled_out_port : public cadmium::out_port<test_tick>{};
 
@@ -73,24 +78,64 @@ BOOST_AUTO_TEST_SUITE( pdevs_coordinator_test_suite )
     using oports = std::tuple<coupled_out_port>;
 
     using eocs=std::tuple<
-            cadmium::modeling::EOC<test_generator, out_port, coupled_out_port>
+            cadmium::modeling::EOC<dynamic_test_generator, out_port, coupled_out_port>
     >;
+    using eics=std::tuple<>;
+    using ics=std::tuple<>;
 
     BOOST_AUTO_TEST_CASE( coordinator_of_tic_coupled_model ) {
 
         std::shared_ptr<cadmium::dynamic::modeling::model> sp_test_generator = cadmium::dynamic::modeling::make_atomic_model<test_generator, float>();
 
-        cadmium::dynamic::modeling::Ports input_ports = cadmium::dynamic::modeling::make_ports<iports>();
-        cadmium::dynamic::modeling::Ports output_ports = cadmium::dynamic::modeling::make_ports<oports>();
+        cadmium::dynamic::modeling::Ports input_ports = cadmium::dynamic::translate::make_ports<iports>();
+        cadmium::dynamic::modeling::Ports output_ports = cadmium::dynamic::translate::make_ports<oports>();
         cadmium::dynamic::modeling::Models submodels = {sp_test_generator};
+        cadmium::dynamic::modeling::EOCs dynamic_eocs = cadmium::dynamic::translate::make_dynamic_eoc<float, eocs>();
+        cadmium::dynamic::modeling::EICs dynamic_eics = cadmium::dynamic::translate::make_dynamic_eic<float, eics>();
+        cadmium::dynamic::modeling::ICs dynamic_ics = cadmium::dynamic::translate::make_dynamic_ic<float, ics>();
 
-        //TODO(Lao): finish this test
+        std::shared_ptr<cadmium::dynamic::modeling::coupled<float>> coupled = std::make_shared<cadmium::dynamic::modeling::coupled<float>>(
+                "dynamic_coupled_test_generator",
+                submodels,
+                input_ports,
+                output_ports,
+                dynamic_eics,
+                dynamic_eocs,
+                dynamic_ics
+        );
+        cadmium::dynamic::engine::coordinator<float, cadmium::logger::not_logger> cg(coupled);
+        //check init sets the right next time
+        cg.init(0);
+        BOOST_CHECK_EQUAL(1.0f, cg.next());
+        //collecting output before the next scheduled produces no output
+        cg.collect_outputs(0.5f);
+        auto output_bags = cg.outbox();
+        BOOST_REQUIRE(output_bags.empty());
+        //check asking for output after next scheduled transition throws
+        BOOST_CHECK_THROW(cg.collect_outputs(2.0f), std::domain_error);
+        //check the right output is generated when asking at next time
+        cg.collect_outputs(1.0f);
+        output_bags = cg.outbox();
+        BOOST_REQUIRE(!output_bags.empty());
+        BOOST_CHECK_EQUAL(output_bags.size(), 1);
+        BOOST_REQUIRE(output_bags.find(typeid(coupled_out_port)) != output_bags.end());
+        BOOST_CHECK_EQUAL(boost::any_cast<cadmium::message_bag<coupled_out_port>>(output_bags.at(typeid(coupled_out_port))).messages.size(), 1); //only a tick happened.
 
-//        using ics=std::tuple<>;
-//        using eics=std::tuple<>;
-//
-//        template<typename TIME>
-//        using coupled_generator=cadmium::modeling::coupled_model<TIME, iports, oports, submodels, eics, eocs, ics>;
+        //second cycle, all same checks one second later produce same results
+        cg.advance_simulation(1.0f);
+        //collecting output before the next scheduled produces no output
+        cg.collect_outputs(1.5f);
+        output_bags = cg.outbox();
+        BOOST_REQUIRE(output_bags.empty());
+        //check asking for output after next scheduled transition throws
+        BOOST_CHECK_THROW(cg.collect_outputs(3.0f), std::domain_error);
+        //check the right output is generated when asking at next time
+        cg.collect_outputs(2.0f);
+        output_bags = cg.outbox();
+        BOOST_REQUIRE(!output_bags.empty());
+        BOOST_CHECK_EQUAL(output_bags.size(), 1);
+        BOOST_REQUIRE(output_bags.find(typeid(coupled_out_port)) != output_bags.end());
+        BOOST_CHECK_EQUAL(boost::any_cast<cadmium::message_bag<coupled_out_port>>(output_bags.at(typeid(coupled_out_port))).messages.size(), 1); //only a tick happened.
     }
 
 BOOST_AUTO_TEST_SUITE_END()

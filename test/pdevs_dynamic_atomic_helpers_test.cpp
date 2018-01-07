@@ -52,8 +52,8 @@ BOOST_AUTO_TEST_SUITE( pdevs_dynamic_atomic_helpers_test_suite )
             bag_1.messages.push_back(2.5);
 
             std::map<std::type_index, boost::any> bs_map;
-            bs_map[typeid(bag_0)] = bag_0;
-            bs_map[typeid(bag_1)] = bag_1;
+            bs_map[typeid(test_in_0)] = bag_0;
+            bs_map[typeid(test_in_1)] = bag_1;
 
             using test_input_ports=std::tuple<test_in_0, test_in_1>;
             using input_bags=typename cadmium::make_message_bags<test_input_ports>::type;
@@ -87,11 +87,11 @@ BOOST_AUTO_TEST_SUITE( pdevs_dynamic_atomic_helpers_test_suite )
             cadmium::dynamic::modeling::fill_map_from_bags<input_bags>(bs_tuple, bs_map);
 
             bag_0 tuple_bag_0 = std::get<0>(bs_tuple);
-            bag_0 map_bag_0 = boost::any_cast<bag_0>(bs_map[typeid(tuple_bag_0)]);
+            bag_0 map_bag_0 = boost::any_cast<bag_0>(bs_map.at(typeid(test_in_0)));
             BOOST_CHECK_EQUAL(map_bag_0.messages.size(), tuple_bag_0.messages.size());
 
             bag_1 tuple_bag_1 = std::get<1>(bs_tuple);
-            bag_1 map_bag_1 = boost::any_cast<bag_1>(bs_map[typeid(tuple_bag_1)]);
+            bag_1 map_bag_1 = boost::any_cast<bag_1>(bs_map.at(typeid(test_in_1)));
             BOOST_CHECK_EQUAL(map_bag_1.messages.size(), tuple_bag_1.messages.size());
     }
 

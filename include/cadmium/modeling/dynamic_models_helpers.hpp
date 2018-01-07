@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2017, Laouen M. L. Belloli
+ * Copyright (c) 2018, Laouen M. L. Belloli
  * Carleton University, Universidad de Buenos Aires
  * All rights reserved.
  *
@@ -103,84 +103,6 @@ namespace cadmium {
             using initializer_list_EICs = std::initializer_list<EIC>;
             using initializer_list_ICs = std::initializer_list<IC>;
 
-            template<typename PORTS>
-            cadmium::dynamic::modeling::Ports make_ports() {
-                cadmium::dynamic::modeling::Ports ret;
-                auto add_port = [&ret] (auto &p) -> void {
-                    std::type_index port_type_index = typeid(p);
-                    ret.push_back(port_type_index);
-                };
-                PORTS ports;
-                for_each<PORTS>(ports, add_port);
-                return ret;
-            }
-
-            /**
-             * @brief Constructs the correct cadmium::dynamic::modeling::EICs object from the original cadmium std::tuple<EIC..> type
-             *
-             * @pre The original cadmium EIC types must contain a model with default constructor and with the method get_id()
-             * for this purpose coupled models can be made as a derived class from cadmium::dynamic::modeling::coupled with the constructor
-             * set with a custom id.
-             *
-             * @tparam EICS - the type of the original cadmium EIC tuple.
-             * @tparam TIME - the model time type
-             * @return The constructed cadmium::dynamic::modeling::EICs object
-             */
-            template<typename EICS, typename TIME>
-            cadmium::dynamic::modeling::EICs make_EICs() {
-                cadmium::dynamic::modeling::EICs ret;
-                auto add_eic = [&ret] (auto &e) -> void {
-
-                    using EIC_type = decltype(e);
-                    using model_type = typename EIC_type::template submodel<TIME>;
-                    using from_port_type = typename EIC_type::external_input_port;
-                    using to_port_type = typename EIC_type::submodel_input_port;
-
-                    //Note: models must have a default constructor if is not the case, it will not work.
-                    model_type sp_model = std::make_shared<model_type>();
-                    std::string to = sp_model->get_id();
-
-                    std::shared_ptr<cadmium::dynamic::link_abstract> new_link = cadmium::dynamic::make_link<from_port_type, to_port_type>();
-                    ret.emplace_back(to, new_link);
-                };
-                EICS eics;
-                for_each<EICS>(eics, add_eic);
-                return ret;
-            }
-
-            /**
-             * @brief Constructs the correct cadmium::dynamic::modeling::EOCs object from the original cadmium std::tuple<EOC..> type
-             *
-             * @pre The original cadmium EOC types must contain a model with default constructor and with the method get_id()
-             * for this purpose coupled models can be made as a derived class from cadmium::dynamic::modeling::coupled with the constructor
-             * set with a custom id.
-             *
-             * @tparam EOCS - the type of the original cadmium EIC tuple.
-             * @tparam TIME - the model time type
-             * @return The constructed cadmium::dynamic::modeling::EICs object
-             */
-            template<typename EOCS, typename TIME>
-            cadmium::dynamic::modeling::EOCs make_EOCs() {
-                cadmium::dynamic::modeling::EOCs ret;
-                auto add_eoc = [&ret] (auto &e) -> void {
-
-                    using EOC_type = decltype(e);
-                    using model_type = typename EOC_type::template submodel<TIME>;
-                    using from_port_type = typename EOC_type::submodel_output_port;
-                    using to_port_type = typename EOC_type::external_output_port;
-
-                    //Note: models must have a default constructor if is not the case, it will not work.
-                    model_type sp_model = std::make_shared<model_type>();
-                    std::string to = sp_model->get_id();
-
-                    std::shared_ptr<cadmium::dynamic::link_abstract> new_link = cadmium::dynamic::make_link<from_port_type, to_port_type>();
-                    ret.emplace_back(to, new_link);
-                };
-                EOCS eocs;
-                for_each<EOCS>(eocs, add_eoc);
-                return ret;
-            }
-
             /**
              * @brief Constructs an empty dynamic_message_bag with all the bs tuple members as keys of empties message bags.
              *
@@ -193,7 +115,7 @@ namespace cadmium {
                 auto create_empty_bag = [&bags](auto &b) -> void {
                     using bag_type = decltype(b);
 
-                    bags[typeid(bag_type)] = b;
+                    bags[typeid(bag_type::port)] = b;
                 };
                 BST bs;
                 for_each<BST>(bs, create_empty_bag);
@@ -210,12 +132,20 @@ namespace cadmium {
             template<typename BST>
             void fill_bags_from_map(cadmium::dynamic::message_bags &bags, BST &bs) {
 
-                auto add_messages_to_bag = [&bags](auto &b) -> void {
+                auto add_messages_to_bag = [&bags, &bs](auto b) -> void {
                     using bag_type = decltype(b);
+                    using port_type = typename bag_type::port;
 
-                    if (bags.find(typeid(b)) != bags.end()) {
-                        bag_type b2 = boost::any_cast<bag_type>(bags.at(typeid(b)));
-                        b.messages.insert(b.messages.end(), b2.messages.begin(), b2.messages.end());
+                    bag_type& current_bag = std::get<bag_type>(bs);
+
+                    if (bags.find(typeid(port_type)) != bags.end()) {
+                        bag_type b2 = boost::any_cast<bag_type>(bags.at(typeid(port_type)));
+                        auto& current_bag = cadmium::get_messages<port_type>(bs);
+                        current_bag.insert(
+                                current_bag.end(),
+                                b2.messages.begin(),
+                                b2.messages.end()
+                        );
                     }
                 };
                 for_each<BST>(bs, add_messages_to_bag);
@@ -231,10 +161,11 @@ namespace cadmium {
             template<typename BST>
             void fill_map_from_bags(BST &bs, cadmium::dynamic::message_bags &bags) {
 
-                auto add_messages_to_map = [&bags](auto &b) -> void {
+                auto add_messages_to_map = [&bags](auto b) -> void {
                     using bag_type = decltype(b);
+                    using port_type = typename bag_type::port;
 
-                    bags[typeid(bag_type)] = b;
+                    bags[typeid(port_type)] = b;
                 };
                 for_each<BST>(bs, add_messages_to_map);
             }
@@ -263,7 +194,7 @@ namespace cadmium {
                                                            [&link](const auto &m) -> bool {
                                                                return m->get_id() == link._to;
                                                            }) != models.cend() &&
-                                              is_in(link._link->from_type_index(), input_ports);
+                                              is_in(link._link->from_port_type_index(), input_ports);
                                    });
             }
 
@@ -274,7 +205,7 @@ namespace cadmium {
                                                            [&link](const auto &m) -> bool {
                                                                return m->get_id() == link._from;
                                                            }) != models.cend() &&
-                                              is_in(link._link->to_type_index(), output_ports);
+                                              is_in(link._link->to_port_type_index(), output_ports);
                                    });
             }
         }
