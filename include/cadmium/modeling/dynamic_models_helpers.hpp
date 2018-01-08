@@ -36,7 +36,7 @@
 
 #include <cadmium/modeling/message_bag.hpp>
 #include <cadmium/modeling/dynamic_message_bag.hpp>
-#include <cadmium/modeling/model.hpp>
+#include <cadmium/modeling/dynamic_model.hpp>
 
 namespace cadmium {
     namespace dynamic {
