@@ -29,7 +29,7 @@
 
 #include <vector>
 #include <cassert>
-#include <cadmium/modeling/model.hpp>
+#include <cadmium/modeling/dynamic_model.hpp>
 #include <cadmium/modeling/dynamic_models_helpers.hpp>
 #include <boost/type_index.hpp>
 

@@ -29,7 +29,7 @@
 
 #include <map>
 #include <boost/any.hpp>
-#include <cadmium/modeling/model.hpp>
+#include <cadmium/modeling/dynamic_model.hpp>
 #include <cadmium/modeling/dynamic_message_bag.hpp>
 #include <cadmium/concept/concept_helpers.hpp>
 #include <cadmium/concept/atomic_model_assert.hpp>
