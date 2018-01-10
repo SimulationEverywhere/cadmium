@@ -36,18 +36,12 @@
 
 #include <cadmium/modeling/dynamic_message_bag.hpp>
 #include <cadmium/modeling/dynamic_model.hpp>
+#include <cadmium/engine/common_helpers.hpp>
 
 namespace cadmium {
     namespace dynamic {
         namespace modeling {
 
-            // Generic tuple for_each function
-            template<typename TUPLE, typename FUNC>
-            void for_each(TUPLE &ts, FUNC &&f) {
-
-                auto for_each_fold_expression = [&f](auto &... e) -> void { (f(e), ...); };
-                std::apply(for_each_fold_expression, ts);
-            }
 
             /**
              * @brief Constructs an empty dynamic_message_bag with all the bs tuple members as keys of empties message bags.
@@ -65,7 +59,7 @@ namespace cadmium {
                     bags[typeid(port_type)] = b;
                 };
                 BST bs;
-                for_each<BST>(bs, create_empty_bag);
+                cadmium::helper::for_each<BST>(bs, create_empty_bag);
                 return bags;
             }
 
@@ -83,7 +77,7 @@ namespace cadmium {
                     ret.push_back(port_type_index);
                 };
                 BST bs;
-                for_each<BST>(bs, create_empty_bag);
+                cadmium::helper::for_each<BST>(bs, create_empty_bag);
                 return ret;
             }
 
@@ -113,7 +107,7 @@ namespace cadmium {
                         );
                     }
                 };
-                for_each<BST>(bs, add_messages_to_bag);
+                cadmium::helper::for_each<BST>(bs, add_messages_to_bag);
             }
 
             /**
@@ -132,7 +126,7 @@ namespace cadmium {
 
                     bags[typeid(port_type)] = b;
                 };
-                for_each<BST>(bs, add_messages_to_map);
+                cadmium::helper::for_each<BST>(bs, add_messages_to_map);
             }
 
             bool is_in(const std::type_index &port, const Ports &ports) {

@@ -43,7 +43,7 @@ namespace cadmium {
                     ret.push_back(port_type_index);
                 };
                 PORTS ports;
-                cadmium::dynamic::modeling::for_each<PORTS>(ports, add_port);
+                cadmium::helper::for_each<PORTS>(ports, add_port);
                 return ret;
             }
 

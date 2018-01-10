@@ -38,6 +38,7 @@
 #include <cadmium/modeling/message_bag.hpp>
 #include <cadmium/logger/common_loggers.hpp>
 #include <cadmium/logger/common_loggers_helpers.hpp>
+#include "common_helpers.hpp"
 
 
 namespace cadmium {
@@ -89,20 +90,12 @@ namespace cadmium {
             using type=typename coordinate_tuple_impl<TIME, MT, std::tuple_size<MT<float>>::value, LOGGER>::type;
         };
 
-        //Generic tuple for_each function
-        template<typename TUPLE, typename FUNC>
-        void for_each(TUPLE& ts, FUNC&& f) {
-
-            auto for_each_fold_expression = [&f](auto &... e)->void { (f(e) , ...); };
-            std::apply(for_each_fold_expression, ts);
-        }
-
         //initialize subcoordinators
         template<typename TIME, typename CST>
         void init_subcoordinators(const TIME& t, CST& cs) {
 
             auto init_coordinator = [&t](auto & c)->void { c.init(t); };
-            for_each<CST>(cs, init_coordinator);
+            cadmium::helper::for_each<CST>(cs, init_coordinator);
         }
 
         //populate the outbox of every subcoordinator recursively
@@ -110,7 +103,7 @@ namespace cadmium {
         void collect_outputs_in_subcoordinators(const TIME& t, CST& cs) {
 
             auto collect_output = [&t](auto & c)->void { c.collect_outputs(t); };
-            for_each<CST>(cs, collect_output);
+            cadmium::helper::for_each<CST>(cs, collect_output);
         }
 
         //get the engine  from a tuple of engines that is simulating the model provided
@@ -196,7 +189,7 @@ namespace cadmium {
         template <typename TIME, typename CST>
         void advance_simulation_in_subengines(const TIME& t, CST& subcoordinators) {
             auto advance_simulation = [&t](auto & c) -> void { c.advance_simulation(t); };
-            for_each<CST>(subcoordinators, advance_simulation);
+            cadmium::helper::for_each<CST>(subcoordinators, advance_simulation);
         }
 
 
