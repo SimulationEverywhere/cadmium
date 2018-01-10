@@ -1,6 +1,6 @@
 /**
- * Copyright (c) 2017, Laouen M. L. Belloli
- * Carleton University, Universidad de Buenos Aires
+ * Copyright (c) 2017, Laouen M. L. Belloli, Damian Vicino
+ * Carleton University, Universidad de Buenos Aires, Universite de Nice-Sophia Antipolis
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,7 +24,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <cadmium/modeling/message_bag.hpp>
 #include <cadmium/modeling/dynamic_model.hpp>
 #include <cadmium/modeling/dynamic_message_bag.hpp>
 #include <cadmium/engine/pdevs_dynamic_engine.hpp>

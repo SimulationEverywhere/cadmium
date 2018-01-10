@@ -73,9 +73,6 @@ namespace cadmium {
                         : _to(other._to), _from(other._from), _link(other._link) {}
             };
 
-            using dynamic_EC=std::tuple<std::type_index, std::type_index, std::type_index>;
-            using dynamic_IC=std::tuple<std::type_index, std::type_index, std::type_index, std::type_index>;
-
             using Ports = std::vector<std::type_index>;
             using EICs = std::vector<EIC>;
             using EOCs = std::vector<EOC>;
@@ -87,7 +84,8 @@ namespace cadmium {
             using initializer_list_ICs = std::initializer_list<IC>;
 
             /**
-             * @brief Empty class to allow pointer based polymorphism between classes derived from atomic.
+             * @brief Empty class to allow pointer based polymorphism between classes derived from
+             * atomic and coupled models.
              */
             class model {
             public:

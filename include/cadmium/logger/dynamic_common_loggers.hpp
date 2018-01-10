@@ -24,12 +24,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CADMIUM_DYNAMIC_COMMON_LOGGERS_HPP_HPP
-#define CADMIUM_DYNAMIC_COMMON_LOGGERS_HPP_HPP
+#ifndef CADMIUM_DYNAMIC_COMMON_LOGGERS_HPP
+#define CADMIUM_DYNAMIC_COMMON_LOGGERS_HPP
 
-#include <boost/type_index.hpp>
 #include <sstream>
-#include <boost/shared_ptr.hpp>
 #include <cadmium/modeling/dynamic_coupled.hpp>
 
 namespace cadmium {
@@ -93,4 +91,4 @@ namespace cadmium {
     }
 }
 
-#endif //CADMIUM_DYNAMIC_COMMON_LOGGERS_HPP_HPP
+#endif //CADMIUM_DYNAMIC_COMMON_LOGGERS_HPP

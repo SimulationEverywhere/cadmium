@@ -31,7 +31,6 @@
 #include <cassert>
 #include <cadmium/modeling/dynamic_model.hpp>
 #include <cadmium/modeling/dynamic_models_helpers.hpp>
-#include <boost/type_index.hpp>
 
 namespace cadmium {
     namespace dynamic {
@@ -51,15 +50,7 @@ namespace cadmium {
 
                 coupled() = delete;
 
-                coupled(
-                        std::string id
-                ) :
-                        _id(id)
-                {
-                    assert(valid_ic_links(_models, _ic));
-                    assert(valid_eic_links(_models, _input_ports, _eic));
-                    assert(valid_eoc_links(_models, _output_ports, _eoc));
-                }
+                coupled(std::string id) : _id(id) {}
 
                 coupled(
                         std::string id,
@@ -78,9 +69,17 @@ namespace cadmium {
                         _eoc(eoc),
                         _ic(ic)
                 {
-                    assert(valid_ic_links(_models, _ic));
-                    assert(valid_eic_links(_models, _input_ports, _eic));
-                    assert(valid_eoc_links(_models, _output_ports, _eoc));
+                    if (!valid_ic_links(_models, _ic)) {
+                        throw std::domain_error("Coupled model" + _id + " has invalid IC links");
+                    }
+
+                    if (!valid_eic_links(_models, _input_ports, _eic)) {
+                        throw std::domain_error("Coupled model" + _id + " has invalid EIC links");
+                    }
+
+                    if(!valid_eoc_links(_models, _output_ports, _eoc)) {
+                        throw std::domain_error("Coupled model" + _id + " has invalid EOC links");
+                    }
                 }
 
                 coupled(
@@ -100,9 +99,17 @@ namespace cadmium {
                         _eoc(eoc),
                         _ic(ic)
                 {
-                    assert(valid_ic_links(_models, _ic));
-                    assert(valid_eic_links(_models, _input_ports, _eic));
-                    assert(valid_eoc_links(_models, _output_ports, _eoc));
+                    if (!valid_ic_links(_models, _ic)) {
+                        throw std::domain_error("Coupled model" + _id + " has invalid IC links");
+                    }
+
+                    if (!valid_eic_links(_models, _input_ports, _eic)) {
+                        throw std::domain_error("Coupled model" + _id + " has invalid EIC links");
+                    }
+
+                    if(!valid_eoc_links(_models, _output_ports, _eoc)) {
+                        throw std::domain_error("Coupled model" + _id + " has invalid EOC links");
+                    }
                 }
 
                 std::string get_id() const override {

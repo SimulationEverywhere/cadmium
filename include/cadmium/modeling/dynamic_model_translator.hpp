@@ -30,8 +30,6 @@
 #include <utility>
 #include <cadmium/modeling/dynamic_models_helpers.hpp>
 #include <cadmium/modeling/dynamic_atomic.hpp>
-#include <boost/type_index.hpp>
-#include <iostream>
 
 namespace cadmium {
     namespace dynamic {

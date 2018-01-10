@@ -1,6 +1,6 @@
 /**
- * Copyright (c) 2018, Laouen M. L. Belloli
- * Carleton University, Universidad de Buenos Aires
+ * Copyright (c) 2018, Laouen M. L. Belloli, Damian Vicino
+ * Carleton University, Universidad de Buenos Aires, Universite de Nice-Sophia Antipolis
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +27,13 @@
 #ifndef CADMIUM_PDEVS_DYNAMIC_COORDINATOR_HPP
 #define CADMIUM_PDEVS_DYNAMIC_COORDINATOR_HPP
 
-#include <cadmium/modeling/message_bag.hpp>
 #include <cadmium/modeling/dynamic_coupled.hpp>
 #include <cadmium/engine/pdevs_dynamic_simulator.hpp>
 #include <cadmium/engine/pdevs_dynamic_engine.hpp>
 #include <cadmium/modeling/dynamic_message_bag.hpp>
-#include <cadmium/logger/dynamic_common_loggers.hpp.hpp>
+#include <cadmium/logger/dynamic_common_loggers.hpp>
+#include <cadmium/engine/pdevs_dynamic_engine_helpers.hpp>
 #include <cadmium/logger/common_loggers.hpp>
-#include "pdevs_dynamic_engine_helpers.hpp"
 
 namespace cadmium {
     namespace dynamic {
@@ -71,27 +70,32 @@ namespace cadmium {
                         : _model_id(coupled_model->get_id())
                 {
 
-                    std::map<std::string, std::shared_ptr<engine<TIME>>> models_by_id;
+                    std::map<std::string, std::shared_ptr<engine<TIME>>> enginges_by_id;
 
                     for(auto& m : coupled_model->_models) {
                         std::shared_ptr<cadmium::dynamic::modeling::coupled<TIME>> m_coupled = std::dynamic_pointer_cast<cadmium::dynamic::modeling::coupled<TIME>>(m);
                         std::shared_ptr<cadmium::dynamic::modeling::atomic_abstract<TIME>> m_atomic = std::dynamic_pointer_cast<cadmium::dynamic::modeling::atomic_abstract<TIME>>(m);
 
                         if (m_coupled == nullptr) {
-                            assert(m_atomic != nullptr);
+                            if (m_atomic == nullptr) {
+                                throw std::domain_error("Invalid submodel is neither coupled nor atomic");
+                            }
                             std::shared_ptr<cadmium::dynamic::engine::engine<TIME>> simulator = std::make_shared<cadmium::dynamic::engine::simulator<TIME, LOGGER>>(m_atomic);
                             _subcoordinators.push_back(simulator);
                         } else {
+                            if (m_atomic != nullptr) {
+                                throw std::domain_error("Invalid submodel is defined as both coupled and atomic");
+                            }
                             std::shared_ptr<cadmium::dynamic::engine::engine<TIME>> coordinator = std::make_shared<cadmium::dynamic::engine::coordinator<TIME, LOGGER>>(m_coupled);
                             _subcoordinators.push_back(coordinator);
                         }
 
-                        models_by_id.insert(std::make_pair(_subcoordinators.back()->get_model_id(), _subcoordinators.back()));
+                        enginges_by_id.insert(std::make_pair(_subcoordinators.back()->get_model_id(), _subcoordinators.back()));
                     }
 
                     // Generates structures for direct access to external couplings to not iterate all coordinators each time.
                     for (const auto& eoc : coupled_model->_eoc) {
-                        if (models_by_id.find(eoc._from) == models_by_id.end()) {
+                        if (enginges_by_id.find(eoc._from) == enginges_by_id.end()) {
                             throw std::domain_error("External output coupling from invalid model");
                         }
 
@@ -102,13 +106,13 @@ namespace cadmium {
                             }
                         }
                         cadmium::dynamic::engine::external_coupling<TIME> new_eoc;
-                        new_eoc.first = models_by_id.at(eoc._from);
+                        new_eoc.first = enginges_by_id.at(eoc._from);
                         new_eoc.second.push_back(eoc._link);
                         _external_output_couplings.push_back(new_eoc);
                     }
 
                     for (const auto& eic : coupled_model->_eic) {
-                        if (models_by_id.find(eic._to) == models_by_id.end()) {
+                        if (enginges_by_id.find(eic._to) == enginges_by_id.end()) {
                             throw std::domain_error("External input coupling to invalid model");
                         }
 
@@ -119,13 +123,13 @@ namespace cadmium {
                             }
                         }
                         cadmium::dynamic::engine::external_coupling<TIME> new_eic;
-                        new_eic.first = models_by_id.at(eic._to);
+                        new_eic.first = enginges_by_id.at(eic._to);
                         new_eic.second.push_back(eic._link);
                         _external_input_couplings.push_back(new_eic);
                     }
 
                     for (const auto& ic : coupled_model->_ic) {
-                        if (models_by_id.find(ic._from) == models_by_id.end() || models_by_id.find(ic._to) == models_by_id.end()) {
+                        if (enginges_by_id.find(ic._from) == enginges_by_id.end() || enginges_by_id.find(ic._to) == enginges_by_id.end()) {
                             throw std::domain_error("Internal coupling to invalid model");
                         }
 
@@ -136,8 +140,8 @@ namespace cadmium {
                             }
                         }
                         cadmium::dynamic::engine::internal_coupling<TIME> new_ic;
-                        new_ic.first.first = models_by_id.at(ic._from);
-                        new_ic.first.second = models_by_id.at(ic._to);
+                        new_ic.first.first = enginges_by_id.at(ic._from);
+                        new_ic.first.second = enginges_by_id.at(ic._to);
                         new_ic.second.push_back(ic._link);
                         _internal_coupligns.push_back(new_ic);
                     }

@@ -34,7 +34,6 @@
 #include <memory>
 #include <algorithm>
 
-#include <cadmium/modeling/message_bag.hpp>
 #include <cadmium/modeling/dynamic_message_bag.hpp>
 #include <cadmium/modeling/dynamic_model.hpp>
 
