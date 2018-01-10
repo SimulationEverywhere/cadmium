@@ -27,7 +27,6 @@
 #ifndef CADMIUM_PDEVS_DYNAMIC_ENGINE_HELPERS_HPP
 #define CADMIUM_PDEVS_DYNAMIC_ENGINE_HELPERS_HPP
 
-#include <cadmium/modeling/message_bag.hpp>
 #include <cadmium/modeling/dynamic_message_bag.hpp>
 #include <cadmium/engine/pdevs_dynamic_engine.hpp>
 

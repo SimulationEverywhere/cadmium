@@ -31,8 +31,9 @@
 #include <typeindex>
 #include <map>
 #include <vector>
-#include <cadmium/modeling/message_bag.hpp>
 #include <iostream>
+
+#include <cadmium/modeling/message_bag.hpp>
 
 namespace cadmium {
     namespace dynamic {
@@ -93,13 +94,13 @@ namespace cadmium {
             }
 
             /**
-             * @note This methods assumes the port is defined in the message_bagas parameter bag,
+             * @note This methods assumes the port is defined in the message_bags parameter bag,
              * if is not the case, the function throws a std::map out of range exception.
              *
              * @param bags - The cadmium::dynamic::message_bags to check if there is messages in the from port
              * @return true if there is messages, otherwise false
              */
-            bool there_is_messages_to_route(const cadmium::dynamic::message_bags& bags) const {
+            bool is_there_messages_to_route(const cadmium::dynamic::message_bags &bags) const {
                 return boost::any_cast<from_message_bag_type>(bags.at(this->from_port_type_index())).messages.size() > 0;
             }
 
@@ -107,7 +108,7 @@ namespace cadmium {
                 if (bags_from.find(this->from_port_type_index()) != bags_from.end()) {
                     if (bags_to.find(this->to_port_type_index()) != bags_to.end()) {
                         this->pass_messages(bags_from.at(this->from_port_type_index()), bags_to.at(this->to_port_type_index()));
-                    } else if (this->there_is_messages_to_route(bags_from)) {
+                    } else if (this->is_there_messages_to_route(bags_from)) {
                         bags_to[this->to_port_type_index()] = this->pass_messages_to_new_bag(bags_from.at(this->from_port_type_index()));
                     }
                 }
