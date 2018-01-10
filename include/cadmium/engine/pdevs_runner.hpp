@@ -95,7 +95,7 @@ namespace cadmium {
                 while ( _next !=  std::numeric_limits<TIME>::infinity() )
                 {
                     LOGGER::template log<cadmium::logger::logger_global_time, TIME>(_next);
-                    top_coordinator.advanceSimulation( _next);
+                    top_coordinator.advance_simulation( _next);
                     _next = top_coordinator.next();
                 }
                 LOGGER::template log<cadmium::logger::logger_info, std::string>("Finished run");

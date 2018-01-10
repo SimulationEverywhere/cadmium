@@ -35,7 +35,7 @@
 #include <cadmium/modeling/dynamic_atomic.hpp>
 #include <cadmium/modeling/dynamic_model_translator.hpp>
 
-BOOST_AUTO_TEST_SUITE( pdevs_coordinator_test_suite )
+BOOST_AUTO_TEST_SUITE( pdevs_dynamic_coordinator_test_suite )
 
     template <typename TIME>
     class custom_id_coupled : public cadmium::dynamic::modeling::coupled<TIME> {
