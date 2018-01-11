@@ -37,10 +37,48 @@
 #include <cadmium/modeling/dynamic_message_bag.hpp>
 #include <cadmium/modeling/dynamic_model.hpp>
 #include <cadmium/engine/common_helpers.hpp>
+#include <cadmium/logger/common_loggers_helpers.hpp>
 
 namespace cadmium {
     namespace dynamic {
         namespace modeling {
+
+            /**
+             * @brief Takes a dynamic message bag and using the port tuple type it casts all the
+             * message bas type to their original type and prints the messages in the ostream object
+             * using the cadmium implode logger helper.
+             *
+             * @note normally this function would be a logger helper, but because the dynamic atomic
+             * model encapsulates the model type and this uses the model type, then, the dynamic
+             * atomic model is the responsible for providing this method. It is not a good desing, but
+             * it is as far as we know, the only way.
+             *
+             * @tparam BST - The std::tuple<PORT_TYPE..> type
+             * @param os - the ostream used as sink where to print the messages by port.
+             * @param bags - the cadmium::dynamic::bag with the messages
+             */
+            template<typename BST>
+            void print_dynamic_messages_by_port(std::ostream& os, cadmium::dynamic::message_bags& bags) {
+
+                auto print_messages_fold_expr = [&bags, &os](auto b) -> void {
+                    using port_type = decltype(b);
+                    using bag_type = typename cadmium::message_bag<port_type>;
+
+                    if (bags.find(typeid(port_type)) == bags.cend()) {
+                        // there is no messages in the port
+                        return;
+                    }
+
+                    bag_type& casted_bag = boost::any_cast<bag_type&>(bags.at(typeid(port_type)));
+                    os << boost::typeindex::type_id<port_type>().pretty_name();
+                    os << ": ";
+                    cadmium::logger::implode(os, casted_bag.messages);
+                };
+                os << "[";
+                BST bs;
+                cadmium::helper::for_each<BST>(bs, print_messages_fold_expr);
+                os << "]";
+            }
 
 
             /**
