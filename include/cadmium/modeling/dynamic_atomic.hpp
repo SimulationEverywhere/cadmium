@@ -56,6 +56,7 @@ namespace cadmium {
             class atomic : public atomic_abstract<TIME>, public ATOMIC<TIME> {
                 cadmium::dynamic::modeling::Ports _input_ports;
                 cadmium::dynamic::modeling::Ports _output_ports;
+
             public:
                 using model_type=ATOMIC<TIME>;
 
@@ -83,6 +84,18 @@ namespace cadmium {
 
                 cadmium::dynamic::modeling::Ports get_output_ports() const override {
                     return _output_ports;
+                }
+
+                std::string model_state_as_string() const override {
+                    std::ostringstream oss;
+                    oss << model_type::state;
+                    return oss.str();
+                }
+
+                std::string messages_by_port_as_string(cadmium::dynamic::message_bags outbox) const override {
+                    std::ostringstream oss;
+                    print_dynamic_messages_by_port<output_ports>(oss, outbox);
+                    return oss.str();
                 }
 
                 // This method must be declared to declare all atomic_abstract virtual methods are defined
