@@ -133,7 +133,7 @@ BOOST_AUTO_TEST_CASE( simple_inbox_cleanup_bug_test){
     std::string expected_accumulation_of_one = "State for model cadmium::basic_models::accumulator<int, float> is [1, 0]";
     std::string accum_states = "State for model cadmium::basic_models::accumulator";
     cadmium::engine::runner<float, CTOP, log_time_and_state> r{0.0};
-    r.runUntil(5.0);
+        r.run_until(5.0);
     
     int count_initial_states = count_matches(expected_initial_state, oss.str());
     int count_expected_accumulation = count_matches(expected_accumulation_of_one, oss.str());
@@ -200,7 +200,7 @@ BOOST_AUTO_TEST_CASE( simple_outbox_cleanup_bug_test){
     std::string expected_accumulation_of_one = "State for model cadmium::basic_models::accumulator<int, float> is [1, 0]";
     std::string accum_states = "State for model cadmium::basic_models::accumulator";
     cadmium::engine::runner<float, DTOP, log_time_and_state> r{0.0};
-    r.runUntil(5.0);
+        r.run_until(5.0);
     int count_initial_states = count_matches(expected_initial_state, oss.str());
     int count_expected_accumulation = count_matches(expected_accumulation_of_one, oss.str());
     int count_accum_states = count_matches(accum_states, oss.str());

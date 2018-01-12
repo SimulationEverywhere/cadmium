@@ -80,7 +80,7 @@ BOOST_AUTO_TEST_SUITE( pdevs_silent_runner_test_suite )
 
 BOOST_AUTO_TEST_CASE( pdevs_runner_of_a_generator_in_a_coupled_for_a_minute_test){
     cadmium::engine::runner<float, coupled_generator, cadmium::logger::not_logger> r{0.0};
-    float next_to_end_time = r.runUntil(60.0);
+    float next_to_end_time = r.run_until(60.0);
     BOOST_CHECK_EQUAL(60.0, next_to_end_time);
 }
 
@@ -107,7 +107,7 @@ BOOST_AUTO_TEST_CASE( runner_logs_global_time_advances_test )
 
     //setup runner
     cadmium::engine::runner<float, coupled_generator, log_gt_to_oss> r{0.0};
-    r.runUntil(3.0);
+    r.run_until(3.0);
 
     //check the string
     auto expected = "0\n"  //runnner init time
@@ -125,7 +125,7 @@ BOOST_AUTO_TEST_CASE( simulation_logs_info_on_setup_and_start_loops_and_end_of_r
 
     //setup runner
     cadmium::engine::runner<float, coupled_generator, log_info_to_oss> r{0.0};
-    r.runUntil(2.0);
+    r.run_until(2.0);
 
     //check the string
     std::ostringstream expected_oss;
@@ -177,7 +177,7 @@ BOOST_AUTO_TEST_CASE( simulation_logs_state_only_show_state_changes_and_initial_
 
     //setup runner
     cadmium::engine::runner<float, coupled_generator, log_info_to_oss> r{0.0};
-    r.runUntil(3.0);
+    r.run_until(3.0);
 
     //check the string
     std::ostringstream expected_oss;
@@ -200,7 +200,7 @@ BOOST_AUTO_TEST_CASE( simulation_logs_messages_generated_in_atomic_models_test )
 
     //setup runner
     cadmium::engine::runner<float, coupled_generator, log_info_to_oss> r{0.0};
-    r.runUntil(2.0);
+    r.run_until(2.0);
 
     //check the string
     std::ostringstream expected_oss;
@@ -223,7 +223,7 @@ BOOST_AUTO_TEST_CASE( simulation_logs_local_time_in_simulators_test )
 
     //setup runner
     cadmium::engine::runner<float, coupled_generator, log_info_to_oss> r{0.0};
-    r.runUntil(2.0);
+    r.run_until(2.0);
 
     //check the string
     std::ostringstream expected_oss;
@@ -242,7 +242,7 @@ BOOST_AUTO_TEST_CASE( simulation_logs_routing_of_eoc_in_coordinator_test )
 
     //setup runner
     cadmium::engine::runner<float, coupled_generator, log_info_to_oss> r{0.0};
-    r.runUntil(2.0);
+    r.run_until(2.0);
 
     //check the string
     std::ostringstream expected_oss;
@@ -307,7 +307,7 @@ BOOST_AUTO_TEST_CASE( simulation_logs_routing_of_all_couplings_in_coordinator_te
 
     //setup runner
     cadmium::engine::runner<float, coupled_g2a_model, log_info_to_oss> r{0.0};
-    r.runUntil(2.0);
+    r.run_until(2.0);
 
     //check the string
     std::ostringstream expected_oss;

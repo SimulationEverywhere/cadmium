@@ -109,7 +109,7 @@ int main(){
     auto start = hclock::now(); //to measure simulation execution time
 
     cadmium::engine::runner<float, clock_model> r{0.0};
-    r.runUntil(30000.0);
+    r.run_until(30000.0);
 
     auto elapsed = std::chrono::duration_cast<std::chrono::duration<double, std::ratio<1>>>
                                                                                           (hclock::now() - start).count();
