@@ -26,10 +26,12 @@
 
 #define BOOST_TEST_DYN_LINK
 #include <boost/test/unit_test.hpp>
+
+#include <iostream>
+
 #include <cadmium/modeling/message_bag.hpp>
 #include <cadmium/modeling/dynamic_message_bag.hpp>
 #include <cadmium/modeling/ports.hpp>
-#include <iostream>
 #include <cadmium/modeling/dynamic_models_helpers.hpp>
 #include <cadmium/modeling/dynamic_model_translator.hpp>
 
@@ -40,7 +42,7 @@ BOOST_AUTO_TEST_SUITE( test_links )
         struct test_out: public cadmium::out_port<int>{};
         struct test_in: public cadmium::in_port<int>{};
 
-        std::shared_ptr<cadmium::dynamic::link_abstract> link_test = cadmium::dynamic::make_link<test_out, test_in>();
+        std::shared_ptr<cadmium::dynamic::engine::link_abstract> link_test = cadmium::dynamic::engine::make_link<test_out, test_in>();
         BOOST_CHECK(link_test->from_port_type_index() == typeid(test_out));
         BOOST_CHECK(link_test->to_port_type_index() == typeid(test_in));
     }
@@ -49,7 +51,7 @@ BOOST_AUTO_TEST_SUITE( test_links )
         struct test_out: public cadmium::out_port<int>{};
         struct test_in: public cadmium::in_port<int>{};
 
-        std::shared_ptr<cadmium::dynamic::link_abstract> link_test = cadmium::dynamic::make_link<test_out, test_in>();
+        std::shared_ptr<cadmium::dynamic::engine::link_abstract> link_test = cadmium::dynamic::engine::make_link<test_out, test_in>();
 
         cadmium::message_bag<test_out> bag_out;
 

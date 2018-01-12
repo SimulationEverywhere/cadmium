@@ -29,6 +29,7 @@
 
 #include <cadmium/modeling/dynamic_message_bag.hpp>
 #include <cadmium/engine/pdevs_dynamic_engine.hpp>
+#include <cadmium/logger/common_loggers.hpp>
 
 #include <boost/any.hpp>
 
@@ -59,13 +60,13 @@ namespace cadmium {
 
             template<typename TIME>
             using subcoordinators_type = typename std::vector<std::shared_ptr<cadmium::dynamic::engine::engine<TIME>>>;
-            using external_port_couplings = typename std::map<std::string, std::vector<std::shared_ptr<cadmium::dynamic::link_abstract>>>;
+            using external_port_couplings = typename std::map<std::string, std::vector<std::shared_ptr<cadmium::dynamic::engine::link_abstract>>>;
 
             template<typename TIME>
             using external_couplings = typename std::vector<
                     std::pair<
                             std::shared_ptr<cadmium::dynamic::engine::engine<TIME>>,
-                            std::vector<std::shared_ptr<cadmium::dynamic::link_abstract>>
+                            std::vector<std::shared_ptr<cadmium::dynamic::engine::link_abstract>>
                     >
             >;
 
@@ -75,7 +76,7 @@ namespace cadmium {
                             std::shared_ptr<cadmium::dynamic::engine::engine<TIME>>, // from model
                             std::shared_ptr<cadmium::dynamic::engine::engine<TIME>> // to model
                     >,
-                    std::vector<std::shared_ptr<cadmium::dynamic::link_abstract>>
+                    std::vector<std::shared_ptr<cadmium::dynamic::engine::link_abstract>>
             >;
 
             template<typename TIME>
@@ -84,7 +85,7 @@ namespace cadmium {
             template<typename TIME>
             using external_coupling = std::pair<
                     std::shared_ptr<cadmium::dynamic::engine::engine<TIME>>,
-                    std::vector<std::shared_ptr<cadmium::dynamic::link_abstract>>
+                    std::vector<std::shared_ptr<cadmium::dynamic::engine::link_abstract>>
             >;
 
             template<typename TIME>
@@ -108,40 +109,43 @@ namespace cadmium {
                 std::for_each(subcoordinators.begin(), subcoordinators.end(), collect_output);
             }
 
-            //TODO(Lao): add logger
-            template<typename TIME>
+            template<typename TIME, typename LOGGER>
             cadmium::dynamic::message_bags collect_messages_by_eoc(const external_couplings<TIME>& coupling) {
                 cadmium::dynamic::message_bags ret;
                 auto collect_output = [&ret](auto & c)->void {
                     cadmium::dynamic::message_bags outbox = c.first->outbox();
                     for (const auto& l : c.second) {
-                        l->route_messages(outbox, ret);
+                        cadmium::dynamic::logger::routed_messages message_to_log = l->route_messages(outbox, ret);
+
+                        LOGGER::template log<cadmium::logger::logger_message_routing>(cadmium::dynamic::logger::log_routing_collect, message_to_log.from_port, message_to_log.to_port, message_to_log.from_messages, message_to_log.to_messages);
                     }
                 };
                 std::for_each(coupling.begin(), coupling.end(), collect_output);
                 return ret;
             }
 
-            //TODO(Lao): add logger
-            template<typename TIME>
+            template<typename TIME, typename LOGGER>
             void route_external_input_coupled_messages_on_subcoordinators(cadmium::dynamic::message_bags inbox, const external_couplings<TIME>& coupling) {
                 auto route_messages = [&inbox](auto & c)->void {
                     for (const auto& l : c.second) {
                         auto& to_inbox = c.first->inbox();
-                        l->route_messages(inbox, to_inbox);
+                        cadmium::dynamic::logger::routed_messages message_to_log = l->route_messages(inbox, to_inbox);
+
+                        LOGGER::template log<cadmium::logger::logger_message_routing>(cadmium::dynamic::logger::log_routing_collect, message_to_log.from_port, message_to_log.to_port, message_to_log.from_messages, message_to_log.to_messages);
                     }
                 };
                 std::for_each(coupling.begin(), coupling.end(), route_messages);
             }
 
-            //TODO(Lao): add logger
-            template<typename TIME>
+            template<typename TIME, typename LOGGER>
             void route_internal_coupled_messages_on_subcoordinators(const internal_couplings<TIME>& coupling) {
                 auto route_messages = [](auto & c)->void {
                     for (const auto& l : c.second) {
                         auto& from_inbox = c.first.first->inbox();
                         auto& to_inbox = c.first.second->inbox();
-                        l->route_messages(from_inbox, to_inbox);
+                        cadmium::dynamic::logger::routed_messages message_to_log = l->route_messages(from_inbox, to_inbox);
+
+                        LOGGER::template log<cadmium::logger::logger_message_routing>(cadmium::dynamic::logger::log_routing_collect, message_to_log.from_port, message_to_log.to_port, message_to_log.from_messages, message_to_log.to_messages);
                     }
                 };
                 std::for_each(coupling.begin(), coupling.end(), route_messages);

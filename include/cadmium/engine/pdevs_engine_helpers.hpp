@@ -34,11 +34,12 @@
 #include <iostream>
 #include <numeric>
 #include <boost/type_index.hpp>
+
 #include <cadmium/concept/concept_helpers.hpp>
 #include <cadmium/modeling/message_bag.hpp>
 #include <cadmium/logger/common_loggers.hpp>
 #include <cadmium/logger/common_loggers_helpers.hpp>
-#include "common_helpers.hpp"
+#include <cadmium/engine/common_helpers.hpp>
 
 
 namespace cadmium {

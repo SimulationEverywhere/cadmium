@@ -88,7 +88,7 @@ namespace cadmium {
 
                 std::string model_state_as_string() const override {
                     std::ostringstream oss;
-                    oss << model_type::state;
+                    oss << this->state;
                     return oss.str();
                 }
 

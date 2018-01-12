@@ -37,7 +37,6 @@
 #include <cadmium/modeling/dynamic_message_bag.hpp>
 #include <cadmium/modeling/dynamic_model.hpp>
 #include <cadmium/engine/common_helpers.hpp>
-#include <cadmium/logger/common_loggers_helpers.hpp>
 
 namespace cadmium {
     namespace dynamic {

@@ -40,6 +40,23 @@ namespace cadmium {
             std::apply(for_each_fold_expression, ts);
         }
 
+        std::string join(std::vector<std::string> v) {
+            std::ostringstream oss;
+            oss << "{";
+            auto it = v.begin();
+            if (it != v.end()) {
+                oss << *it;
+                ++it;
+            }
+            while (it != v.end()){
+                oss << ", ";
+                oss << *it;
+                ++it;
+            }
+            oss << "}";
+            return oss.str();
+        }
+
     }
 }
 
