@@ -27,13 +27,32 @@
 #ifndef CADMIUM_DYNAMIC_COMMON_LOGGERS_HPP
 #define CADMIUM_DYNAMIC_COMMON_LOGGERS_HPP
 
-#include <sstream>
-#include <cadmium/modeling/dynamic_coupled.hpp>
-#include <cadmium/modeling/dynamic_model.hpp>
+#include <cadmium/engine/common_helpers.hpp>
 
 namespace cadmium {
     namespace dynamic {
         namespace logger {
+
+            struct routed_messages {
+                std::string from_port;
+                std::string to_port;
+                std::vector<std::string> from_messages;
+                std::vector<std::string> to_messages;
+
+                routed_messages() = default;
+
+                routed_messages(
+                        std::vector<std::string> from_msgs,
+                        std::vector<std::string> to_msgs,
+                        std::string from_p,
+                        std::string to_p
+                ) :
+                        from_messages(from_msgs),
+                        to_messages(to_msgs),
+                        from_port(from_p),
+                        to_port(to_p)
+                {}
+            };
 
             template<typename TIME>
             struct coordinator_formatter {
@@ -101,12 +120,12 @@ namespace cadmium {
                     return oss.str();
                 }
 
-                static std::string log_state(const std::shared_ptr<cadmium::dynamic::modeling::atomic_abstract<TIME>>& model) {
+                static std::string log_state(const std::string& model_id, const std::string& model_state) {
                     std::ostringstream oss;
                     oss << "State for model ";
-                    oss << model->get_id();
+                    oss << model_id;
                     oss << " is ";
-                    oss << model->model_state_as_string();
+                    oss << model_state;
                     return oss.str();
                 };
 
@@ -148,6 +167,19 @@ namespace cadmium {
                     return oss.str();
                 };
             };
+
+            std::string log_routing_collect(const std::string& from_port, const std::string& to_port, const std::vector<std::string>& from_messages, const std::vector<std::string>& to_messages) {
+                std::ostringstream oss;
+                oss << " in port ";
+                oss << to_port;
+                oss << " has ";
+                oss << cadmium::helper::join(to_messages);
+                oss << " routed from ";
+                oss << from_port;
+                oss << " with messages ";
+                oss << cadmium::helper::join(from_messages);
+                return oss.str();
+            }
         }
     }
 }

@@ -28,6 +28,7 @@
 #define CADMIUM_ATOMIC_HPP
 
 #include <cadmium/modeling/dynamic_message_bag.hpp>
+#include <cadmium/engine/pdevs_dynamic_link.hpp>
 
 namespace cadmium {
     namespace dynamic {
@@ -35,11 +36,11 @@ namespace cadmium {
 
             struct EOC {
                 std::string _from;
-                std::shared_ptr<cadmium::dynamic::link_abstract> _link;
+                std::shared_ptr<cadmium::dynamic::engine::link_abstract> _link;
 
                 EOC() = delete;
 
-                EOC(std::string from, std::shared_ptr<cadmium::dynamic::link_abstract> l)
+                EOC(std::string from, std::shared_ptr<cadmium::dynamic::engine::link_abstract> l)
                         : _from(from), _link(l) {}
 
                 EOC(const EOC& other)
@@ -48,11 +49,11 @@ namespace cadmium {
 
             struct EIC {
                 std::string _to;
-                std::shared_ptr<cadmium::dynamic::link_abstract> _link;
+                std::shared_ptr<cadmium::dynamic::engine::link_abstract> _link;
 
                 EIC() = delete;
 
-                EIC(std::string to, std::shared_ptr<cadmium::dynamic::link_abstract> l)
+                EIC(std::string to, std::shared_ptr<cadmium::dynamic::engine::link_abstract> l)
                         : _to(to), _link(l) {}
 
                 EIC(const EIC& other)
@@ -62,11 +63,11 @@ namespace cadmium {
             struct IC {
                 std::string _to;
                 std::string _from;
-                std::shared_ptr<cadmium::dynamic::link_abstract> _link;
+                std::shared_ptr<cadmium::dynamic::engine::link_abstract> _link;
 
                 IC() = delete;
 
-                IC(std::string to, std::string from, std::shared_ptr<cadmium::dynamic::link_abstract> l)
+                IC(std::string to, std::string from, std::shared_ptr<cadmium::dynamic::engine::link_abstract> l)
                         : _to(to), _from(from), _link(l) {}
 
                 IC(const IC& other)

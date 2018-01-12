@@ -129,9 +129,16 @@ namespace cadmium {
                 return (std::get<on_reset>(state) ? TIME{} : std::numeric_limits<TIME>::infinity());
             }
         };
-
     }
 }
 
+std::ostringstream& operator<<(std::ostringstream& os, const std::tuple<int, bool>& s) {
+    os << "<";
+    os << std::get<int>(s) ;
+    os << ", ";
+    os << std::get<bool>(s) ;
+    os << ">";
+    return os;
+}
 
 #endif // CADMIUM_ACCUMULATOR_HPP

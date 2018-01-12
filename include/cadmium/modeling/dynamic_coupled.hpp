@@ -27,8 +27,6 @@
 #ifndef CADMIUM_DYNAMIC_COUPLED_HPP
 #define CADMIUM_DYNAMIC_COUPLED_HPP
 
-#include <vector>
-#include <cassert>
 #include <cadmium/modeling/dynamic_model.hpp>
 #include <cadmium/modeling/dynamic_models_helpers.hpp>
 

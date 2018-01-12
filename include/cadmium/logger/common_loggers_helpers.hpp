@@ -84,6 +84,21 @@ namespace cadmium {
             return os;
         }
 
+        template<typename T>
+        std::vector<std::string> messages_as_strings(const T& collection){
+            std::vector<std::string> ret;
+            std::ostringstream oss;
+
+
+            for (auto it = std::begin(collection); it != std::end(collection); ++it){
+                value_or_name<typename T::value_type>::print(oss, *it);
+                ret.push_back(oss.str());
+                oss.str("");
+                oss.clear();
+            }
+            return ret;
+        }
+
         //priting messages for all ports
         template<size_t s, typename... T>
         struct print_messages_by_port_impl{

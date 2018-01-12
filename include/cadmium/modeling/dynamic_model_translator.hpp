@@ -28,8 +28,8 @@
 #define CADMIUM_DYNAMIC_MODEL_TRANSLATOR_HPP
 
 #include <utility>
-#include <cadmium/modeling/dynamic_models_helpers.hpp>
-#include <cadmium/modeling/dynamic_atomic.hpp>
+#include <cadmium/engine/pdevs_dynamic_link.hpp>
+#include <cadmium/modeling/dynamic_model.hpp>
 
 namespace cadmium {
     namespace dynamic {
@@ -63,7 +63,7 @@ namespace cadmium {
                     from_model sp_from_model = from_model();
                     std::string from_id = sp_from_model.get_id();
 
-                    std::shared_ptr<cadmium::dynamic::link_abstract> new_link = cadmium::dynamic::make_link<from_port, to_port>();
+                    std::shared_ptr<cadmium::dynamic::engine::link_abstract> new_link = cadmium::dynamic::engine::make_link<from_port, to_port>();
                     ret.emplace_back(to_id, from_id, new_link);
 
                     //iterate
@@ -109,7 +109,7 @@ namespace cadmium {
                     to_model sp_model = to_model();
                     std::string to_id = sp_model.get_id();
 
-                    std::shared_ptr<cadmium::dynamic::link_abstract> new_link = cadmium::dynamic::make_link<from_port, to_port>();
+                    std::shared_ptr<cadmium::dynamic::engine::link_abstract> new_link = cadmium::dynamic::engine::make_link<from_port, to_port>();
                     ret.emplace_back(to_id, new_link);
 
                     //iterate
@@ -155,7 +155,7 @@ namespace cadmium {
 
                     std::string from_id = from_model<TIME>().get_id();
 
-                    std::shared_ptr<cadmium::dynamic::link_abstract> new_link = cadmium::dynamic::make_link<from_port, to_port>();
+                    std::shared_ptr<cadmium::dynamic::engine::link_abstract> new_link = cadmium::dynamic::engine::make_link<from_port, to_port>();
                     ret.emplace_back(from_id, new_link);
 
                     //iterate
