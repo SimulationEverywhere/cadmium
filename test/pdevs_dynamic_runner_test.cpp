@@ -92,7 +92,7 @@ BOOST_AUTO_TEST_SUITE( pdevs_dynamic_runner_test_suite )
 
         BOOST_AUTO_TEST_CASE( pdevs_dynamic_runner_of_a_generator_in_a_coupled_for_a_minute_test){
             cadmium::dynamic::engine::runner<float, cadmium::logger::not_logger> r(coupled, 0.0);
-            float next_to_end_time = r.runUntil(60.0);
+            float next_to_end_time = r.run_until(60.0);
             BOOST_CHECK_EQUAL(60.0, next_to_end_time);
         }
 
@@ -119,7 +119,7 @@ BOOST_AUTO_TEST_SUITE( pdevs_dynamic_runner_test_suite )
 
             //setup runner
             cadmium::dynamic::engine::runner<float, log_gt_to_oss> r(coupled, 0.0);
-            r.runUntil(3.0);
+            r.run_until(3.0);
 
             //check the string
             auto expected = "0\n"  //runnner init time
@@ -137,7 +137,7 @@ BOOST_AUTO_TEST_SUITE( pdevs_dynamic_runner_test_suite )
 
             //setup runner
             cadmium::dynamic::engine::runner<float, log_info_to_oss> r(coupled, 0.0);
-            r.runUntil(2.0);
+            r.run_until(2.0);
 
             //check the string
             std::ostringstream expected_oss;
@@ -189,7 +189,7 @@ BOOST_AUTO_TEST_SUITE( pdevs_dynamic_runner_test_suite )
 
             //setup runner
             cadmium::dynamic::engine::runner<float, log_info_to_oss> r(coupled, 0.0);
-            r.runUntil(3.0);
+            r.run_until(3.0);
 
             //check the string
             std::ostringstream expected_oss;
@@ -211,7 +211,7 @@ BOOST_AUTO_TEST_SUITE( pdevs_dynamic_runner_test_suite )
 
             //setup runner
             cadmium::dynamic::engine::runner<float, log_info_to_oss> r(coupled, 0.0);
-            r.runUntil(2.0);
+            r.run_until(2.0);
 
             //check the string
             std::ostringstream expected_oss;
@@ -235,7 +235,7 @@ BOOST_AUTO_TEST_SUITE( pdevs_dynamic_runner_test_suite )
 
             //setup runner
             cadmium::dynamic::engine::runner<float, log_info_to_oss> r(coupled, 0.0);
-            r.runUntil(2.0);
+            r.run_until(2.0);
 
             //check the string
             std::ostringstream expected_oss;
@@ -254,7 +254,7 @@ BOOST_AUTO_TEST_SUITE( pdevs_dynamic_runner_test_suite )
 
             //setup runner
             cadmium::dynamic::engine::runner<float, log_info_to_oss> r(coupled, 0.0);
-            r.runUntil(2.0);
+            r.run_until(2.0);
 
             //check the string
             std::ostringstream expected_oss;

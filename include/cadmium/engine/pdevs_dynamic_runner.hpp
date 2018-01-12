@@ -73,7 +73,7 @@ namespace cadmium {
                  * @param t is the limit time for the simulation.
                  * @return the TIME of the next event to happen when simulation stopped.
                  */
-                TIME runUntil(const TIME &t) {
+                TIME run_until(const TIME &t) {
                     LOGGER::template log<cadmium::logger::logger_info, std::string>("Starting run");
                     while (_next < t) {
                         LOGGER::template log<cadmium::logger::logger_global_time, TIME>(_next);
@@ -88,7 +88,7 @@ namespace cadmium {
                 /**
                  * @brief runUntilPassivate starts the simulation and stops when there is no next internal event to happen.
                  */
-                void runUntilPassivate() {
+                void run_until_passivate() {
                     LOGGER::template log<cadmium::logger::logger_info, std::string>("Starting run");
                     while (_next != std::numeric_limits<TIME>::infinity()) {
                         LOGGER::template log<cadmium::logger::logger_global_time, TIME>(_next);
