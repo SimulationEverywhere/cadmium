@@ -113,7 +113,7 @@ namespace cadmium {
                 virtual cadmium::dynamic::modeling::Ports get_input_ports() const override = 0;
                 virtual cadmium::dynamic::modeling::Ports get_output_ports() const override = 0;
 
-                // Logging purpose methods, also becasue the model type is needed for logging the
+                // Logging purpose methods, also because the model type is needed for logging the
                 // state and message bags.
                 virtual std::string model_state_as_string() const = 0;
                 virtual std::string messages_by_port_as_string(cadmium::dynamic::message_bags outbox) const = 0;

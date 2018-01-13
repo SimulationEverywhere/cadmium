@@ -30,6 +30,7 @@
 #include<cadmium/modeling/ports.hpp>
 #include<cadmium/modeling/message_bag.hpp>
 #include<limits>
+#include<cadmium/logger/tuple_to_ostream.hpp> // included to allow the accumulator state to use the << operator
 
 
 namespace cadmium {
@@ -130,15 +131,6 @@ namespace cadmium {
             }
         };
     }
-}
-
-std::ostringstream& operator<<(std::ostringstream& os, const std::tuple<int, bool>& s) {
-    os << "<";
-    os << std::get<int>(s) ;
-    os << ", ";
-    os << std::get<bool>(s) ;
-    os << ">";
-    return os;
 }
 
 #endif // CADMIUM_ACCUMULATOR_HPP

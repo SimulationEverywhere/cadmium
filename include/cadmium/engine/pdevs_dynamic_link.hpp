@@ -142,7 +142,10 @@ namespace cadmium {
                                     bags_from.at(this->from_port_type_index()), bags_to);
                         }
 
-                        cadmium::dynamic::logger::routed_messages empty_ret;
+                        cadmium::dynamic::logger::routed_messages empty_ret(
+                                boost::typeindex::type_id<PORT_FROM>().pretty_name(),
+                                boost::typeindex::type_id<PORT_TO>().pretty_name()
+                        );
                         return empty_ret; // if no messages where routed, it returns an empty vector
                     }
                 }
