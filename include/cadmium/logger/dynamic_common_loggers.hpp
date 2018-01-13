@@ -39,7 +39,17 @@ namespace cadmium {
                 std::vector<std::string> from_messages;
                 std::vector<std::string> to_messages;
 
-                routed_messages() = default;
+                routed_messages() = delete;
+
+                routed_messages(
+                        std::string from_p,
+                        std::string to_p
+                ) :
+                        from_messages(std::vector<std::string>()),
+                        to_messages(std::vector<std::string>()),
+                        from_port(from_p),
+                        to_port(to_p)
+                {}
 
                 routed_messages(
                         std::vector<std::string> from_msgs,
