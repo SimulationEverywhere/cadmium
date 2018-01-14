@@ -28,6 +28,8 @@
 #define CADMIUM_COMMON_HELPERS_HPP
 
 #include <tuple>
+#include <vector>
+#include <sstream>
 
 namespace cadmium {
     namespace helper {
