@@ -30,10 +30,14 @@
 #include <utility>
 #include <cadmium/engine/pdevs_dynamic_link.hpp>
 #include <cadmium/modeling/dynamic_model.hpp>
+#include <cadmium/modeling/dynamic_atomic.hpp>
+#include <cadmium/modeling/dynamic_coupled.hpp>
 
 namespace cadmium {
     namespace dynamic {
         namespace translate {
+
+            using models_by_type = typename std::map<std::type_index, std::shared_ptr<cadmium::dynamic::modeling::model>>;
 
             template<typename PORTS>
             cadmium::dynamic::modeling::Ports make_ports() {
@@ -50,30 +54,39 @@ namespace cadmium {
             template<typename TIME, typename EIC_TUPLE, size_t S>
             struct make_dynamic_ic_impl{
                 using current_IC=typename std::tuple_element<S-1, EIC_TUPLE>::type;
-                using from_model=typename current_IC::template from_model<TIME>;
+
+                template<typename T>
+                using from_model=typename current_IC::template from_model<T>;
                 using from_port=typename current_IC::from_model_output_port;
-                using to_model=typename current_IC::template to_model<TIME>;
+                template<typename T>
+                using to_model=typename current_IC::template to_model<T>;
                 using to_port=typename current_IC::to_model_input_port;
 
-                static void value(cadmium::dynamic::modeling::EICs& ret) {
+                static void value(models_by_type& translated_models, cadmium::dynamic::modeling::EICs& ret) {
 
-                    to_model sp_to_model = to_model();
-                    std::string to_id = sp_to_model.get_id();
+                    std::type_index to_model_type(typeid(to_model<TIME>));
+                    if (translated_models.find(to_model_type) == translated_models.cend()) {
+                        throw std::domain_error("EIC destination  " + boost::typeindex::type_id<to_model<TIME>>().pretty_name() + " is not in the coupled sub models list");
+                    }
+                    std::string to_id = translated_models.at(to_model_type)->get_id();
 
-                    from_model sp_from_model = from_model();
-                    std::string from_id = sp_from_model.get_id();
+                    std::type_index from_model_type(typeid(from_model<TIME>));
+                    if (translated_models.find(from_model_type) == translated_models.cend()) {
+                        throw std::domain_error("EIC destination model " + boost::typeindex::type_id<from_model<TIME>>().pretty_name() + " is not in the coupled sub models list");
+                    }
+                    std::string from_id = translated_models.at(from_model_type)->get_id();
 
                     std::shared_ptr<cadmium::dynamic::engine::link_abstract> new_link = cadmium::dynamic::engine::make_link<from_port, to_port>();
                     ret.emplace_back(to_id, from_id, new_link);
 
                     //iterate
-                    make_dynamic_ic_impl<TIME, EIC_TUPLE, S-1>::value(ret);
+                    make_dynamic_ic_impl<TIME, EIC_TUPLE, S-1>::value(translated_models, ret);
                 }
             };
 
             template<typename TIME, typename IC_TUPLE>
             struct make_dynamic_ic_impl<TIME, IC_TUPLE, 0>{
-                static void value(cadmium::dynamic::modeling::ICs& ret){
+                static void value(models_by_type& translated_models, cadmium::dynamic::modeling::ICs& ret){
                     //do nothing
                 }
             };
@@ -91,9 +104,9 @@ namespace cadmium {
              * @return The constructed cadmium::dynamic::modeling::ICs object
              */
             template <typename TIME, typename IC_TUPLE>
-            cadmium::dynamic::modeling::ICs make_dynamic_ic(){
+            cadmium::dynamic::modeling::ICs make_dynamic_ic(models_by_type& translated_models){
                 cadmium::dynamic::modeling::ICs ret;
-                make_dynamic_ic_impl<TIME, IC_TUPLE, std::tuple_size<IC_TUPLE>::value>::value(ret);
+                make_dynamic_ic_impl<TIME, IC_TUPLE, std::tuple_size<IC_TUPLE>::value>::value(translated_models, ret);
                 return ret;
             }
 
@@ -101,25 +114,29 @@ namespace cadmium {
             struct make_dynamic_eic_impl{
                 using current_EIC=typename std::tuple_element<S-1, EIC_TUPLE>::type;
                 using from_port=typename current_EIC::external_input_port;
-                using to_model=typename current_EIC::template submodel<TIME>;
+                template <typename T>
+                using to_model=typename current_EIC::template submodel<T>;
                 using to_port=typename current_EIC::submodel_input_port;
 
-                static void value(cadmium::dynamic::modeling::EICs& ret) {
+                static void value(models_by_type& translated_models, cadmium::dynamic::modeling::EICs& ret) {
 
-                    to_model sp_model = to_model();
-                    std::string to_id = sp_model.get_id();
+                    std::type_index model_type(typeid(to_model<TIME>));
+                    if (translated_models.find(model_type) == translated_models.cend()) {
+                        throw std::domain_error("EIC destination model " + boost::typeindex::type_id<to_model<TIME>>().pretty_name() + " is not in the coupled sub models list");
+                    }
+                    std::string to_id = translated_models.at(model_type)->get_id();
 
                     std::shared_ptr<cadmium::dynamic::engine::link_abstract> new_link = cadmium::dynamic::engine::make_link<from_port, to_port>();
                     ret.emplace_back(to_id, new_link);
 
                     //iterate
-                    make_dynamic_eic_impl<TIME, EIC_TUPLE, S-1>::value(ret);
+                    make_dynamic_eic_impl<TIME, EIC_TUPLE, S-1>::value(translated_models, ret);
                 }
             };
 
             template<typename TIME, typename EIC_TUPLE>
             struct make_dynamic_eic_impl<TIME, EIC_TUPLE, 0>{
-                static void value(cadmium::dynamic::modeling::EICs& ret){
+                static void value(models_by_type& translated_models, cadmium::dynamic::modeling::EICs& ret){
                     //do nothing
                 }
             };
@@ -137,9 +154,9 @@ namespace cadmium {
              * @return The constructed cadmium::dynamic::modeling::EICs object
              */
             template <typename TIME, typename EIC_TUPLE>
-            cadmium::dynamic::modeling::EICs make_dynamic_eic(){
+            cadmium::dynamic::modeling::EICs make_dynamic_eic(models_by_type& translated_models){
                 cadmium::dynamic::modeling::EICs ret;
-                make_dynamic_eic_impl<TIME, EIC_TUPLE, std::tuple_size<EIC_TUPLE>::value>::value(ret);
+                make_dynamic_eic_impl<TIME, EIC_TUPLE, std::tuple_size<EIC_TUPLE>::value>::value(translated_models, ret);
                 return ret;
             }
 
@@ -151,21 +168,25 @@ namespace cadmium {
                 using from_model=typename current_EIC::template submodel<T>;
                 using to_port=typename current_EIC::external_output_port;
 
-                static void value(cadmium::dynamic::modeling::EOCs& ret) {
+                static void value(const models_by_type& translated_models, cadmium::dynamic::modeling::EOCs& ret) {
 
-                    std::string from_id = from_model<TIME>().get_id();
+                    std::type_index model_type(typeid(from_model<TIME>));
+                    if (translated_models.find(model_type) == translated_models.cend()) {
+                        throw std::domain_error("EIC destination model " + boost::typeindex::type_id<from_model<TIME>>().pretty_name() + " is not in the coupled sub models list");
+                    }
+                    std::string from_id = translated_models.at(model_type)->get_id();
 
                     std::shared_ptr<cadmium::dynamic::engine::link_abstract> new_link = cadmium::dynamic::engine::make_link<from_port, to_port>();
                     ret.emplace_back(from_id, new_link);
 
                     //iterate
-                    make_dynamic_eoc_impl<TIME, EOC_TUPLE, S-1>::value(ret);
+                    make_dynamic_eoc_impl<TIME, EOC_TUPLE, S-1>::value(translated_models, ret);
                 }
             };
 
             template<typename TIME, typename EOC_TUPLE>
             struct make_dynamic_eoc_impl<TIME, EOC_TUPLE, 0> {
-                static void value(cadmium::dynamic::modeling::EOCs& ret){
+                static void value(const models_by_type& translated_models, cadmium::dynamic::modeling::EOCs& ret){
                     //do nothing
                 }
             };
@@ -182,11 +203,113 @@ namespace cadmium {
              * @tparam TIME - the model time type
              * @return The constructed cadmium::dynamic::modeling::EOCs object
              */
-            template <typename TIME, typename EOC_TUPLE>
-            cadmium::dynamic::modeling::EOCs make_dynamic_eoc() {
+            template <class TIME, typename EOC_TUPLE>
+            cadmium::dynamic::modeling::EOCs make_dynamic_eoc(const models_by_type& translated_models) {
                 cadmium::dynamic::modeling::EOCs ret;
-                make_dynamic_eoc_impl<TIME, EOC_TUPLE, std::tuple_size<EOC_TUPLE>::value>::value(ret);
+                make_dynamic_eoc_impl<TIME, EOC_TUPLE, std::tuple_size<EOC_TUPLE>::value>::value(translated_models, ret);
                 return ret;
+            }
+
+            /**
+             * @brief creates a cadmium::dynamic::modeling::atomic<ATOMIC, TIME> model and returns
+             * a shared pointer to it absctract base class cadmium::dynamic::atomic_abstract<TIME>
+             *
+             * @tparam ATOMIC - The atomic model type.
+             * @tparam TIME - The time type to which the model must be instanciated.
+             */
+            template <template<typename T> class ATOMIC, typename TIME>
+            struct make_dynamic_atomic_model_impl {
+
+                std::shared_ptr<cadmium::dynamic::modeling::atomic_abstract<TIME>> make() {
+                    std::shared_ptr<cadmium::dynamic::modeling::atomic_abstract<TIME>> sp_model = std::make_shared<cadmium::dynamic::modeling::atomic<ATOMIC, TIME>>();
+                    return sp_model;
+                }
+            };
+
+            template <template<typename T> class ATOMIC, typename TIME>
+            std::shared_ptr<cadmium::dynamic::modeling::atomic_abstract<TIME>> make_dynamic_atomic_model() {
+                return make_dynamic_atomic_model_impl<ATOMIC, TIME>().make();
+            }
+
+            template<typename TIME, template<typename T> class MT, template<template<typename T2> class M> class COUPLED_TRANSLATOR, size_t S>
+            struct make_dynamic_models_impl{
+                template<typename P>
+                using current = typename std::tuple_element<S - 1, MT<P>>::type;
+                using current_translator = typename std::conditional<cadmium::concept::is_atomic<current>::value(), make_dynamic_atomic_model_impl<current, TIME>, COUPLED_TRANSLATOR<current>>::type;
+
+                static void make_models(models_by_type &ret) {
+
+                    current_translator translator;
+                    std::shared_ptr<cadmium::dynamic::modeling::model> sp_current = translator.make();
+                    ret.emplace(typeid(current<TIME>), sp_current);
+
+                    make_dynamic_models_impl<TIME, MT, COUPLED_TRANSLATOR, S - 1>::make_models(ret);
+                }
+            };
+
+            template<typename TIME, template<typename T> class MT, template<template<typename T2> class M> class COUPLED_TRANSLATOR>
+            struct make_dynamic_models_impl<TIME, MT, COUPLED_TRANSLATOR, 0>{
+
+                static void make_models(models_by_type &ret) {
+                    // nothing to do here;
+                }
+            };
+
+            template <typename TIME, template<typename T> class MT, template<template<typename T2> class M> class COUPLED_TRANSLATOR>
+            models_by_type make_dynamic_models() {
+                models_by_type ret;
+                make_dynamic_models_impl<TIME, MT, COUPLED_TRANSLATOR, std::tuple_size<MT<TIME>>::value>::make_models(ret);
+                return ret;
+            }
+
+            template <typename TIME, template<typename T1> class MODEL>
+            struct make_dynamic_coupled_model_impl {
+
+                template<template<typename T2> class M>
+                using coupled_model_translator = make_dynamic_coupled_model_impl<TIME, M>;
+
+                //types for subcoordination
+                template<typename T3>
+                using submodels_t = typename MODEL<TIME>::template models<T3>;
+                using input_ports_t = typename MODEL<TIME>::input_ports;
+                using output_ports_t = typename MODEL<TIME>::output_ports;
+                using eoc_t = typename MODEL<TIME>::external_output_couplings;
+                using eic_t = typename MODEL<TIME>::external_input_couplings;
+                using ic_t = typename MODEL<TIME>::internal_couplings;
+
+                std::shared_ptr<cadmium::dynamic::modeling::coupled<TIME>> make() {
+
+                    models_by_type sub_models = make_dynamic_models<TIME, submodels_t, coupled_model_translator>();
+
+                    std::string model_id = boost::typeindex::type_id<MODEL<TIME>>().pretty_name();
+                    cadmium::dynamic::modeling::Ports input_ports = cadmium::dynamic::translate::make_ports<input_ports_t>();
+                    cadmium::dynamic::modeling::Ports output_ports = cadmium::dynamic::translate::make_ports<output_ports_t>();
+                    cadmium::dynamic::modeling::EOCs eocs = cadmium::dynamic::translate::make_dynamic_eoc<TIME, eoc_t>(sub_models);
+                    cadmium::dynamic::modeling::EICs eics = cadmium::dynamic::translate::make_dynamic_eic<TIME, eic_t>(sub_models);
+                    cadmium::dynamic::modeling::ICs ics = cadmium::dynamic::translate::make_dynamic_ic<TIME, ic_t>(sub_models);
+
+                    cadmium::dynamic::modeling::Models models;
+                    for (auto& m : sub_models) {
+                        models.push_back(m.second);
+                    }
+
+                    std::shared_ptr<cadmium::dynamic::modeling::coupled<TIME>> coupled = std::make_shared<cadmium::dynamic::modeling::coupled<TIME>>(
+                            model_id,
+                            models,
+                            input_ports,
+                            output_ports,
+                            eics,
+                            eocs,
+                            ics
+                    );
+
+                    return coupled;
+                }
+            };
+
+            template<typename TIME,  template<typename T> class MODEL>
+            std::shared_ptr<cadmium::dynamic::modeling::coupled<TIME>> make_dynamic_coupled_model() {
+                return make_dynamic_coupled_model_impl<TIME, MODEL>().make();
             }
         }
     }

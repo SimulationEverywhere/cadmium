@@ -85,14 +85,16 @@ BOOST_AUTO_TEST_SUITE( pdevs_dynamic_coordinator_test_suite )
 
     BOOST_AUTO_TEST_CASE( coordinator_of_tic_coupled_model ) {
 
-        std::shared_ptr<cadmium::dynamic::modeling::model> sp_test_generator = cadmium::dynamic::modeling::make_atomic_model<test_generator, float>();
+        std::shared_ptr<cadmium::dynamic::modeling::model> sp_test_generator = cadmium::dynamic::translate::make_dynamic_atomic_model<test_generator, float>();
 
+        cadmium::dynamic::translate::models_by_type models_by_type;
+        models_by_type.emplace(typeid(dynamic_test_generator<float>) ,sp_test_generator);
         cadmium::dynamic::modeling::Ports input_ports = cadmium::dynamic::translate::make_ports<iports>();
         cadmium::dynamic::modeling::Ports output_ports = cadmium::dynamic::translate::make_ports<oports>();
         cadmium::dynamic::modeling::Models submodels = {sp_test_generator};
-        cadmium::dynamic::modeling::EOCs dynamic_eocs = cadmium::dynamic::translate::make_dynamic_eoc<float, eocs>();
-        cadmium::dynamic::modeling::EICs dynamic_eics = cadmium::dynamic::translate::make_dynamic_eic<float, eics>();
-        cadmium::dynamic::modeling::ICs dynamic_ics = cadmium::dynamic::translate::make_dynamic_ic<float, ics>();
+        cadmium::dynamic::modeling::EOCs dynamic_eocs = cadmium::dynamic::translate::make_dynamic_eoc<float, eocs>(models_by_type);
+        cadmium::dynamic::modeling::EICs dynamic_eics = cadmium::dynamic::translate::make_dynamic_eic<float, eics>(models_by_type);
+        cadmium::dynamic::modeling::ICs dynamic_ics = cadmium::dynamic::translate::make_dynamic_ic<float, ics>(models_by_type);
 
         std::shared_ptr<cadmium::dynamic::modeling::coupled<float>> coupled = std::make_shared<cadmium::dynamic::modeling::coupled<float>>(
                 "dynamic_coupled_test_generator",
