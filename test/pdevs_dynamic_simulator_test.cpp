@@ -34,8 +34,7 @@
 #include <cadmium/modeling/dynamic_message_bag.hpp>
 #include <cadmium/modeling/dynamic_atomic.hpp>
 #include <cadmium/engine/pdevs_dynamic_simulator.hpp>
-#include <cadmium/logger/common_loggers.hpp>
-#include <cadmium/modeling/dynamic_models_helpers.hpp>
+#include <cadmium/modeling/dynamic_model_translator.hpp>
 
 
 template<typename TIME>
@@ -50,7 +49,7 @@ BOOST_AUTO_TEST_CASE( accumulator_model_dynamic_simulation_test )
 //This test is suppose to pass only in CPP17 compilers, skipping in older compilers
 #if __cplusplus > 201702
     //construct a simulator for an accumulator
-    std::shared_ptr<cadmium::dynamic::modeling::atomic_abstract<float>> upModel = cadmium::dynamic::modeling::make_atomic_model<int_accumulator, float>();
+    std::shared_ptr<cadmium::dynamic::modeling::atomic_abstract<float>> upModel = cadmium::dynamic::translate::make_dynamic_atomic_model<int_accumulator, float>();
     cadmium::dynamic::engine::simulator<float, cadmium::logger::not_logger> s(upModel);
 
     s.init(0.0f);

@@ -57,36 +57,25 @@ BOOST_AUTO_TEST_SUITE( pdevs_dynamic_runner_test_suite )
         }
     };
 
-    template<typename TIME>
-    using dynamic_test_generator = cadmium::dynamic::modeling::atomic<test_generator, TIME>;
     //generator of ticks coupled model definition
-
     using iports = std::tuple<>;
     struct coupled_out_port : public cadmium::out_port<test_tick>{};
     using oports = std::tuple<coupled_out_port>;
+    using submodels=cadmium::modeling::models_tuple<test_generator>;
     using eics=std::tuple<>;
     using eocs=std::tuple<
-            cadmium::modeling::EOC<dynamic_test_generator, out_port, coupled_out_port>
+            cadmium::modeling::EOC<test_generator, out_port, coupled_out_port>
     >;
     using ics=std::tuple<>;
 
-    std::shared_ptr<cadmium::dynamic::modeling::model> sp_test_generator = cadmium::dynamic::modeling::make_atomic_model<test_generator, float>();
-    cadmium::dynamic::modeling::Ports input_ports = cadmium::dynamic::translate::make_ports<iports>();
-    cadmium::dynamic::modeling::Ports output_ports = cadmium::dynamic::translate::make_ports<oports>();
-    cadmium::dynamic::modeling::Models submodels = {sp_test_generator};
-    cadmium::dynamic::modeling::EOCs dynamic_eocs = cadmium::dynamic::translate::make_dynamic_eoc<float, eocs>();
-    cadmium::dynamic::modeling::EICs dynamic_eics = cadmium::dynamic::translate::make_dynamic_eic<float, eics>();
-    cadmium::dynamic::modeling::ICs dynamic_ics = cadmium::dynamic::translate::make_dynamic_ic<float, ics>();
+    template<typename TIME>
+    using coupled_generator=cadmium::modeling::coupled_model<TIME, iports, oports, submodels, eics, eocs, ics>;
 
-    std::shared_ptr<cadmium::dynamic::modeling::coupled<float>> coupled = std::make_shared<cadmium::dynamic::modeling::coupled<float>>(
-            "dynamic_coupled_test_generator",
-            submodels,
-            input_ports,
-            output_ports,
-            dynamic_eics,
-            dynamic_eocs,
-            dynamic_ics
-    );
+    // std::shared_ptr<cadmium::dynamic::modeling::coupled<float>>
+    auto coupled = cadmium::dynamic::translate::make_dynamic_coupled_model<float, coupled_generator>();
+
+    // used to get the model id
+    std::shared_ptr<cadmium::dynamic::modeling::model> sp_test_generator = cadmium::dynamic::translate::make_dynamic_atomic_model<test_generator, float>();
 
     BOOST_AUTO_TEST_SUITE( pdevs_silent_dynamic_runner_test_suite )
 
