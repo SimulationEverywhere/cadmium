@@ -28,6 +28,7 @@
 #define CADMIUM_DYNAMIC_COMMON_LOGGERS_HPP
 
 #include <cadmium/engine/common_helpers.hpp>
+#include <vector>
 
 namespace cadmium {
     namespace dynamic {

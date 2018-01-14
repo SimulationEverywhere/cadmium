@@ -28,6 +28,9 @@
 #define CADMIUM_DYNAMIC_MODEL_TRANSLATOR_HPP
 
 #include <utility>
+#include <map>
+#include <memory>
+
 #include <cadmium/engine/pdevs_dynamic_link.hpp>
 #include <cadmium/modeling/dynamic_model.hpp>
 #include <cadmium/modeling/dynamic_atomic.hpp>
@@ -62,7 +65,7 @@ namespace cadmium {
                 using to_model=typename current_IC::template to_model<T>;
                 using to_port=typename current_IC::to_model_input_port;
 
-                static void value(models_by_type& translated_models, cadmium::dynamic::modeling::EICs& ret) {
+                static void value(models_by_type& translated_models, cadmium::dynamic::modeling::ICs& ret) {
 
                     std::type_index to_model_type(typeid(to_model<TIME>));
                     if (translated_models.find(to_model_type) == translated_models.cend()) {
