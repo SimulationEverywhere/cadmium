@@ -49,8 +49,7 @@ namespace cadmium {
                 virtual std::type_index to_port_type_index() const = 0;
 
                 virtual cadmium::dynamic::logger::routed_messages
-                route_messages(const cadmium::dynamic::message_bags &bags_from,
-                               cadmium::dynamic::message_bags &bags_to) const = 0;
+                route_messages(const cadmium::dynamic::message_bags& bags_from, cadmium::dynamic::message_bags& bags_to) const = 0;
             };
 
             template<typename PORT_FROM, typename PORT_TO>
@@ -84,7 +83,7 @@ namespace cadmium {
                 }
 
                 cadmium::dynamic::logger::routed_messages
-                pass_messages(const boost::any &bag_from, boost::any &bag_to) const {
+                pass_messages(const boost::any& bag_from, boost::any& bag_to) const {
                     from_message_bag_type b_from = boost::any_cast<from_message_bag_type>(bag_from);
                     to_message_bag_type *b_to = boost::any_cast<to_message_bag_type>(&bag_to);
                     b_to->messages.insert(b_to->messages.end(), b_from.messages.begin(),
@@ -99,8 +98,8 @@ namespace cadmium {
                 }
 
                 cadmium::dynamic::logger::routed_messages
-                pass_messages_to_new_bag(const boost::any &bag_from,
-                                         cadmium::dynamic::message_bags &bags_to) const {
+                pass_messages_to_new_bag(const boost::any& bag_from,
+                                         cadmium::dynamic::message_bags& bags_to) const {
                     from_message_bag_type b_from = boost::any_cast<from_message_bag_type>(bag_from);
                     to_message_bag_type b_to;
                     b_to.messages.insert(b_to.messages.end(), b_from.messages.begin(),
@@ -128,8 +127,7 @@ namespace cadmium {
                 }
 
                 cadmium::dynamic::logger::routed_messages
-                route_messages(const cadmium::dynamic::message_bags &bags_from,
-                               cadmium::dynamic::message_bags &bags_to) const override {
+                route_messages(const cadmium::dynamic::message_bags& bags_from, cadmium::dynamic::message_bags& bags_to) const override {
                     if (bags_from.find(this->from_port_type_index()) != bags_from.cend()) {
 
                         if (bags_to.find(this->to_port_type_index()) != bags_to.cend()) {
@@ -141,13 +139,13 @@ namespace cadmium {
                             return this->pass_messages_to_new_bag(
                                     bags_from.at(this->from_port_type_index()), bags_to);
                         }
-
-                        cadmium::dynamic::logger::routed_messages empty_ret(
-                                boost::typeindex::type_id<PORT_FROM>().pretty_name(),
-                                boost::typeindex::type_id<PORT_TO>().pretty_name()
-                        );
-                        return empty_ret; // if no messages where routed, it returns an empty vector
                     }
+
+                    cadmium::dynamic::logger::routed_messages empty_ret(
+                            boost::typeindex::type_id<PORT_FROM>().pretty_name(),
+                            boost::typeindex::type_id<PORT_TO>().pretty_name()
+                    );
+                    return empty_ret; // if no messages where routed, it returns an empty vector
                 }
             };
 
