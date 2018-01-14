@@ -29,6 +29,7 @@
 
 #include <cadmium/engine/common_helpers.hpp>
 #include <vector>
+#include <string>
 
 namespace cadmium {
     namespace dynamic {
@@ -40,14 +41,12 @@ namespace cadmium {
                 std::vector<std::string> from_messages;
                 std::vector<std::string> to_messages;
 
-                routed_messages() = delete;
+                routed_messages() = default;
 
                 routed_messages(
                         std::string from_p,
                         std::string to_p
                 ) :
-                        from_messages(std::vector<std::string>()),
-                        to_messages(std::vector<std::string>()),
                         from_port(from_p),
                         to_port(to_p)
                 {}
@@ -63,6 +62,14 @@ namespace cadmium {
                         from_port(from_p),
                         to_port(to_p)
                 {}
+
+                routed_messages(const routed_messages& other) :
+                        from_messages(other.from_messages),
+                        to_messages(other.to_messages),
+                        from_port(other.from_port),
+                        to_port(other.to_port)
+                {}
+
             };
 
             template<typename TIME>
