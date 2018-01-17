@@ -52,10 +52,12 @@ namespace cadmium {
              * @tparam ATOMIC a valid atomic model class
              * @tparam TIME a valid TIME class to use along with the atomic model class as ATOMIC<TIME>
              */
-            template<template<typename T> class ATOMIC, typename TIME>
+            template<template<typename T> class ATOMIC, typename TIME, typename... Args>
             class atomic : public atomic_abstract<TIME>, public ATOMIC<TIME> {
                 cadmium::dynamic::modeling::Ports _input_ports;
                 cadmium::dynamic::modeling::Ports _output_ports;
+
+                std::string _id;
 
             public:
                 using model_type=ATOMIC<TIME>;
@@ -70,12 +72,21 @@ namespace cadmium {
                 atomic() {
                     static_assert(cadmium::concept::is_atomic<ATOMIC>::value, "This is not an atomic model");
                     cadmium::concept::atomic_model_assert<ATOMIC>();
+                    _id = boost::typeindex::type_id<model_type>().pretty_name();
+                    _input_ports = cadmium::dynamic::modeling::create_dynamic_ports<input_ports>();
+                    _output_ports = cadmium::dynamic::modeling::create_dynamic_ports<output_ports>();
+                }
+
+                atomic(const std::string& model_id, Args&&... args) : ATOMIC<TIME>(std::forward<Args>(args)...) {
+                    static_assert(cadmium::concept::is_atomic<ATOMIC>::value, "This is not an atomic model");
+                    cadmium::concept::atomic_model_assert<ATOMIC>();
+                    _id = model_id;
                     _input_ports = cadmium::dynamic::modeling::create_dynamic_ports<input_ports>();
                     _output_ports = cadmium::dynamic::modeling::create_dynamic_ports<output_ports>();
                 }
 
                 std::string get_id() const override {
-                    return boost::typeindex::type_id<model_type>().pretty_name();
+                    return _id;
                 }
 
                 cadmium::dynamic::modeling::Ports get_input_ports() const override {

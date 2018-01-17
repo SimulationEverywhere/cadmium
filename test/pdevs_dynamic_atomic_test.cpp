@@ -29,12 +29,21 @@
 #include <boost/test/unit_test.hpp>
 #include <cadmium/basic_model/accumulator.hpp>
 #include <cadmium/modeling/dynamic_atomic.hpp>
+#include <cadmium/modeling/dynamic_model_translator.hpp>
 
 /**
   * This test is for the dynamic atomic class that wraps an atomic model to make it pointer friendly
   */
 template<typename TIME>
 using int_accumulator=cadmium::basic_models::accumulator<int, TIME>;
+
+template<typename TIME>
+struct test_custom_acumulator : public cadmium::basic_models::accumulator<int, TIME> {
+
+    test_custom_acumulator() = default;
+
+    test_custom_acumulator(int a) {}
+};
 
 BOOST_AUTO_TEST_SUITE( pdevs_dynamic_atomic_test_suite )
 
@@ -44,6 +53,10 @@ BOOST_AUTO_TEST_SUITE( pdevs_dynamic_atomic_test_suite )
 
         static_assert(std::is_same<decltype(model.state), decltype(wrapped_model.state)>::value);
         BOOST_CHECK(model.state == wrapped_model.state);
+    }
+
+    BOOST_AUTO_TEST_CASE(create_dynamic_atomic_with_custom_id_and_arguments_test) {
+        std::shared_ptr<cadmium::dynamic::modeling::atomic_abstract<float>> atomic_model = cadmium::dynamic::translate::make_dynamic_atomic_model<test_custom_acumulator, float, int>("id_test", 2);
     }
 
 BOOST_AUTO_TEST_SUITE_END()
