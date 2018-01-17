@@ -59,7 +59,8 @@ namespace cadmium {
             template<typename BST>
             void print_dynamic_messages_by_port(std::ostream& os, cadmium::dynamic::message_bags& bags) {
 
-                auto print_messages_fold_expr = [&bags, &os](auto b) -> void {
+                int a = 0; // to dynamically count tuple index
+                auto print_messages_fold_expr = [&a, &bags, &os](auto b) -> void {
                     using port_type = decltype(b);
                     using bag_type = typename cadmium::message_bag<port_type>;
 
@@ -68,10 +69,16 @@ namespace cadmium {
                         return;
                     }
 
+                    if (a != 0) {
+                        os << ", ";
+                    }
+
                     bag_type& casted_bag = boost::any_cast<bag_type&>(bags.at(typeid(port_type)));
                     os << boost::typeindex::type_id<port_type>().pretty_name();
                     os << ": ";
                     cadmium::logger::implode(os, casted_bag.messages);
+
+                    a++;
                 };
                 os << "[";
                 BST bs;

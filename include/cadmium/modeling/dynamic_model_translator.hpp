@@ -234,6 +234,12 @@ namespace cadmium {
                 return make_dynamic_atomic_model_impl<ATOMIC, TIME>().make();
             }
 
+            template< template <typename T> typename ATOMIC, typename TIME, typename... Args >
+            std::shared_ptr<cadmium::dynamic::modeling::atomic_abstract<TIME>> make_dynamic_atomic_model(const std::string& model_id, Args&&... args) {
+                std::shared_ptr<cadmium::dynamic::modeling::atomic_abstract<TIME>> sp_model = std::make_shared<cadmium::dynamic::modeling::atomic<ATOMIC, TIME, Args...>>(model_id, std::forward<Args>(args)...);
+                return sp_model;
+            }
+
             template<typename TIME, template<typename T> class MT, template<template<typename T2> class M> class COUPLED_TRANSLATOR, size_t S>
             struct make_dynamic_models_impl{
                 template<typename P>
