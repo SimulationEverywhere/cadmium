@@ -141,9 +141,9 @@ namespace cadmium {
             void route_internal_coupled_messages_on_subcoordinators(const internal_couplings<TIME>& coupling) {
                 auto route_messages = [](auto & c)->void {
                     for (const auto& l : c.second) {
-                        auto& from_inbox = c.first.first->inbox();
+                        auto& from_outbox = c.first.first->outbox();
                         auto& to_inbox = c.first.second->inbox();
-                        cadmium::dynamic::logger::routed_messages message_to_log = l->route_messages(from_inbox, to_inbox);
+                        cadmium::dynamic::logger::routed_messages message_to_log = l->route_messages(from_outbox, to_inbox);
 
                         LOGGER::template log<cadmium::logger::logger_message_routing>(cadmium::dynamic::logger::log_routing_collect, message_to_log.from_port, message_to_log.to_port, message_to_log.from_messages, message_to_log.to_messages);
                     }
