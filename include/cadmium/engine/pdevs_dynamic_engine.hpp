@@ -50,7 +50,7 @@ namespace cadmium {
 
                 virtual void collect_outputs(const TIME &t) = 0;
 
-                virtual cadmium::dynamic::message_bags outbox() const = 0;
+                virtual cadmium::dynamic::message_bags& outbox() = 0;
 
                 virtual cadmium::dynamic::message_bags& inbox() = 0;
 
