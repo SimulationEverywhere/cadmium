@@ -163,6 +163,24 @@ namespace cadmium {
                 return ret;
             }
 
+            template<typename PORT_FROM, typename PORT_TO>
+            cadmium::dynamic::modeling::EOC make_EOC(std::string model_from) {
+                std::shared_ptr<cadmium::dynamic::engine::link_abstract> eoc_link = cadmium::dynamic::engine::make_link<PORT_FROM, PORT_TO>();
+                return cadmium::dynamic::modeling::EOC(model_from, eoc_link);
+            }
+
+            template<typename PORT_FROM, typename PORT_TO>
+            cadmium::dynamic::modeling::EIC make_EIC(std::string model_to) {
+                std::shared_ptr<cadmium::dynamic::engine::link_abstract> eic_link = cadmium::dynamic::engine::make_link<PORT_FROM, PORT_TO>();
+                return cadmium::dynamic::modeling::EIC(model_to, eic_link);
+            }
+
+            template<typename PORT_FROM, typename PORT_TO>
+            cadmium::dynamic::modeling::IC make_IC(std::string model_to, std::string model_from) {
+                std::shared_ptr<cadmium::dynamic::engine::link_abstract> ic_link = cadmium::dynamic::engine::make_link<PORT_FROM, PORT_TO>();
+                return cadmium::dynamic::modeling::IC(model_to, model_from, ic_link);
+            }
+
             template<typename TIME, typename EOC_TUPLE, size_t S>
             struct make_dynamic_eoc_impl{
                 using current_EIC=typename std::tuple_element<S-1, EOC_TUPLE>::type;
