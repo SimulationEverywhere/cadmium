@@ -42,6 +42,12 @@ namespace cadmium {
 
             using models_by_type = typename std::map<std::type_index, std::shared_ptr<cadmium::dynamic::modeling::model>>;
 
+            template<typename PORT_FROM, typename PORT_TO>
+            std::shared_ptr<cadmium::dynamic::engine::link_abstract> make_link() {
+                std::shared_ptr<cadmium::dynamic::engine::link_abstract> spLink = std::make_shared<cadmium::dynamic::engine::link<PORT_FROM, PORT_TO>>();
+                return spLink;
+            }
+
             template<typename PORTS>
             cadmium::dynamic::modeling::Ports make_ports() {
                 cadmium::dynamic::modeling::Ports ret;
@@ -79,7 +85,7 @@ namespace cadmium {
                     }
                     std::string from_id = translated_models.at(from_model_type)->get_id();
 
-                    std::shared_ptr<cadmium::dynamic::engine::link_abstract> new_link = cadmium::dynamic::engine::make_link<from_port, to_port>();
+                    std::shared_ptr<cadmium::dynamic::engine::link_abstract> new_link = cadmium::dynamic::translate::make_link<from_port, to_port>();
                     ret.emplace_back(to_id, from_id, new_link);
 
                     //iterate
@@ -129,7 +135,7 @@ namespace cadmium {
                     }
                     std::string to_id = translated_models.at(model_type)->get_id();
 
-                    std::shared_ptr<cadmium::dynamic::engine::link_abstract> new_link = cadmium::dynamic::engine::make_link<from_port, to_port>();
+                    std::shared_ptr<cadmium::dynamic::engine::link_abstract> new_link = cadmium::dynamic::translate::make_link<from_port, to_port>();
                     ret.emplace_back(to_id, new_link);
 
                     //iterate
@@ -165,20 +171,20 @@ namespace cadmium {
 
             template<typename PORT_FROM, typename PORT_TO>
             cadmium::dynamic::modeling::EOC make_EOC(std::string model_from) {
-                std::shared_ptr<cadmium::dynamic::engine::link_abstract> eoc_link = cadmium::dynamic::engine::make_link<PORT_FROM, PORT_TO>();
+                std::shared_ptr<cadmium::dynamic::engine::link_abstract> eoc_link = cadmium::dynamic::translate::make_link<PORT_FROM, PORT_TO>();
                 return cadmium::dynamic::modeling::EOC(model_from, eoc_link);
             }
 
             template<typename PORT_FROM, typename PORT_TO>
             cadmium::dynamic::modeling::EIC make_EIC(std::string model_to) {
-                std::shared_ptr<cadmium::dynamic::engine::link_abstract> eic_link = cadmium::dynamic::engine::make_link<PORT_FROM, PORT_TO>();
+                std::shared_ptr<cadmium::dynamic::engine::link_abstract> eic_link = cadmium::dynamic::translate::make_link<PORT_FROM, PORT_TO>();
                 return cadmium::dynamic::modeling::EIC(model_to, eic_link);
             }
 
             template<typename PORT_FROM, typename PORT_TO>
-            cadmium::dynamic::modeling::IC make_IC(std::string model_to, std::string model_from) {
-                std::shared_ptr<cadmium::dynamic::engine::link_abstract> ic_link = cadmium::dynamic::engine::make_link<PORT_FROM, PORT_TO>();
-                return cadmium::dynamic::modeling::IC(model_to, model_from, ic_link);
+            cadmium::dynamic::modeling::IC make_IC(std::string model_from, std::string model_to) {
+                std::shared_ptr<cadmium::dynamic::engine::link_abstract> ic_link = cadmium::dynamic::translate::make_link<PORT_FROM, PORT_TO>();
+                return cadmium::dynamic::modeling::IC(model_from, model_to, ic_link);
             }
 
             template<typename TIME, typename EOC_TUPLE, size_t S>
@@ -197,7 +203,7 @@ namespace cadmium {
                     }
                     std::string from_id = translated_models.at(model_type)->get_id();
 
-                    std::shared_ptr<cadmium::dynamic::engine::link_abstract> new_link = cadmium::dynamic::engine::make_link<from_port, to_port>();
+                    std::shared_ptr<cadmium::dynamic::engine::link_abstract> new_link = cadmium::dynamic::translate::make_link<from_port, to_port>();
                     ret.emplace_back(from_id, new_link);
 
                     //iterate

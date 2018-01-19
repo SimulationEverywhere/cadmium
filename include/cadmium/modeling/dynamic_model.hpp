@@ -67,11 +67,11 @@ namespace cadmium {
 
                 IC() = delete;
 
-                IC(std::string to, std::string from, std::shared_ptr<cadmium::dynamic::engine::link_abstract> l)
-                        : _to(to), _from(from), _link(l) {}
+                IC(std::string from, std::string to, std::shared_ptr<cadmium::dynamic::engine::link_abstract> l)
+                        : _from(from), _to(to), _link(l) {}
 
                 IC(const IC& other)
-                        : _to(other._to), _from(other._from), _link(other._link) {}
+                        : _from(other._from), _to(other._to), _link(other._link) {}
             };
 
             using Ports = std::vector<std::type_index>;

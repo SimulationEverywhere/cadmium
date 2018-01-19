@@ -63,7 +63,8 @@ namespace cadmium {
                 link() {
                     static_assert(
                             std::is_same<from_message_type, to_message_type>::value,
-                            "FROM_PORT message type and TO_PORT message types must be the same type");
+                            "PORT_FROM message type and PORT_TO message types must be the same type"
+                    );
                 }
 
                 std::type_index from_type_index() const override {
@@ -148,12 +149,6 @@ namespace cadmium {
                     return empty_ret; // if no messages where routed, it returns an empty vector
                 }
             };
-
-            template<typename PORT_FROM, typename PORT_TO>
-            std::shared_ptr<link_abstract> make_link() {
-                std::shared_ptr<link_abstract> spLink = std::make_shared<link<PORT_FROM, PORT_TO>>();
-                return spLink;
-            }
         }
     }
 }
