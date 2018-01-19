@@ -42,7 +42,7 @@ BOOST_AUTO_TEST_SUITE( test_links )
         struct test_out: public cadmium::out_port<int>{};
         struct test_in: public cadmium::in_port<int>{};
 
-        std::shared_ptr<cadmium::dynamic::engine::link_abstract> link_test = cadmium::dynamic::engine::make_link<test_out, test_in>();
+        std::shared_ptr<cadmium::dynamic::engine::link_abstract> link_test = cadmium::dynamic::translate::make_link<test_out, test_in>();
         BOOST_CHECK(link_test->from_port_type_index() == typeid(test_out));
         BOOST_CHECK(link_test->to_port_type_index() == typeid(test_in));
     }
@@ -51,7 +51,7 @@ BOOST_AUTO_TEST_SUITE( test_links )
         struct test_out: public cadmium::out_port<int>{};
         struct test_in: public cadmium::in_port<int>{};
 
-        std::shared_ptr<cadmium::dynamic::engine::link_abstract> link_test = cadmium::dynamic::engine::make_link<test_out, test_in>();
+        std::shared_ptr<cadmium::dynamic::engine::link_abstract> link_test = cadmium::dynamic::translate::make_link<test_out, test_in>();
 
         cadmium::message_bag<test_out> bag_out;
 
