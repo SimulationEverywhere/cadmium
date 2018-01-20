@@ -47,12 +47,12 @@ namespace cadmium {
             using default_logger=cadmium::logger::logger<cadmium::logger::logger_state, cadmium::logger::verbatim_formatter, cadmium::logger::cout_sink_provider>;
 
             //TODO: migrate specialization FEL behavior from CDBoost. At this point, there is no parametrized FEL.
-            template<class TIME, typename LOGGER=default_logger>
+            template<class TIME, typename LOGGER=default_logger, typename coordinator_formatter = typename cadmium::dynamic::logger::coordinator_formatter<TIME>, typename simulator_formatter = typename cadmium::dynamic::logger::simulator_formatter<TIME>>
             class runner {
                 TIME _next; //next scheduled event
 
                 //TODO: handle the case that the model received is an atomic model.
-                cadmium::dynamic::engine::coordinator<TIME, LOGGER> _top_coordinator; //this only works for coupled models.
+                cadmium::dynamic::engine::coordinator<TIME, LOGGER, coordinator_formatter, simulator_formatter> _top_coordinator; //this only works for coupled models.
 
             public:
                 //contructors

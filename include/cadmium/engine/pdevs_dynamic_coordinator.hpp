@@ -39,9 +39,8 @@ namespace cadmium {
     namespace dynamic {
         namespace engine {
 
-            template<typename TIME, typename LOGGER>
+            template<typename TIME, typename LOGGER, typename formatter = typename cadmium::dynamic::logger::coordinator_formatter<TIME>, typename simulator_formatter = typename cadmium::dynamic::logger::simulator_formatter<TIME>>
             class coordinator : public cadmium::dynamic::engine::engine<TIME> {
-                using formatter=typename cadmium::dynamic::logger::coordinator_formatter<TIME>;
 
                 //MODEL is assumed valid, the whole model tree is checked at "runner level" to fail fast
                 TIME _last; //last transition time
@@ -80,13 +79,13 @@ namespace cadmium {
                             if (m_atomic == nullptr) {
                                 throw std::domain_error("Invalid submodel is neither coupled nor atomic");
                             }
-                            std::shared_ptr<cadmium::dynamic::engine::engine<TIME>> simulator = std::make_shared<cadmium::dynamic::engine::simulator<TIME, LOGGER>>(m_atomic);
+                            std::shared_ptr<cadmium::dynamic::engine::engine<TIME>> simulator = std::make_shared<cadmium::dynamic::engine::simulator<TIME, LOGGER, simulator_formatter>>(m_atomic);
                             _subcoordinators.push_back(simulator);
                         } else {
                             if (m_atomic != nullptr) {
                                 throw std::domain_error("Invalid submodel is defined as both coupled and atomic");
                             }
-                            std::shared_ptr<cadmium::dynamic::engine::engine<TIME>> coordinator = std::make_shared<cadmium::dynamic::engine::coordinator<TIME, LOGGER>>(m_coupled);
+                            std::shared_ptr<cadmium::dynamic::engine::engine<TIME>> coordinator = std::make_shared<cadmium::dynamic::engine::coordinator<TIME, LOGGER, formatter, simulator_formatter>>(m_coupled);
                             _subcoordinators.push_back(coordinator);
                         }
 
