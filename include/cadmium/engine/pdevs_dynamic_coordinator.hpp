@@ -186,7 +186,7 @@ namespace cadmium {
                         throw std::domain_error("Trying to obtain output when not internal event is scheduled");
                     } else if (_next == t) {
                         //log EOC
-                        LOGGER::template log<cadmium::logger::logger_message_routing>(formatter::log_routing_collect, _model_id);
+                        LOGGER::template log<cadmium::logger::logger_message_routing>(formatter::log_routing_collect, t, _model_id);
 
                         // Fill all outboxes and clean the inboxes in the lower levels recursively
                         cadmium::dynamic::engine::collect_outputs_in_subcoordinators<TIME>(t, _subcoordinators);
@@ -226,10 +226,10 @@ namespace cadmium {
                     } else {
 
                         //Route the messages standing in the outboxes to mapped inboxes following ICs and EICs
-                        LOGGER::template log<cadmium::logger::logger_message_routing>(formatter::log_routing_ic_collect, _model_id);
+                        LOGGER::template log<cadmium::logger::logger_message_routing>(formatter::log_routing_ic_collect, t, _model_id);
                         cadmium::dynamic::engine::route_internal_coupled_messages_on_subcoordinators<TIME, LOGGER>(_internal_coupligns);
 
-                        LOGGER::template log<cadmium::logger::logger_message_routing>(formatter::log_routing_eic_collect, _model_id);
+                        LOGGER::template log<cadmium::logger::logger_message_routing>(formatter::log_routing_eic_collect, t, _model_id);
                         cadmium::dynamic::engine::route_external_input_coupled_messages_on_subcoordinators<TIME, LOGGER>(_inbox, _external_input_couplings);
 
                         //recurse on advance_simulation
