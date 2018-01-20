@@ -41,10 +41,9 @@ namespace cadmium {
              * @tparam TIME - The simulation time type.
              * @tparam LOGGER - The logger type used to log simulation information as model states.
              */
-            template<typename TIME, typename LOGGER>
+            template<typename TIME, typename LOGGER, typename formatter = typename cadmium::dynamic::logger::simulator_formatter<TIME>>
             class simulator : public engine<TIME> {
                 using model_type=typename cadmium::dynamic::modeling::atomic_abstract<TIME>;
-                using formatter=typename cadmium::dynamic::logger::simulator_formatter<TIME>;
 
                 std::shared_ptr<cadmium::dynamic::modeling::atomic_abstract<TIME>> _model;
                 TIME _last;
