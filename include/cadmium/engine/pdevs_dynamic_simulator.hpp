@@ -70,7 +70,7 @@ namespace cadmium {
                     _last = initial_time;
                     _next = initial_time + _model->time_advance();
 
-                    LOGGER::template log<cadmium::logger::logger_state>(formatter::log_state, _model->get_id(), _model->model_state_as_string());
+                    LOGGER::template log<cadmium::logger::logger_state>(formatter::log_state, initial_time, _model->get_id(), _model->model_state_as_string());
                 }
 
                 std::string get_model_id() const override {
@@ -96,7 +96,7 @@ namespace cadmium {
                     }
 
                     std::string messages_by_port = _model->messages_by_port_as_string(_outbox);
-                    LOGGER::template log<cadmium::logger::logger_messages>(formatter::log_messages_collect, _model->get_id(), messages_by_port);
+                    LOGGER::template log<cadmium::logger::logger_messages>(formatter::log_messages_collect, t, _model->get_id(), messages_by_port);
                 }
 
                 /**
@@ -154,7 +154,7 @@ namespace cadmium {
                         }
                     }
 
-                    LOGGER::template log<cadmium::logger::logger_state>(formatter::log_state, _model->get_id(), _model->model_state_as_string());
+                    LOGGER::template log<cadmium::logger::logger_state>(formatter::log_state, t, _model->get_id(), _model->model_state_as_string());
                 }
             };
         }
