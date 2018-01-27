@@ -92,12 +92,8 @@ namespace cadmium {
              */
             void run_until_passivate() {
                 LOGGER::template log<cadmium::logger::logger_info, std::string>("Starting run");
-                while ( _next !=  std::numeric_limits<TIME>::infinity() )
-                {
-                    LOGGER::template log<cadmium::logger::logger_global_time, TIME>(_next);
-                    top_coordinator.advance_simulation( _next);
-                    _next = top_coordinator.next();
-                }
+                static_assert(std::numeric_limits<TIME>::has_infinity, "TIME datatype has no infinity defined");
+                run_until(std::numeric_limits<TIME>::infinity());
                 LOGGER::template log<cadmium::logger::logger_info, std::string>("Finished run");
             }
         };
