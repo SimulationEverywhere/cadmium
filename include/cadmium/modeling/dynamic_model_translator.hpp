@@ -86,7 +86,7 @@ namespace cadmium {
                     std::string from_id = translated_models.at(from_model_type)->get_id();
 
                     std::shared_ptr<cadmium::dynamic::engine::link_abstract> new_link = cadmium::dynamic::translate::make_link<from_port, to_port>();
-                    ret.emplace_back(to_id, from_id, new_link);
+                    ret.emplace_back(from_id, to_id, new_link);
 
                     //iterate
                     make_dynamic_ic_impl<TIME, EIC_TUPLE, S-1>::value(translated_models, ret);
@@ -169,24 +169,6 @@ namespace cadmium {
                 return ret;
             }
 
-            template<typename PORT_FROM, typename PORT_TO>
-            cadmium::dynamic::modeling::EOC make_EOC(std::string model_from) {
-                std::shared_ptr<cadmium::dynamic::engine::link_abstract> eoc_link = cadmium::dynamic::translate::make_link<PORT_FROM, PORT_TO>();
-                return cadmium::dynamic::modeling::EOC(model_from, eoc_link);
-            }
-
-            template<typename PORT_FROM, typename PORT_TO>
-            cadmium::dynamic::modeling::EIC make_EIC(std::string model_to) {
-                std::shared_ptr<cadmium::dynamic::engine::link_abstract> eic_link = cadmium::dynamic::translate::make_link<PORT_FROM, PORT_TO>();
-                return cadmium::dynamic::modeling::EIC(model_to, eic_link);
-            }
-
-            template<typename PORT_FROM, typename PORT_TO>
-            cadmium::dynamic::modeling::IC make_IC(std::string model_from, std::string model_to) {
-                std::shared_ptr<cadmium::dynamic::engine::link_abstract> ic_link = cadmium::dynamic::translate::make_link<PORT_FROM, PORT_TO>();
-                return cadmium::dynamic::modeling::IC(model_from, model_to, ic_link);
-            }
-
             template<typename TIME, typename EOC_TUPLE, size_t S>
             struct make_dynamic_eoc_impl{
                 using current_EIC=typename std::tuple_element<S-1, EOC_TUPLE>::type;
@@ -235,6 +217,24 @@ namespace cadmium {
                 cadmium::dynamic::modeling::EOCs ret;
                 make_dynamic_eoc_impl<TIME, EOC_TUPLE, std::tuple_size<EOC_TUPLE>::value>::value(translated_models, ret);
                 return ret;
+            }
+
+            template<typename PORT_FROM, typename PORT_TO>
+            cadmium::dynamic::modeling::EOC make_EOC(std::string model_from) {
+                std::shared_ptr<cadmium::dynamic::engine::link_abstract> eoc_link = cadmium::dynamic::translate::make_link<PORT_FROM, PORT_TO>();
+                return cadmium::dynamic::modeling::EOC(model_from, eoc_link);
+            }
+
+            template<typename PORT_FROM, typename PORT_TO>
+            cadmium::dynamic::modeling::EIC make_EIC(std::string model_to) {
+                std::shared_ptr<cadmium::dynamic::engine::link_abstract> eic_link = cadmium::dynamic::translate::make_link<PORT_FROM, PORT_TO>();
+                return cadmium::dynamic::modeling::EIC(model_to, eic_link);
+            }
+
+            template<typename PORT_FROM, typename PORT_TO>
+            cadmium::dynamic::modeling::IC make_IC(std::string model_from, std::string model_to) {
+                std::shared_ptr<cadmium::dynamic::engine::link_abstract> ic_link = cadmium::dynamic::translate::make_link<PORT_FROM, PORT_TO>();
+                return cadmium::dynamic::modeling::IC(model_from, model_to, ic_link);
             }
 
             /**
