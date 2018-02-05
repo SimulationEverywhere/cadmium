@@ -39,7 +39,7 @@ namespace cadmium {
     namespace dynamic {
         namespace engine {
 
-            template<typename TIME, typename LOGGER, typename formatter = typename cadmium::dynamic::logger::coordinator_formatter<TIME>, typename simulator_formatter = typename cadmium::dynamic::logger::simulator_formatter<TIME>>
+            template<typename TIME, typename LOGGER>
             class coordinator : public cadmium::dynamic::engine::engine<TIME> {
 
                 //MODEL is assumed valid, the whole model tree is checked at "runner level" to fail fast
@@ -79,13 +79,13 @@ namespace cadmium {
                             if (m_atomic == nullptr) {
                                 throw std::domain_error("Invalid submodel is neither coupled nor atomic");
                             }
-                            std::shared_ptr<cadmium::dynamic::engine::engine<TIME>> simulator = std::make_shared<cadmium::dynamic::engine::simulator<TIME, LOGGER, simulator_formatter>>(m_atomic);
+                            std::shared_ptr<cadmium::dynamic::engine::engine<TIME>> simulator = std::make_shared<cadmium::dynamic::engine::simulator<TIME, LOGGER>>(m_atomic);
                             _subcoordinators.push_back(simulator);
                         } else {
                             if (m_atomic != nullptr) {
                                 throw std::domain_error("Invalid submodel is defined as both coupled and atomic");
                             }
-                            std::shared_ptr<cadmium::dynamic::engine::engine<TIME>> coordinator = std::make_shared<cadmium::dynamic::engine::coordinator<TIME, LOGGER, formatter, simulator_formatter>>(m_coupled);
+                            std::shared_ptr<cadmium::dynamic::engine::engine<TIME>> coordinator = std::make_shared<cadmium::dynamic::engine::coordinator<TIME, LOGGER>>(m_coupled);
                             _subcoordinators.push_back(coordinator);
                         }
 
@@ -167,7 +167,7 @@ namespace cadmium {
                  * @param initial_time is the start time
                  */
                 void init(TIME initial_time) override {
-                    LOGGER::template log<cadmium::logger::logger_info>(formatter::log_info_init, initial_time, _model_id);
+                    LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::coor_info_init>(initial_time, _model_id);
 
                     _last = initial_time;
                     //init all subcoordinators and find next transition time.
@@ -195,14 +195,14 @@ namespace cadmium {
                  * @todo Merge the Collect output calls into the advance simulation as done with ICs and EICs routing
                  */
                 void collect_outputs(const TIME &t) override {
-                    LOGGER::template log<cadmium::logger::logger_info>(formatter::log_info_collect, t, _model_id);
+                    LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::coor_info_collect>(t, _model_id);
 
                     //collecting if necessary
                     if (_next < t) {
                         throw std::domain_error("Trying to obtain output when not internal event is scheduled");
                     } else if (_next == t) {
                         //log EOC
-                        LOGGER::template log<cadmium::logger::logger_message_routing>(formatter::log_routing_collect, t, _model_id);
+                        LOGGER::template log<cadmium::logger::logger_message_routing, cadmium::logger::coor_routing_eoc_collect>(t, _model_id);
 
                         // Fill all outboxes and clean the inboxes in the lower levels recursively
                         cadmium::dynamic::engine::collect_outputs_in_subcoordinators<TIME>(t, _subcoordinators);
@@ -235,17 +235,17 @@ namespace cadmium {
                     //clean outbox because messages are routed before calling this function at a higher level
                     _outbox = cadmium::dynamic::message_bags();
 
-                    LOGGER::template log<cadmium::logger::logger_info>(formatter::log_info_advance, _last, t, _model_id);
+                    LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::coor_info_advance>(_last, t, _model_id);
 
                     if (_next < t || t < _last ) {
                         throw std::domain_error("Trying to obtain output when out of the advance time scope");
                     } else {
 
                         //Route the messages standing in the outboxes to mapped inboxes following ICs and EICs
-                        LOGGER::template log<cadmium::logger::logger_message_routing>(formatter::log_routing_ic_collect, t, _model_id);
+                        LOGGER::template log<cadmium::logger::logger_message_routing, cadmium::logger::coor_routing_ic_collect>(t, _model_id);
                         cadmium::dynamic::engine::route_internal_coupled_messages_on_subcoordinators<TIME, LOGGER>(_internal_coupligns);
 
-                        LOGGER::template log<cadmium::logger::logger_message_routing>(formatter::log_routing_eic_collect, t, _model_id);
+                        LOGGER::template log<cadmium::logger::logger_message_routing, cadmium::logger::coor_routing_eic_collect>(t, _model_id);
                         cadmium::dynamic::engine::route_external_input_coupled_messages_on_subcoordinators<TIME, LOGGER>(_inbox, _external_input_couplings);
 
                         //recurse on advance_simulation

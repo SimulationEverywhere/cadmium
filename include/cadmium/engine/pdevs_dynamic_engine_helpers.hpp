@@ -117,7 +117,7 @@ namespace cadmium {
                     for (const auto& l : c.second) {
                         cadmium::dynamic::logger::routed_messages message_to_log = l->route_messages(outbox, ret);
 
-                        LOGGER::template log<cadmium::logger::logger_message_routing>(cadmium::dynamic::logger::log_routing_collect, message_to_log.from_port, message_to_log.to_port, message_to_log.from_messages, message_to_log.to_messages);
+                        LOGGER::template log<cadmium::logger::logger_message_routing, cadmium::logger::coor_routing_collect>(message_to_log.from_port, message_to_log.to_port, message_to_log.from_messages, message_to_log.to_messages);
                     }
                 };
                 std::for_each(coupling.begin(), coupling.end(), collect_output);
@@ -131,7 +131,7 @@ namespace cadmium {
                         auto& to_inbox = c.first->inbox();
                         cadmium::dynamic::logger::routed_messages message_to_log = l->route_messages(inbox, to_inbox);
 
-                        LOGGER::template log<cadmium::logger::logger_message_routing>(cadmium::dynamic::logger::log_routing_collect, message_to_log.from_port, message_to_log.to_port, message_to_log.from_messages, message_to_log.to_messages);
+                        LOGGER::template log<cadmium::logger::logger_message_routing, cadmium::logger::coor_routing_collect>(message_to_log.from_port, message_to_log.to_port, message_to_log.from_messages, message_to_log.to_messages);
                     }
                 };
                 std::for_each(coupling.begin(), coupling.end(), route_messages);
@@ -145,7 +145,7 @@ namespace cadmium {
                         auto& to_inbox = c.first.second->inbox();
                         cadmium::dynamic::logger::routed_messages message_to_log = l->route_messages(from_outbox, to_inbox);
 
-                        LOGGER::template log<cadmium::logger::logger_message_routing>(cadmium::dynamic::logger::log_routing_collect, message_to_log.from_port, message_to_log.to_port, message_to_log.from_messages, message_to_log.to_messages);
+                        LOGGER::template log<cadmium::logger::logger_message_routing, cadmium::logger::coor_routing_collect>(message_to_log.from_port, message_to_log.to_port, message_to_log.from_messages, message_to_log.to_messages);
                     }
                 };
                 std::for_each(coupling.begin(), coupling.end(), route_messages);
