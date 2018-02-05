@@ -182,18 +182,18 @@ namespace cadmium {
 
         template<typename L, typename... LS>
         struct multilogger_impl<L, LS...>{
-            template<typename DECLARED_SOURCE, typename... PARAMs>
-            static void log(const PARAMs&... ps){
-                L::template log<DECLARED_SOURCE, PARAMs...>(ps...);
+            template<typename DECLARED_SOURCE, typename EVENT, typename... PARAMs>
+            static void log(const PARAMs&... ps) {
+                L::template log<DECLARED_SOURCE, EVENT, PARAMs...>(ps...);
                 //recurse
-                multilogger_impl<LS...>::template log<DECLARED_SOURCE, PARAMs...>(ps...);
+                multilogger_impl<LS...>::template log<DECLARED_SOURCE, EVENT, PARAMs...>(ps...);
             }
         };
 
         template<>
         struct multilogger_impl<>{
-            template<typename DECLARED_SOURCE, typename... PARAMs>
-            static void log(const PARAMs&... ps){
+            template<typename DECLARED_SOURCE, typename EVENT, typename... PARAMs>
+            static void log(const PARAMs&... ps) {
                 //nothing to do
             }
         };
@@ -201,9 +201,9 @@ namespace cadmium {
 
         template<typename... LS>
         struct multilogger{
-            template<typename DECLARED_SOURCE, typename... PARAMs>
-            static void log(const PARAMs&... ps){
-                multilogger_impl<LS...>::template log<DECLARED_SOURCE, PARAMs...>(ps...);
+            template<typename DECLARED_SOURCE, typename EVENT, typename... PARAMs>
+            static void log(const PARAMs&... ps) {
+                multilogger_impl<LS...>::template log<DECLARED_SOURCE, EVENT, PARAMs...>(ps...);
             }
         };
     }
