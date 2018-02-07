@@ -104,7 +104,7 @@ BOOST_AUTO_TEST_SUITE( pdevs_dynamic_runner_test_suite )
         {
             oss.str("");
             //logger definition
-            using log_gt_to_oss=cadmium::logger::logger<cadmium::logger::logger_global_time, cadmium::logger::verbatim_formatter, oss_test_sink_provider>;
+            using log_gt_to_oss=cadmium::logger::logger<cadmium::logger::logger_global_time, cadmium::dynamic::logger::formatter<float>, oss_test_sink_provider>;
 
             //setup runner
             cadmium::dynamic::engine::runner<float, log_gt_to_oss> r(coupled, 0.0);
@@ -122,7 +122,7 @@ BOOST_AUTO_TEST_SUITE( pdevs_dynamic_runner_test_suite )
             //This test integrates log output from runner, coordinator and simulator.
             oss.str("");
             //logger definition
-            using log_info_to_oss=cadmium::logger::logger<cadmium::logger::logger_info, cadmium::logger::verbatim_formatter, oss_test_sink_provider>;
+            using log_info_to_oss=cadmium::logger::logger<cadmium::logger::logger_info, cadmium::dynamic::logger::formatter<float>, oss_test_sink_provider>;
 
             //setup runner
             cadmium::dynamic::engine::runner<float, log_info_to_oss> r(coupled, 0.0);
@@ -174,7 +174,7 @@ BOOST_AUTO_TEST_SUITE( pdevs_dynamic_runner_test_suite )
             //This test integrates log output from runner, coordinator and simulator.
             oss.str("");
             //logger definition
-            using log_info_to_oss=cadmium::logger::logger<cadmium::logger::logger_state, cadmium::logger::verbatim_formatter, oss_test_sink_provider>;
+            using log_info_to_oss=cadmium::logger::logger<cadmium::logger::logger_state, cadmium::dynamic::logger::formatter<float>, oss_test_sink_provider>;
 
             //setup runner
             cadmium::dynamic::engine::runner<float, log_info_to_oss> r(coupled, 0.0);
@@ -196,7 +196,7 @@ BOOST_AUTO_TEST_SUITE( pdevs_dynamic_runner_test_suite )
             //This test integrates log output from runner, coordinator and simulator.
             oss.str("");
             //logger definition
-            using log_info_to_oss=cadmium::logger::logger<cadmium::logger::logger_messages, cadmium::logger::verbatim_formatter, oss_test_sink_provider>;
+            using log_info_to_oss=cadmium::logger::logger<cadmium::logger::logger_messages, cadmium::dynamic::logger::formatter<float>, oss_test_sink_provider>;
 
             //setup runner
             cadmium::dynamic::engine::runner<float, log_info_to_oss> r(coupled, 0.0);
@@ -220,7 +220,7 @@ BOOST_AUTO_TEST_SUITE( pdevs_dynamic_runner_test_suite )
             //This test integrates log output from runner, coordinator and simulator.
             oss.str("");
             //logger definition
-            using log_info_to_oss=cadmium::logger::logger<cadmium::logger::logger_local_time, cadmium::logger::verbatim_formatter, oss_test_sink_provider>;
+            using log_info_to_oss=cadmium::logger::logger<cadmium::logger::logger_local_time, cadmium::dynamic::logger::formatter<float>, oss_test_sink_provider>;
 
             //setup runner
             cadmium::dynamic::engine::runner<float, log_info_to_oss> r(coupled, 0.0);
@@ -239,7 +239,7 @@ BOOST_AUTO_TEST_SUITE( pdevs_dynamic_runner_test_suite )
             //This test integrates log output from runner, coordinator and simulator.
             oss.str("");
             //logger definition
-            using log_info_to_oss=cadmium::logger::logger<cadmium::logger::logger_message_routing, cadmium::logger::verbatim_formatter, oss_test_sink_provider>;
+            using log_info_to_oss=cadmium::logger::logger<cadmium::logger::logger_message_routing, cadmium::dynamic::logger::formatter<float>, oss_test_sink_provider>;
 
             //setup runner
             cadmium::dynamic::engine::runner<float, log_info_to_oss> r(coupled, 0.0);

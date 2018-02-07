@@ -57,7 +57,6 @@ namespace cadmium {
 
         template<template<typename T> class MODEL, typename TIME, typename LOGGER>
         class coordinator {
-            using formatter=typename cadmium::logger::coordinator_formatter<MODEL, TIME>;
 
             //types for subcoordination
             template<typename P>
@@ -74,6 +73,9 @@ namespace cadmium {
             TIME _next; // next transition scheduled
             subcoordinators_type _subcoordinators;
 
+            //logging purposes
+            std::string _model_id;
+
         public://making boxes temporarily public
             //TODO: set boxes back to private
             in_bags_type _inbox;
@@ -87,7 +89,12 @@ namespace cadmium {
              * @param t is the start time
              */
             void init(TIME t) noexcept {
-                LOGGER::template log<cadmium::logger::logger_info, decltype(formatter::log_info_init), TIME>(formatter::log_info_init, t);
+
+                //logging data
+                std::ostringstream oss;
+                oss << boost::typeindex::type_id<MODEL<TIME>>().pretty_name();
+                _model_id = oss.str();
+                LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::coor_info_init>(t, _model_id);
 
                 _last = t;
                 //init all subcoordinators and find next transition time.
@@ -113,14 +120,15 @@ namespace cadmium {
              */
 
             void collect_outputs(const TIME &t) {
-                LOGGER::template log<cadmium::logger::logger_info, decltype(formatter::log_info_collect), TIME>(formatter::log_info_collect, t);
+
+                LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::coor_info_collect>(t, _model_id);
 
                 //collecting if necessary
                 if (_next < t) {
                     throw std::domain_error("Trying to obtain output when not internal event is scheduled");
                 } else if (_next == t) {
                     //log EOC
-                    LOGGER::template log<cadmium::logger::logger_message_routing, decltype(formatter::log_routing_collect)>(formatter::log_routing_collect);
+                    LOGGER::template log<cadmium::logger::logger_message_routing, cadmium::logger::coor_routing_eoc_collect>(_model_id);
                     //fill all outboxes and clean the inboxes in the lower levels recursively
                     cadmium::engine::collect_outputs_in_subcoordinators<TIME, subcoordinators_type>(t, _subcoordinators);
                     //use the EOC mapping to compose current level output
@@ -143,17 +151,17 @@ namespace cadmium {
                 //clean outbox because messages are routed before calling this funtion at a higher level
                 _outbox = out_bags_type{};
 
-                LOGGER::template log<cadmium::logger::logger_info, decltype(formatter::log_info_advance), TIME>(formatter::log_info_advance, _last, t);
+                LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::coor_info_advance>(_last, t, _model_id);
 
                 if (_next < t || t < _last ) {
                     throw std::domain_error("Trying to obtain output when out of the advance time scope");
                 } else {
 
                     //Route the messages standing in the outboxes to mapped inboxes following ICs and EICs
-                    LOGGER::template log<cadmium::logger::logger_message_routing, decltype(formatter::log_routing_ic_collect)>(formatter::log_routing_ic_collect);
+                    LOGGER::template log<cadmium::logger::logger_message_routing, cadmium::logger::coor_routing_ic_collect>(_model_id);
                     cadmium::engine::route_internal_coupled_messages_on_subcoordinators<TIME, subcoordinators_type, ic, LOGGER>(t, _subcoordinators);
 
-                    LOGGER::template log<cadmium::logger::logger_message_routing, decltype(formatter::log_routing_eic_collect)>(formatter::log_routing_eic_collect);
+                    LOGGER::template log<cadmium::logger::logger_message_routing, cadmium::logger::coor_routing_eic_collect>(_model_id);
                     cadmium::engine::route_external_input_coupled_messages_on_subcoordinators<TIME, in_bags_type, subcoordinators_type, eic, LOGGER>(t, _inbox, _subcoordinators);
 
                     //recurse on advance_simulation

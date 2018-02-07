@@ -53,9 +53,9 @@ namespace {
 }
 
 //loggers in output to oss for test
-using global_time=cadmium::logger::logger<cadmium::logger::logger_global_time, cadmium::logger::verbatim_formatter, oss_test_sink_provider>;
-using state=cadmium::logger::logger<cadmium::logger::logger_state, cadmium::logger::verbatim_formatter, oss_test_sink_provider>;
-using routing=cadmium::logger::logger<cadmium::logger::logger_message_routing, cadmium::logger::verbatim_formatter, oss_test_sink_provider>;
+using global_time=cadmium::logger::logger<cadmium::logger::logger_global_time, cadmium::logger::formatter<float>, oss_test_sink_provider>;
+using state=cadmium::logger::logger<cadmium::logger::logger_state, cadmium::logger::formatter<float>, oss_test_sink_provider>;
+using routing=cadmium::logger::logger<cadmium::logger::logger_message_routing, cadmium::logger::formatter<float>, oss_test_sink_provider>;
 using log_time_and_state=cadmium::logger::multilogger<state, global_time>;
 
 //helper function for checking matches in log

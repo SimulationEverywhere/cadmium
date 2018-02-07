@@ -42,7 +42,6 @@ namespace cadmium {
         template<template<typename T> class MODEL, typename TIME, typename LOGGER>
         //TODO: implement the debugging
         class simulator {
-            using formatter=typename cadmium::logger::simulator_formatter<MODEL, TIME>;
 
             using input_ports=typename MODEL<TIME>::input_ports;
             using input_bags=typename make_message_bags<input_ports>::type;
@@ -52,6 +51,9 @@ namespace cadmium {
             MODEL<TIME> _model;
             TIME _last;
             TIME _next;
+
+            //logging purposes
+            std::string _model_id;
 
         public://making boxes temporarily public
             //TODO: set boxes back to private
@@ -74,13 +76,24 @@ namespace cadmium {
              * @param initial_time is the start time
              */
             void init(TIME initial_time) {
-                LOGGER::template log<cadmium::logger::logger_info, decltype(formatter::log_info_init), TIME>(formatter::log_info_init, initial_time);
+
+                //logging data
+                std::ostringstream oss;
+                oss << _model.state;
+                std::string model_state = oss.str();
+
+                oss.clear();
+                oss.str("");
+                oss << boost::typeindex::type_id<model_type>().pretty_name();
+                _model_id = oss.str();
+
+                LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::sim_info_init>(initial_time, _model_id);
 
                 _last=initial_time;
                 cadmium::concept::atomic_model_assert<MODEL>();
                 _next = initial_time + _model.time_advance();
-                
-                LOGGER::template log<cadmium::logger::logger_state, decltype(formatter::log_state), const typename model_type::state_type&>(formatter::log_state, _model.state);
+
+                LOGGER::template log<cadmium::logger::logger_state, cadmium::logger::sim_state>(model_state, _model_id);
             }
 
 
@@ -89,7 +102,8 @@ namespace cadmium {
             }
 
             void collect_outputs(const TIME &t) {
-                LOGGER::template log<cadmium::logger::logger_info, decltype(formatter::log_info_collect), TIME>(formatter::log_info_collect, t);
+
+                LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::sim_info_collect>(t, _model_id);
 
                 //cleanning the inbox and producing outbox
                 _inbox = in_bags_type{};
@@ -102,8 +116,10 @@ namespace cadmium {
                 } else {
                     _outbox = out_bags_type();
                 }
-
-                LOGGER::template log<cadmium::logger::logger_messages, decltype(formatter::log_messages_collect), out_bags_type>(formatter::log_messages_collect, _outbox);
+                //logging data
+                std::ostringstream oss;
+                cadmium::logger::print_messages_by_port(oss, _outbox);
+                LOGGER::template log<cadmium::logger::logger_messages, cadmium::logger::sim_messages_collect>(oss.str(), _model_id);
             }
 
             /**
@@ -129,8 +145,8 @@ namespace cadmium {
                 //clean outbox because messages are routed before calling this funtion at a higher level
                 _outbox = out_bags_type{};
 
-                LOGGER::template log<cadmium::logger::logger_info, decltype(formatter::log_info_advance), TIME>(formatter::log_info_advance, _last, t);
-                LOGGER::template log<cadmium::logger::logger_local_time, decltype(formatter::log_local_time), TIME>(formatter::log_local_time, _last, t);
+                LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::sim_info_advance>(_last, t, _model_id);
+                LOGGER::template log<cadmium::logger::logger_local_time, cadmium::logger::sim_local_time>(_last, t, _model_id);
 
                 if (t < _last) {
                     throw std::domain_error("Event received for executing in the past of current simulation time");
@@ -161,7 +177,10 @@ namespace cadmium {
                     }
                 }
 
-                LOGGER::template log<cadmium::logger::logger_state, decltype(formatter::log_state), const typename model_type::state_type&>(formatter::log_state, _model.state);
+                //logging data
+                std::ostringstream oss;
+                oss << _model.state;
+                LOGGER::template log<cadmium::logger::logger_state, cadmium::logger::sim_state>(oss.str(), _model_id);
             }
     //TODO: use enable_if functions to give access to read state and messages in debug mode
         };
