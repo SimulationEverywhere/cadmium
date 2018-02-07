@@ -66,6 +66,9 @@ namespace cadmium {
         struct coor_info_init : public cadmium::logger::logger_event{};
         struct coor_info_collect : public cadmium::logger::logger_event{};
         struct coor_routing_collect : public cadmium::logger::logger_event{};
+        struct coor_routing_collect_ic : public cadmium::logger::logger_event{};
+        struct coor_routing_collect_eic : public cadmium::logger::logger_event{};
+        struct coor_routing_collect_eoc : public cadmium::logger::logger_event{};
         struct coor_info_advance : public cadmium::logger::logger_event{};
         struct coor_routing_ic_collect : public cadmium::logger::logger_event{};
         struct coor_routing_eic_collect : public cadmium::logger::logger_event{};
@@ -111,6 +114,21 @@ namespace cadmium {
 
                     if constexpr (std::is_same<EVENT, cadmium::logger::coor_routing_collect>::value) {
                         SINK_PROVIDER::sink() << FORMATTER::coor_routing_collect(ps...);
+                        SINK_PROVIDER::sink() << std::endl;
+                    }
+
+                    if constexpr (std::is_same<EVENT, cadmium::logger::coor_routing_collect_ic>::value) {
+                        SINK_PROVIDER::sink() << FORMATTER::coor_routing_collect_ic(ps...);
+                        SINK_PROVIDER::sink() << std::endl;
+                    }
+
+                    if constexpr (std::is_same<EVENT, cadmium::logger::coor_routing_collect_eic>::value) {
+                        SINK_PROVIDER::sink() << FORMATTER::coor_routing_collect_eic(ps...);
+                        SINK_PROVIDER::sink() << std::endl;
+                    }
+
+                    if constexpr (std::is_same<EVENT, cadmium::logger::coor_routing_collect_eoc>::value) {
+                        SINK_PROVIDER::sink() << FORMATTER::coor_routing_collect_eoc(ps...);
                         SINK_PROVIDER::sink() << std::endl;
                     }
 

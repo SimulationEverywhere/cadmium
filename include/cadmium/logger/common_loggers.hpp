@@ -91,40 +91,31 @@ namespace cadmium {
         struct not_matching_source :public logger_source{};
         using not_logger=logger<not_matching_source, verbatim_formatter, cout_sink_provider>;
 
-        template<template<typename T> class MODEL, typename TIME>
-        struct coordinator_formatter {
+        template<typename TIME>
+        struct formatter {
 
-            using model_type=MODEL<TIME>;
-
-            static std::string log_info_init(TIME t) {
+            static std::string coor_info_init(TIME t, const std::string& model_id) {
                 std::ostringstream oss;
                 oss << "Coordinator for model ";
-                oss << boost::typeindex::type_id<model_type>().pretty_name();
+                oss << model_id;
                 oss << " initialized to time ";
                 oss << t;
                 return oss.str();
             };
 
-            static std::string log_info_collect(TIME t) {
+            static std::string coor_info_collect(TIME t, const std::string& model_id) {
                 std::ostringstream oss;
                 oss << "Coordinator for model ";
-                oss << boost::typeindex::type_id<model_type>().pretty_name();
+                oss << model_id;
                 oss << " collecting output at time ";
                 oss << t;
                 return oss.str();
             };
 
-            static std::string log_routing_collect() {
-                std::ostringstream oss;
-                oss << "EOC for model ";
-                oss << boost::typeindex::type_id<model_type>().pretty_name();
-                return oss.str();
-            };
-
-            static std::string log_info_advance(const TIME& from, const TIME& to) {
+            static std::string coor_info_advance(const TIME& from, const TIME& to, const std::string& model_id) {
                 std::ostringstream oss;
                 oss << "Coordinator for model ";
-                oss << boost::typeindex::type_id<model_type>().pretty_name();
+                oss << model_id;
                 oss << " advancing simulation from time ";
                 oss << from;
                 oss << " to ";
@@ -132,69 +123,113 @@ namespace cadmium {
                 return oss.str();
             };
 
-            static std::string log_routing_ic_collect() {
+            static std::string coor_routing_eoc_collect(const std::string& model_id) {
+                std::ostringstream oss;
+                oss << "EOC for model ";
+                oss << model_id;
+                return oss.str();
+            };
+
+            static std::string coor_routing_ic_collect(const std::string& model_id) {
                 std::ostringstream oss;
                 oss << "IC for model ";
-                oss << boost::typeindex::type_id<model_type>().pretty_name();
+                oss << model_id;
                 return oss.str();
             };
 
-            static std::string log_routing_eic_collect() {
+            static std::string coor_routing_eic_collect(const std::string& model_id) {
                 std::ostringstream oss;
                 oss << "EIC for model ";
-                oss << boost::typeindex::type_id<model_type>().pretty_name();
+                oss << model_id;
                 return oss.str();
             };
-        };
 
-        template <template<typename T> class MODEL, typename TIME>
-        struct simulator_formatter {
+            static std::string coor_routing_collect_eoc(const std::string& from_messages, const std::string& to_messages, const std::string& from_port, const std::string& to_port, const std::string& submodel_from) {
+                std::ostringstream oss;
+                oss << " in port ";
+                oss << to_port;
+                oss << " has ";
+                oss << to_messages;
+                oss << " routed from ";
+                oss << from_port;
+                oss << " of model ";
+                oss << submodel_from;
+                oss << " with messages ";
+                oss << from_messages;
+                return oss.str();
+            };
 
-            using model_type=MODEL<TIME>;
-            using input_ports=typename model_type::input_ports;
-            using output_ports=typename model_type::output_ports;
-            using in_bags_type=typename make_message_bags<input_ports>::type;
-            using out_bags_type=typename make_message_bags<output_ports>::type;
+            static std::string coor_routing_collect_ic(const std::string& from_messages, const std::string& to_messages, const std::string& from_port, const std::string& from_model, const std::string& to_port, const std::string& to_model) {
+                std::ostringstream oss;
+                oss << " in port ";
+                oss << to_port;
+                oss << " of model ";
+                oss << to_model;
+                oss << " has ";
+                oss << to_messages;
+                oss << " routed from ";
+                oss << from_port;
+                oss << " of model ";
+                oss << from_model;
+                oss << " with messages ";
+                oss << from_messages;
+                return oss.str();
+            };
 
-            static std::string log_info_init(TIME t) {
+            static std::string coor_routing_collect_eic(const std::string& from_messages, const std::string& to_messages, const std::string& to_port, const std::string& to_model, const std::string& from_port) {
+                std::ostringstream oss;
+                oss << " in port ";
+                oss << to_port;
+                oss << " of model ";
+                oss << to_model;
+                oss << " has ";
+                oss << to_messages;
+                oss << " routed from ";
+                oss << from_port;
+                oss << " with messages ";
+                oss << from_messages;
+                return oss.str();
+            };
+
+            static std::string sim_info_init(TIME t, const std::string& model_id) {
                 std::ostringstream oss;
                 oss << "Simulator for model ";
-                oss << boost::typeindex::type_id<model_type>().pretty_name();
+                oss << model_id;
                 oss << " initialized to time ";
                 oss << t;
                 return oss.str();
             }
 
-            static std::string log_state(const typename model_type::state_type& s) {
+            static std::string sim_state(const std::string& state, const std::string& model_id) {
                 std::ostringstream oss;
                 oss << "State for model ";
-                oss << boost::typeindex::type_id<model_type>().pretty_name();
+                oss << model_id;
                 oss << " is ";
-                oss << s;
+                oss << state;
                 return oss.str();
             };
 
-            static std::string log_info_collect(TIME t) {
+            static std::string sim_info_collect(TIME t, const std::string& model_id) {
                 std::ostringstream oss;
                 oss << "Simulator for model ";
-                oss << boost::typeindex::type_id<model_type>().pretty_name();
+                oss << model_id;
                 oss << " collecting output at time ";
                 oss << t;
                 return oss.str();
             };
 
-            static std::string log_messages_collect(const out_bags_type& ob) {
+            static std::string sim_messages_collect(const std::string& messages_by_port, const std::string& model_id) {
                 std::ostringstream oss;
-                print_messages_by_port(oss, ob);
+                oss << messages_by_port;
                 oss << " generated by model ";
-                oss << boost::typeindex::type_id<model_type>().pretty_name();
+                oss << model_id;
                 return oss.str();
             };
 
-            static std::string log_info_advance(const TIME& from, const TIME& to) {
+            static std::string sim_info_advance(const TIME& from, const TIME& to, const std::string& model_id) {
                 std::ostringstream oss;
                 oss << "Simulator for model ";
-                oss << boost::typeindex::type_id<model_type>().pretty_name();
+                oss << model_id;
                 oss << " advancing simulation from time ";
                 oss << from;
                 oss << " to ";
@@ -202,15 +237,23 @@ namespace cadmium {
                 return oss.str();
             };
 
-            static std::string log_local_time(const TIME& from, const TIME& to) {
+            static std::string sim_local_time(const TIME& from, const TIME& to, const std::string& model_id) {
                 std::ostringstream oss;
                 oss << "Elapsed in model ";
-                oss << boost::typeindex::type_id<model_type>().pretty_name();
+                oss << model_id;
                 oss << " is ";
                 oss << (to - from);
                 oss << "s";
                 return oss.str();
             };
+
+            static TIME run_global_time(const TIME& global_time) {
+                return global_time;
+            }
+
+            static std::string run_info(const std::string& message) {
+                return message;
+            }
         };
 
     }
