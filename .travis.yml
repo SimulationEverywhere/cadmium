@@ -30,6 +30,7 @@ matrix:
       env:
       before_install:
           - brew upgrade boost cmake
+          - brew install lcov
 
   allow_failures:
           - os: linux
