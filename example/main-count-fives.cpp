@@ -109,13 +109,13 @@ using messages_logger=cadmium::logger::logger<cadmium::logger::logger_message_ro
 
 //LOG ALL TO COUT
 using namespace cadmium::logger;
-using info=logger<logger_info, verbatim_formatter, cout_sink_provider>;
-using debug=logger<logger_debug, verbatim_formatter, cout_sink_provider>;
-using state=logger<logger_state, verbatim_formatter, cout_sink_provider>;
-using log_messages=logger<logger_messages, verbatim_formatter, cout_sink_provider>;
-using routing=logger<logger_message_routing, verbatim_formatter, cout_sink_provider>;
-using global_time=logger<logger_global_time, verbatim_formatter, cout_sink_provider>;
-using local_time=logger<logger_local_time, verbatim_formatter, cout_sink_provider>;
+using info=logger<logger_info, cadmium::logger::formatter<float>, cout_sink_provider>;
+using debug=logger<logger_debug, cadmium::logger::formatter<float>, cout_sink_provider>;
+using state=logger<logger_state, cadmium::logger::formatter<float>, cout_sink_provider>;
+using log_messages=logger<logger_messages, cadmium::logger::formatter<float>, cout_sink_provider>;
+using routing=logger<logger_message_routing, cadmium::logger::formatter<float>, cout_sink_provider>;
+using global_time=logger<logger_global_time, cadmium::logger::formatter<float>, cout_sink_provider>;
+using local_time=logger<logger_local_time, cadmium::logger::formatter<float>, cout_sink_provider>;
 using log_all=multilogger<info, debug, state, log_messages, routing, global_time, local_time>;
 
 

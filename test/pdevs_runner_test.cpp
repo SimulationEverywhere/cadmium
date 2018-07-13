@@ -103,7 +103,7 @@ BOOST_AUTO_TEST_CASE( runner_logs_global_time_advances_test )
 {
     oss.str("");
     //logger definition
-    using log_gt_to_oss=cadmium::logger::logger<cadmium::logger::logger_global_time, cadmium::logger::verbatim_formatter, oss_test_sink_provider>;
+    using log_gt_to_oss=cadmium::logger::logger<cadmium::logger::logger_global_time, cadmium::logger::formatter<float>, oss_test_sink_provider>;
 
     //setup runner
     cadmium::engine::runner<float, coupled_generator, log_gt_to_oss> r{0.0};
@@ -121,7 +121,7 @@ BOOST_AUTO_TEST_CASE( simulation_logs_info_on_setup_and_start_loops_and_end_of_r
     //This test integrates log output from runner, coordinator and simulator.
     oss.str("");
     //logger definition
-    using log_info_to_oss=cadmium::logger::logger<cadmium::logger::logger_info, cadmium::logger::verbatim_formatter, oss_test_sink_provider>;
+    using log_info_to_oss=cadmium::logger::logger<cadmium::logger::logger_info, cadmium::logger::formatter<float>, oss_test_sink_provider>;
 
     //setup runner
     cadmium::engine::runner<float, coupled_generator, log_info_to_oss> r{0.0};
@@ -173,7 +173,7 @@ BOOST_AUTO_TEST_CASE( simulation_logs_state_only_show_state_changes_and_initial_
     //This test integrates log output from runner, coordinator and simulator.
     oss.str("");
     //logger definition
-    using log_info_to_oss=cadmium::logger::logger<cadmium::logger::logger_state, cadmium::logger::verbatim_formatter, oss_test_sink_provider>;
+    using log_info_to_oss=cadmium::logger::logger<cadmium::logger::logger_state, cadmium::logger::formatter<float>, oss_test_sink_provider>;
 
     //setup runner
     cadmium::engine::runner<float, coupled_generator, log_info_to_oss> r{0.0};
@@ -196,7 +196,7 @@ BOOST_AUTO_TEST_CASE( simulation_logs_messages_generated_in_atomic_models_test )
     //This test integrates log output from runner, coordinator and simulator.
     oss.str("");
     //logger definition
-    using log_info_to_oss=cadmium::logger::logger<cadmium::logger::logger_messages, cadmium::logger::verbatim_formatter, oss_test_sink_provider>;
+    using log_info_to_oss=cadmium::logger::logger<cadmium::logger::logger_messages, cadmium::logger::formatter<float>, oss_test_sink_provider>;
 
     //setup runner
     cadmium::engine::runner<float, coupled_generator, log_info_to_oss> r{0.0};
@@ -219,7 +219,7 @@ BOOST_AUTO_TEST_CASE( simulation_logs_local_time_in_simulators_test )
     //This test integrates log output from runner, coordinator and simulator.
     oss.str("");
     //logger definition
-    using log_info_to_oss=cadmium::logger::logger<cadmium::logger::logger_local_time, cadmium::logger::verbatim_formatter, oss_test_sink_provider>;
+    using log_info_to_oss=cadmium::logger::logger<cadmium::logger::logger_local_time, cadmium::logger::formatter<float>, oss_test_sink_provider>;
 
     //setup runner
     cadmium::engine::runner<float, coupled_generator, log_info_to_oss> r{0.0};
@@ -238,7 +238,7 @@ BOOST_AUTO_TEST_CASE( simulation_logs_routing_of_eoc_in_coordinator_test )
     //This test integrates log output from runner, coordinator and simulator.
     oss.str("");
     //logger definition
-    using log_info_to_oss=cadmium::logger::logger<cadmium::logger::logger_message_routing, cadmium::logger::verbatim_formatter, oss_test_sink_provider>;
+    using log_info_to_oss=cadmium::logger::logger<cadmium::logger::logger_message_routing, cadmium::logger::formatter<float>, oss_test_sink_provider>;
 
     //setup runner
     cadmium::engine::runner<float, coupled_generator, log_info_to_oss> r{0.0};
@@ -303,7 +303,7 @@ BOOST_AUTO_TEST_CASE( simulation_logs_routing_of_all_couplings_in_coordinator_te
     //This test integrates log output from runner, coordinator and simulator.
     oss.str("");
     //logger definition
-    using log_info_to_oss=cadmium::logger::logger<cadmium::logger::logger_message_routing, cadmium::logger::verbatim_formatter, oss_test_sink_provider>;
+    using log_info_to_oss=cadmium::logger::logger<cadmium::logger::logger_message_routing, cadmium::logger::formatter<float>, oss_test_sink_provider>;
 
     //setup runner
     cadmium::engine::runner<float, coupled_g2a_model, log_info_to_oss> r{0.0};

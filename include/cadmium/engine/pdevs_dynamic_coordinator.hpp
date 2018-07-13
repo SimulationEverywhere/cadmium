@@ -41,7 +41,6 @@ namespace cadmium {
 
             template<typename TIME, typename LOGGER>
             class coordinator : public cadmium::dynamic::engine::engine<TIME> {
-                using formatter=typename cadmium::dynamic::logger::coordinator_formatter<TIME>;
 
                 //MODEL is assumed valid, the whole model tree is checked at "runner level" to fail fast
                 TIME _last; //last transition time
@@ -94,21 +93,27 @@ namespace cadmium {
                     }
 
                     // Generates structures for direct access to external couplings to not iterate all coordinators each time.
+                    bool found;
                     for (const auto& eoc : coupled_model->_eoc) {
                         if (enginges_by_id.find(eoc._from) == enginges_by_id.end()) {
                             throw std::domain_error("External output coupling from invalid model");
                         }
 
+                        found = false;
                         for (auto& coupling : _external_output_couplings) {
                             if (coupling.first->get_model_id() == eoc._from) {
                                 coupling.second.push_back(eoc._link);
-                                continue;
+                                found = true;
+                                break;
                             }
                         }
-                        cadmium::dynamic::engine::external_coupling<TIME> new_eoc;
-                        new_eoc.first = enginges_by_id.at(eoc._from);
-                        new_eoc.second.push_back(eoc._link);
-                        _external_output_couplings.push_back(new_eoc);
+
+                        if (!found) {
+                            cadmium::dynamic::engine::external_coupling<TIME> new_eoc;
+                            new_eoc.first = enginges_by_id.at(eoc._from);
+                            new_eoc.second.push_back(eoc._link);
+                            _external_output_couplings.push_back(new_eoc);
+                        }
                     }
 
                     for (const auto& eic : coupled_model->_eic) {
@@ -116,16 +121,21 @@ namespace cadmium {
                             throw std::domain_error("External input coupling to invalid model");
                         }
 
+                        found = false;
                         for (auto& coupling : _external_input_couplings) {
                             if (coupling.first->get_model_id() == eic._to) {
                                 coupling.second.push_back(eic._link);
-                                continue;
+                                found = true;
+                                break;
                             }
                         }
-                        cadmium::dynamic::engine::external_coupling<TIME> new_eic;
-                        new_eic.first = enginges_by_id.at(eic._to);
-                        new_eic.second.push_back(eic._link);
-                        _external_input_couplings.push_back(new_eic);
+
+                        if (!found) {
+                            cadmium::dynamic::engine::external_coupling<TIME> new_eic;
+                            new_eic.first = enginges_by_id.at(eic._to);
+                            new_eic.second.push_back(eic._link);
+                            _external_input_couplings.push_back(new_eic);
+                        }
                     }
 
                     for (const auto& ic : coupled_model->_ic) {
@@ -133,17 +143,22 @@ namespace cadmium {
                             throw std::domain_error("Internal coupling to invalid model");
                         }
 
+                        found = false;
                         for (auto& coupling : _internal_coupligns) {
                             if (coupling.first.first->get_model_id() == ic._from && coupling.first.second->get_model_id() == ic._to) {
                                 coupling.second.push_back(ic._link);
-                                continue;
+                                found = true;
+                                break;
                             }
                         }
-                        cadmium::dynamic::engine::internal_coupling<TIME> new_ic;
-                        new_ic.first.first = enginges_by_id.at(ic._from);
-                        new_ic.first.second = enginges_by_id.at(ic._to);
-                        new_ic.second.push_back(ic._link);
-                        _internal_coupligns.push_back(new_ic);
+
+                        if(!found) {
+                            cadmium::dynamic::engine::internal_coupling<TIME> new_ic;
+                            new_ic.first.first = enginges_by_id.at(ic._from);
+                            new_ic.first.second = enginges_by_id.at(ic._to);
+                            new_ic.second.push_back(ic._link);
+                            _internal_coupligns.push_back(new_ic);
+                        }
                     }
                 }
 
@@ -152,7 +167,7 @@ namespace cadmium {
                  * @param initial_time is the start time
                  */
                 void init(TIME initial_time) override {
-                    LOGGER::template log<cadmium::logger::logger_info>(formatter::log_info_init, initial_time, _model_id);
+                    LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::coor_info_init>(initial_time, _model_id);
 
                     _last = initial_time;
                     //init all subcoordinators and find next transition time.
@@ -180,14 +195,14 @@ namespace cadmium {
                  * @todo Merge the Collect output calls into the advance simulation as done with ICs and EICs routing
                  */
                 void collect_outputs(const TIME &t) override {
-                    LOGGER::template log<cadmium::logger::logger_info>(formatter::log_info_collect, t, _model_id);
+                    LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::coor_info_collect>(t, _model_id);
 
                     //collecting if necessary
                     if (_next < t) {
                         throw std::domain_error("Trying to obtain output when not internal event is scheduled");
                     } else if (_next == t) {
                         //log EOC
-                        LOGGER::template log<cadmium::logger::logger_message_routing>(formatter::log_routing_collect, _model_id);
+                        LOGGER::template log<cadmium::logger::logger_message_routing, cadmium::logger::coor_routing_eoc_collect>(t, _model_id);
 
                         // Fill all outboxes and clean the inboxes in the lower levels recursively
                         cadmium::dynamic::engine::collect_outputs_in_subcoordinators<TIME>(t, _subcoordinators);
@@ -220,17 +235,17 @@ namespace cadmium {
                     //clean outbox because messages are routed before calling this function at a higher level
                     _outbox = cadmium::dynamic::message_bags();
 
-                    LOGGER::template log<cadmium::logger::logger_info>(formatter::log_info_advance, _last, t, _model_id);
+                    LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::coor_info_advance>(_last, t, _model_id);
 
                     if (_next < t || t < _last ) {
                         throw std::domain_error("Trying to obtain output when out of the advance time scope");
                     } else {
 
                         //Route the messages standing in the outboxes to mapped inboxes following ICs and EICs
-                        LOGGER::template log<cadmium::logger::logger_message_routing>(formatter::log_routing_ic_collect, _model_id);
+                        LOGGER::template log<cadmium::logger::logger_message_routing, cadmium::logger::coor_routing_ic_collect>(t, _model_id);
                         cadmium::dynamic::engine::route_internal_coupled_messages_on_subcoordinators<TIME, LOGGER>(_internal_coupligns);
 
-                        LOGGER::template log<cadmium::logger::logger_message_routing>(formatter::log_routing_eic_collect, _model_id);
+                        LOGGER::template log<cadmium::logger::logger_message_routing, cadmium::logger::coor_routing_eic_collect>(t, _model_id);
                         cadmium::dynamic::engine::route_external_input_coupled_messages_on_subcoordinators<TIME, LOGGER>(_inbox, _external_input_couplings);
 
                         //recurse on advance_simulation

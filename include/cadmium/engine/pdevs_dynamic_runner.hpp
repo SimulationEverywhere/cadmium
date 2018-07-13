@@ -44,14 +44,14 @@ namespace cadmium {
              */
 
             //by default state changes get verbatim formatted and logged to cout
-            using default_logger=cadmium::logger::logger<cadmium::logger::logger_state, cadmium::logger::verbatim_formatter, cadmium::logger::cout_sink_provider>;
+            template<typename TIME>
+            using default_logger=cadmium::logger::logger<cadmium::logger::logger_state, cadmium::dynamic::logger::formatter<TIME>, cadmium::logger::cout_sink_provider>;
 
             //TODO: migrate specialization FEL behavior from CDBoost. At this point, there is no parametrized FEL.
-            template<class TIME, typename LOGGER=default_logger>
+            template<class TIME, typename LOGGER=default_logger<TIME>>
             class runner {
                 TIME _next; //next scheduled event
 
-                //TODO: handle the case that the model received is an atomic model.
                 cadmium::dynamic::engine::coordinator<TIME, LOGGER> _top_coordinator; //this only works for coupled models.
 
             public:
@@ -62,8 +62,8 @@ namespace cadmium {
                  */
                 explicit runner(std::shared_ptr<cadmium::dynamic::modeling::coupled<TIME>> coupled_model, const TIME &init_time)
                 : _top_coordinator(coupled_model) {
-                    LOGGER::template log<cadmium::logger::logger_global_time, TIME>(init_time);
-                    LOGGER::template log<cadmium::logger::logger_info, std::string>("Preparing model");
+                    LOGGER::template log<cadmium::logger::logger_global_time, cadmium::logger::run_global_time>(init_time);
+                    LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Preparing model");
                     _top_coordinator.init(init_time);
                     _next = _top_coordinator.next();
                 }
@@ -74,14 +74,14 @@ namespace cadmium {
                  * @return the TIME of the next event to happen when simulation stopped.
                  */
                 TIME run_until(const TIME &t) {
-                    LOGGER::template log<cadmium::logger::logger_info, std::string>("Starting run");
+                    LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Starting run");
                     while (_next < t) {
-                        LOGGER::template log<cadmium::logger::logger_global_time, TIME>(_next);
+                        LOGGER::template log<cadmium::logger::logger_global_time, cadmium::logger::run_global_time>(_next);
                         _top_coordinator.collect_outputs(_next);
                         _top_coordinator.advance_simulation(_next);
                         _next = _top_coordinator.next();
                     }
-                    LOGGER::template log<cadmium::logger::logger_info, std::string>("Finished run");
+                    LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Finished run");
                     return _next;
                 }
 
@@ -89,13 +89,13 @@ namespace cadmium {
                  * @brief runUntilPassivate starts the simulation and stops when there is no next internal event to happen.
                  */
                 void run_until_passivate() {
-                    LOGGER::template log<cadmium::logger::logger_info, std::string>("Starting run");
+                    LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Starting run");
                     while (_next != std::numeric_limits<TIME>::infinity()) {
                         LOGGER::template log<cadmium::logger::logger_global_time, TIME>(_next);
                         _top_coordinator.advance_simulation(_next);
                         _next = _top_coordinator.next();
                     }
-                    LOGGER::template log<cadmium::logger::logger_info, std::string>("Finished run");
+                    LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Finished run");
                 }
             };
         }

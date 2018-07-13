@@ -149,25 +149,25 @@ namespace cadmium {
                 auto& from_messages = get_messages<submodel_output_port>(from_bag);
                 auto& to_messages = get_messages<external_output_port>(messages);
                 to_messages.insert(to_messages.end(), from_messages.begin(), from_messages.end());
-                //log
-                auto log_routing_collect = [](decltype(from_messages) from, decltype(to_messages) to) -> std::string {
-                     std::ostringstream oss;
-                     oss << " in port ";
-                     oss << boost::typeindex::type_id<external_output_port>().pretty_name();
-                     oss << " has ";
-                     logger::implode(oss, to);
-                     oss << " routed from ";
-                     oss << boost::typeindex::type_id<submodel_output_port>().pretty_name();
-                     oss << " of model ";
-                     oss << boost::typeindex::type_id<submodel_from>().pretty_name();
-                     oss << " with messages ";
-                    logger::implode(oss, from);
-                     return oss.str();
-                };
-                LOGGER::template log<cadmium::logger::logger_message_routing,
-                                     decltype(log_routing_collect),
-                                     decltype(from_messages),
-                                     decltype(to_messages)>(log_routing_collect, from_messages, to_messages);
+
+                //logging data
+                std::ostringstream oss;
+                logger::implode(oss, from_messages);
+                std::string from_messages_str = oss.str();
+                std::string from_port_str = boost::typeindex::type_id<submodel_output_port >().pretty_name();
+
+                oss.clear();
+                oss.str("");
+                logger::implode(oss, to_messages);
+                std::string to_messages_str = oss.str();
+                std::string to_port_str = boost::typeindex::type_id<external_output_port>().pretty_name();
+
+                std::string from_model_str = boost::typeindex::type_id<submodel_from>().pretty_name();
+
+                LOGGER::template log<
+                        cadmium::logger::logger_message_routing,
+                        cadmium::logger::coor_routing_collect_eoc
+                >(from_messages_str, to_messages_str, from_port_str, to_port_str, from_model_str);
 
                 //iterate
                 collect_messages_by_eoc_impl<TIME, EOC, S-1, OUT_BAG, CST, LOGGER>::fill(messages, cst);
@@ -215,27 +215,24 @@ namespace cadmium {
                 auto& to_messages = cadmium::get_messages<to_port>(to_engine._inbox);
                 to_messages.insert(to_messages.end(), from_messages.begin(), from_messages.end());
 
-                //log
-                auto log_routing_collect = [](decltype(from_messages) from, decltype(to_messages) to) -> std::string {
-                     std::ostringstream oss;
-                     oss << " in port ";
-                     oss << boost::typeindex::type_id<to_port>().pretty_name();
-                     oss << " of model ";
-                     oss << boost::typeindex::type_id<to_model>().pretty_name();
-                     oss << " has ";
-                    logger::implode(oss, to);
-                     oss << " routed from ";
-                     oss << boost::typeindex::type_id<from_port>().pretty_name();
-                     oss << " of model ";
-                     oss << boost::typeindex::type_id<from_model>().pretty_name();
-                     oss << " with messages ";
-                    logger::implode(oss, from);
-                     return oss.str();
-                };
-                LOGGER::template log<cadmium::logger::logger_message_routing,
-                                     decltype(log_routing_collect),
-                                     decltype(from_messages),
-                                     decltype(to_messages)>(log_routing_collect, from_messages, to_messages);
+                //logging data
+                std::ostringstream oss;
+                logger::implode(oss, from_messages);
+                std::string from_messages_str = oss.str();
+                std::string from_port_str = boost::typeindex::type_id<from_port>().pretty_name();
+                std::string from_model_str = boost::typeindex::type_id<from_model>().pretty_name();
+
+                oss.clear();
+                oss.str("");
+                logger::implode(oss, to_messages);
+                std::string to_messages_str = oss.str();
+                std::string to_port_str = boost::typeindex::type_id<to_port>().pretty_name();
+                std::string to_model_str = boost::typeindex::type_id<to_model>().pretty_name();
+
+                LOGGER::template log<
+                        cadmium::logger::logger_message_routing,
+                        cadmium::logger::coor_routing_collect_ic
+                >(from_messages_str, to_messages_str, from_port_str, from_model_str, to_port_str, to_model_str);
 
                 //iterate
                 route_internal_coupled_messages_on_subcoordinators_impl<TIME, CST, ICs, S-1, LOGGER>::route(t, engines);
@@ -268,25 +265,24 @@ namespace cadmium {
                 auto& to_messages = cadmium::get_messages<to_port>(to_engine._inbox);
                 to_messages.insert(to_messages.end(), from_messages.begin(), from_messages.end());
 
-                //log
-                auto log_routing_collect = [](decltype(from_messages) from, decltype(to_messages) to) -> std::string {
-                     std::ostringstream oss;
-                     oss << " in port ";
-                     oss << boost::typeindex::type_id<to_port>().pretty_name();
-                     oss << " of model ";
-                     oss << boost::typeindex::type_id<to_model>().pretty_name();
-                     oss << " has ";
-                    logger::implode(oss, to);
-                     oss << " routed from ";
-                     oss << boost::typeindex::type_id<from_port>().pretty_name();
-                     oss << " with messages ";
-                    logger::implode(oss, from);
-                     return oss.str();
-                };
-                LOGGER::template log<cadmium::logger::logger_message_routing,
-                                     decltype(log_routing_collect),
-                                     decltype(from_messages),
-                                     decltype(to_messages)>(log_routing_collect, from_messages, to_messages);
+                //logging data
+                std::ostringstream oss;
+                logger::implode(oss, from_messages);
+                std::string from_messages_str = oss.str();
+                std::string from_port_str = boost::typeindex::type_id<from_port>().pretty_name();
+
+                oss.clear();
+                oss.str("");
+                logger::implode(oss, to_messages);
+                std::string to_messages_str = oss.str();
+                std::string to_port_str = boost::typeindex::type_id<to_port>().pretty_name();
+
+                std::string to_model_str = boost::typeindex::type_id<to_model>().pretty_name();
+
+                LOGGER::template log<
+                        cadmium::logger::logger_message_routing,
+                        cadmium::logger::coor_routing_collect_eic
+                >(from_messages_str, to_messages_str, to_port_str, to_model_str, from_port_str);
 
                 //iterate
                 route_external_input_coupled_messages_on_subcoordinators_impl<TIME, INBAGS, CST, EICs, S-1, LOGGER>::route(t, inbox, engines);

@@ -44,7 +44,6 @@ namespace cadmium {
             template<typename TIME, typename LOGGER>
             class simulator : public engine<TIME> {
                 using model_type=typename cadmium::dynamic::modeling::atomic_abstract<TIME>;
-                using formatter=typename cadmium::dynamic::logger::simulator_formatter<TIME>;
 
                 std::shared_ptr<cadmium::dynamic::modeling::atomic_abstract<TIME>> _model;
                 TIME _last;
@@ -66,12 +65,12 @@ namespace cadmium {
                  * @param initial_time is the start time
                  */
                 void init(TIME initial_time) override {
-                    LOGGER::template log<cadmium::logger::logger_info>(formatter::log_info_init, initial_time, _model->get_id());
+                    LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::sim_info_init>(initial_time, _model->get_id());
 
                     _last = initial_time;
                     _next = initial_time + _model->time_advance();
 
-                    LOGGER::template log<cadmium::logger::logger_state>(formatter::log_state, _model->get_id(), _model->model_state_as_string());
+                    LOGGER::template log<cadmium::logger::logger_state, cadmium::logger::sim_state>(initial_time, _model->get_id(), _model->model_state_as_string());
                 }
 
                 std::string get_model_id() const override {
@@ -83,7 +82,7 @@ namespace cadmium {
                 }
 
                 void collect_outputs(const TIME &t) override {
-                LOGGER::template log<cadmium::logger::logger_info>(formatter::log_info_collect, t, _model->get_id());
+                LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::sim_info_collect>(t, _model->get_id());
 
                     // Cleaning the inbox and producing outbox
                     _inbox = cadmium::dynamic::message_bags();
@@ -97,7 +96,7 @@ namespace cadmium {
                     }
 
                     std::string messages_by_port = _model->messages_by_port_as_string(_outbox);
-                    LOGGER::template log<cadmium::logger::logger_messages>(formatter::log_messages_collect, _model->get_id(), messages_by_port);
+                    LOGGER::template log<cadmium::logger::logger_messages, cadmium::logger::sim_messages_collect>(t, _model->get_id(), messages_by_port);
                 }
 
                 /**
@@ -123,8 +122,8 @@ namespace cadmium {
                     //clean outbox because messages are routed before calling this function at a higher level
                     _outbox = cadmium::dynamic::message_bags();
 
-                    LOGGER::template log<cadmium::logger::logger_info>(formatter::log_info_advance, _last, t, _model->get_id());
-                    LOGGER::template log<cadmium::logger::logger_local_time>(formatter::log_local_time, _last, t, _model->get_id());
+                    LOGGER::template log<cadmium::logger::logger_info,cadmium::logger::sim_info_advance>(_last, t, _model->get_id());
+                    LOGGER::template log<cadmium::logger::logger_local_time,cadmium::logger::sim_local_time>(_last, t, _model->get_id());
 
                     if (t < _last) {
                         throw std::domain_error("Event received for executing in the past of current simulation time");
@@ -155,7 +154,7 @@ namespace cadmium {
                         }
                     }
 
-                    LOGGER::template log<cadmium::logger::logger_state>(formatter::log_state, _model->get_id(), _model->model_state_as_string());
+                    LOGGER::template log<cadmium::logger::logger_state,cadmium::logger::sim_state>(t, _model->get_id(), _model->model_state_as_string());
                 }
             };
         }

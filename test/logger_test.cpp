@@ -57,10 +57,10 @@ BOOST_AUTO_TEST_CASE( log_nothing_test )
     oss.str("");
 
     //logger definition
-    cadmium::logger::logger<cadmium::logger::logger_info, cadmium::logger::verbatim_formatter, oss_test_sink_provider> l;
+    cadmium::logger::logger<cadmium::logger::logger_info, cadmium::logger::formatter<float>, oss_test_sink_provider> l;
 
     //log usage in different source
-    l.log<cadmium::logger::logger_debug, std::string>("nothing to show");
+    l.log<cadmium::logger::logger_debug, cadmium::logger::run_info>("nothing to show");
 
     BOOST_CHECK(oss.str().empty());
 }
@@ -70,10 +70,10 @@ BOOST_AUTO_TEST_CASE( simple_logger_logs_test )
     oss.str("");
 
     //logger definition
-    cadmium::logger::logger<cadmium::logger::logger_info, cadmium::logger::verbatim_formatter, oss_test_sink_provider> l;
+    cadmium::logger::logger<cadmium::logger::logger_info, cadmium::logger::formatter<float>, oss_test_sink_provider> l;
 
     //log usage in different source
-    l.log<cadmium::logger::logger_info, std::string>("something to show");
+    l.log<cadmium::logger::logger_info, cadmium::logger::run_info>("something to show");
 
     BOOST_CHECK_EQUAL(oss.str(), "something to show\n");
 
@@ -84,14 +84,14 @@ BOOST_AUTO_TEST_CASE( multiple_loggers_test )
     oss.str("");
     oss2.str("");
     //loggers definition
-    using log1=cadmium::logger::logger<cadmium::logger::logger_info, cadmium::logger::verbatim_formatter, oss_test_sink_provider>;
-    using log2=cadmium::logger::logger<cadmium::logger::logger_debug, cadmium::logger::verbatim_formatter, oss_test_second_sink_provider>;
+    using log1=cadmium::logger::logger<cadmium::logger::logger_info, cadmium::logger::formatter<float>, oss_test_sink_provider>;
+    using log2=cadmium::logger::logger<cadmium::logger::logger_debug, cadmium::logger::formatter<float>, oss_test_second_sink_provider>;
 
     cadmium::logger::multilogger<log1, log2> l;
 
     //log usage in different source
-    l.log<cadmium::logger::logger_info, std::string>("some info");
-    l.log<cadmium::logger::logger_debug, std::string>("some debug");
+    l.log<cadmium::logger::logger_info, cadmium::logger::run_info>("some info");
+    l.log<cadmium::logger::logger_debug, cadmium::logger::run_info>("some debug");
 
     BOOST_CHECK_EQUAL(oss.str(), "some info\n");
     BOOST_CHECK_EQUAL(oss2.str(), "some debug\n");
