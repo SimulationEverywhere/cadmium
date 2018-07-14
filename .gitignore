@@ -57,3 +57,4 @@ test_executable*
 *_example
 Testing
 Cadmium.build
+coverage.info
