@@ -5,7 +5,14 @@ set (Cadmium_VERSION_MAJOR 0)
 set (Cadmium_VERSION_MINOR 2)
 set (Cadmium_VERSION_PATCH 3)
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake-modules")
+
 include(CheckCXXCompilerFlag)
+IF(CMAKE_BUILD_TYPE MATCHES Debug)
+    message("debug mode")
+    include(CodeCoverage)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS_DEBUG} -Wall -g -O0 -fprofile-arcs -ftest-coverage")
+ENDIF(CMAKE_BUILD_TYPE MATCHES Debug)
 
 set(Boost_USE_MULTITHREADED OFF)
 find_package(Boost COMPONENTS unit_test_framework REQUIRED)
@@ -14,18 +21,17 @@ add_library(Cadmium INTERFACE)
 
 include_directories(include ${Boost_INCLUDE_DIRS})
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic")
+
 # Check for standard to use
 check_cxx_compiler_flag(-std=c++17 HAVE_FLAG_STD_CXX17)
 if(HAVE_FLAG_STD_CXX17)
     message(STATUS "Using C++17 flag")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic --std=c++17")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++17")
 else()
     message(STATUS "Using C++1z flag")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic --std=c++1z")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++1z")
 endif()
-
-
-#link_libraries(${Boost_EXCEPTION})
 
 enable_testing()
 # Unit tests
