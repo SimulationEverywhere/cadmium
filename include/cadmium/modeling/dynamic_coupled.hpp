@@ -37,14 +37,13 @@ namespace cadmium {
             template<typename TIME>
             class coupled : public cadmium::dynamic::modeling::model {
             public:
+                std::string _id;
                 Models _models;
                 Ports _input_ports;
                 Ports _output_ports;
                 EICs _eic;
                 EOCs _eoc;
                 ICs _ic;
-
-                std::string _id;
 
                 coupled() = delete;
 

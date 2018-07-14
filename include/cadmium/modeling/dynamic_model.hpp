@@ -61,8 +61,8 @@ namespace cadmium {
             };
 
             struct IC {
-                std::string _to;
                 std::string _from;
+                std::string _to;
                 std::shared_ptr<cadmium::dynamic::engine::link_abstract> _link;
 
                 IC() = delete;
