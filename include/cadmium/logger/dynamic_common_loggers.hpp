@@ -57,17 +57,17 @@ namespace cadmium {
                         std::string from_p,
                         std::string to_p
                 ) :
-                        from_messages(from_msgs),
-                        to_messages(to_msgs),
                         from_port(from_p),
-                        to_port(to_p)
+                        to_port(to_p),
+                        from_messages(from_msgs),
+                        to_messages(to_msgs)
                 {}
 
                 routed_messages(const routed_messages& other) :
-                        from_messages(other.from_messages),
-                        to_messages(other.to_messages),
                         from_port(other.from_port),
-                        to_port(other.to_port)
+                        to_port(other.to_port),
+                        from_messages(other.from_messages),
+                        to_messages(other.to_messages)
                 {}
 
             };

@@ -139,8 +139,6 @@ namespace cadmium {
                     using bag_type = decltype(b);
                     using port_type = typename bag_type::port;
 
-                    bag_type& current_bag = std::get<bag_type>(bs);
-
                     if (bags.find(typeid(port_type)) != bags.end()) {
                         bag_type b2 = boost::any_cast<bag_type>(bags.at(typeid(port_type)));
                         auto& current_bag = cadmium::get_messages<port_type>(bs);
