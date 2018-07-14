@@ -40,7 +40,7 @@
 BOOST_AUTO_TEST_SUITE( pdevs_dynamic_engine_helpers_test_suite )
     BOOST_AUTO_TEST_CASE(check_all_bags_empty_on_dynamic_empty_box_is_true){
 //This test is suppose to pass only in CPP17 compilers, skipping in older compilers
-#if __cplusplus > 201702
+#if __cplusplus > 201702 && defined (DYNAMIC_ENGINE)
         //Define a tuple of bags (static version)
         struct test_in_0: public cadmium::in_port<int>{};
         struct test_in_1: public cadmium::in_port<double>{};
@@ -61,7 +61,7 @@ BOOST_AUTO_TEST_SUITE( pdevs_dynamic_engine_helpers_test_suite )
 
     BOOST_AUTO_TEST_CASE(check_all_bags_empty_on_dynamic_non_empty_box_is_false){
 //This test is suppose to pass only in CPP17 compilers, skipping in older compilers
-#if __cplusplus > 201702
+#if __cplusplus > 201702 && defined (DYNAMIC_ENGINE) 
         //Create a box with bags with messages
         struct test_in_0: public cadmium::in_port<int>{};
         struct test_in_1: public cadmium::in_port<double>{};
