@@ -11,7 +11,7 @@ project cadmium
         <include>$(BOOST_ROOT)
         <include>include
         <cxxflags>-pedantic
-        <cxxflags>-std=c++1z
+        <cxxflags>-std=c++17
     : build-dir ./build
 ;
 
