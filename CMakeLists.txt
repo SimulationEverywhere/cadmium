@@ -7,6 +7,7 @@ set (Cadmium_VERSION_PATCH 3)
 
 include(CheckCXXCompilerFlag)
 
+set(Boost_USE_MULTITHREADED OFF)
 find_package(Boost COMPONENTS unit_test_framework REQUIRED)
 
 add_library(Cadmium INTERFACE)
@@ -16,10 +17,15 @@ include_directories(include ${Boost_INCLUDE_DIRS})
 # Check for standard to use
 check_cxx_compiler_flag(-std=c++17 HAVE_FLAG_STD_CXX17)
 if(HAVE_FLAG_STD_CXX17)
+    message(STATUS "Using C++17 flag")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic --std=c++17")
 else()
+    message(STATUS "Using C++1z flag")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic --std=c++1z")
 endif()
+
+
+#link_libraries(${Boost_EXCEPTION})
 
 enable_testing()
 # Unit tests
@@ -27,7 +33,7 @@ FILE(GLOB TestSources RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} test/*_test.cpp)
 foreach(testSrc ${TestSources})
         get_filename_component(testName ${testSrc} NAME_WE)
         add_executable(${testName} test/main-test.cpp ${testSrc})
-        target_link_libraries(${testName} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+        target_link_libraries(${testName} PUBLIC ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 	add_test(${testName} ${testName})
 endforeach(testSrc)
 
