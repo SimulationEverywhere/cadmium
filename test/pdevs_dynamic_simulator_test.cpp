@@ -47,7 +47,7 @@ BOOST_AUTO_TEST_SUITE( pdevs_accumulator_suite )
 BOOST_AUTO_TEST_CASE( accumulator_model_dynamic_simulation_test )
 {
 //This test is suppose to pass only in CPP17 compilers, skipping in older compilers
-#if __cplusplus > 201702
+#if __cplusplus > 201702 && defined (DYNAMIC_ENGINE)
     //construct a simulator for an accumulator
     std::shared_ptr<cadmium::dynamic::modeling::atomic_abstract<float>> upModel = cadmium::dynamic::translate::make_dynamic_atomic_model<int_accumulator, float>();
     cadmium::dynamic::engine::simulator<float, cadmium::logger::not_logger> s(upModel);
