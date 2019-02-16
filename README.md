@@ -1,4 +1,5 @@
-# cadmium [![Build Status](https://travis-ci.org/SimulationEverywhere/cadmium.svg?branch=master)](https://travis-ci.org/SimulationEverywhere/cadmium) [![License](https://img.shields.io/badge/License-BSD%202--Clause-orange.svg)](https://opensource.org/licenses/BSD-2-Clause) [![codecov](https://codecov.io/gh/sdavtaker/cadmium/branch/master/graph/badge.svg)](https://codecov.io/gh/sdavtaker/cadmium)
+# cadmium [![Build Status](https://travis-ci.org/SimulationEverywhere/cadmium.svg?branch=master)](https://travis-ci.org/SimulationEverywhere/cadmium) [![License](https://img.shields.io/badge/License-BSD%202--Clause-orange.svg)](https://opensource.org/licenses/BSD-2-Clause) [![codecov](https://codecov.io/gh/sdavtaker/cadmium/branch/master/graph/badge.svg)](https://codecov.io/gh/sdavtaker/cadmium) [![DOI](https://zenodo.org/badge/68416727.svg)](https://zenodo.org/badge/latestdoi/68416727)
+
 
 ## Introduction
 This library provides model classes for multiple Discrete-Event Simulation formalisms and the tools to simulate those models.
