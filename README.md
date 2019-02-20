@@ -12,7 +12,7 @@ This project goal is replace CD++ with a more flexible and better performant imp
 * Time representation is independent of model implementation.
 
 ## Quick start
-###Requirements
+### Requirements
 * A C++14 compliant compiler. 
 
 ### Install
