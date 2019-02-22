@@ -34,6 +34,7 @@
 #include <boost/any.hpp>
 #include <boost/thread.hpp>
 #include <boost/asio.hpp>
+#include <boost/bind.hpp>
 
 boost::asio::thread_pool threadpool(boost::thread::hardware_concurrency());
 
@@ -103,14 +104,20 @@ namespace cadmium {
 
             template<typename TIME>
             void advance_simulation_in_subengines(TIME t, subcoordinators_type<TIME>& subcoordinators) {
-                auto advance_time= [&t](auto & c)->void { c->advance_simulation(t); };
-                std::for_each(subcoordinators.begin(), subcoordinators.end(), boost::asio::post(pool, advance_time));
+                auto advance_time= [&t](auto &c)->void { c->advance_simulation(t); };
+                auto async_advance_time = [&advance_time, &threadpool, &t](auto & c)->void {
+                  boost::asio::post(threadpool, boost::bind<void>(advance_time, c));
+                };
+
+                std::for_each(subcoordinators.begin(), subcoordinators.end(), async_advance_time);
+
+                threadpool.join();
             }
 
             template<typename TIME>
             void collect_outputs_in_subcoordinators(TIME t, subcoordinators_type<TIME>& subcoordinators) {
                 auto collect_output = [&t](auto & c)->void { c->collect_outputs(t); };
-                std::for_each(subcoordinators.begin(), subcoordinators.end(), boost::asio::post(pool, collect_output));
+                std::for_each(subcoordinators.begin(), subcoordinators.end(), collect_output);
             }
 
             template<typename TIME, typename LOGGER>
@@ -124,7 +131,7 @@ namespace cadmium {
                         LOGGER::template log<cadmium::logger::logger_message_routing, cadmium::logger::coor_routing_collect>(message_to_log.from_port, message_to_log.to_port, message_to_log.from_messages, message_to_log.to_messages);
                     }
                 };
-                std::for_each(coupling.begin(), coupling.end(), boost::asio::post(pool, collect_output));
+                std::for_each(coupling.begin(), coupling.end(), collect_output);
                 return ret;
             }
 
@@ -138,7 +145,7 @@ namespace cadmium {
                         LOGGER::template log<cadmium::logger::logger_message_routing, cadmium::logger::coor_routing_collect>(message_to_log.from_port, message_to_log.to_port, message_to_log.from_messages, message_to_log.to_messages);
                     }
                 };
-                std::for_each(coupling.begin(), coupling.end(), boost::asio::post(pool, route_messages));
+                std::for_each(coupling.begin(), coupling.end(), route_messages);
             }
 
             template<typename TIME, typename LOGGER>
@@ -152,7 +159,7 @@ namespace cadmium {
                         LOGGER::template log<cadmium::logger::logger_message_routing, cadmium::logger::coor_routing_collect>(message_to_log.from_port, message_to_log.to_port, message_to_log.from_messages, message_to_log.to_messages);
                     }
                 };
-                std::for_each(coupling.begin(), coupling.end(), boost::asio::post(pool, route_messages));
+                std::for_each(coupling.begin(), coupling.end(), route_messages);
             }
 
             template<typename TIME>
