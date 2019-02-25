@@ -115,13 +115,18 @@ namespace cadmium {
             }
 
             template<typename TIME>
-            void collect_outputs_in_subcoordinators(TIME t, subcoordinators_type<TIME>& subcoordinators) {
+            void collect_outputs_in_subcoordinators(TIME t, subcoordinators_type<TIME>& subcoordinators, boost::basic_thread_pool* threadpool) {
                 auto collect_output = [&t](auto & c)->void { c->collect_outputs(t); };
-                std::for_each(subcoordinators.begin(), subcoordinators.end(), collect_output);
+                if (threadpool == nullptr) {
+                    std::for_each(subcoordinators.begin(), subcoordinators.end(), collect_output);
+                } else {
+                    cadmium::concurrency::concurrent_for_each(*threadpool, subcoordinators.begin(),
+                                                         subcoordinators.end(), collect_output);
+                }
             }
 
             template<typename TIME, typename LOGGER>
-            cadmium::dynamic::message_bags collect_messages_by_eoc(const external_couplings<TIME>& coupling) {
+            cadmium::dynamic::message_bags collect_messages_by_eoc(const external_couplings<TIME>& coupling, boost::basic_thread_pool* threadpool) {
                 cadmium::dynamic::message_bags ret;
                 auto collect_output = [&ret](auto & c)->void {
                     cadmium::dynamic::message_bags outbox = c.first->outbox();
@@ -131,12 +136,18 @@ namespace cadmium {
                         LOGGER::template log<cadmium::logger::logger_message_routing, cadmium::logger::coor_routing_collect>(message_to_log.from_port, message_to_log.to_port, message_to_log.from_messages, message_to_log.to_messages);
                     }
                 };
-                std::for_each(coupling.begin(), coupling.end(), collect_output);
+
+                if (threadpool == nullptr) {
+                    std::for_each(coupling.begin(), coupling.end(), collect_output);
+                } else {
+                    cadmium::concurrency::concurrent_for_each(*threadpool, coupling.begin(),
+                                                         coupling.end(), collect_output);
+                }
                 return ret;
             }
 
             template<typename TIME, typename LOGGER>
-            void route_external_input_coupled_messages_on_subcoordinators(cadmium::dynamic::message_bags inbox, const external_couplings<TIME>& coupling) {
+            void route_external_input_coupled_messages_on_subcoordinators(cadmium::dynamic::message_bags inbox, const external_couplings<TIME>& coupling, boost::basic_thread_pool* threadpool) {
                 auto route_messages = [&inbox](auto & c)->void {
                     for (const auto& l : c.second) {
                         auto& to_inbox = c.first->inbox();
@@ -145,11 +156,17 @@ namespace cadmium {
                         LOGGER::template log<cadmium::logger::logger_message_routing, cadmium::logger::coor_routing_collect>(message_to_log.from_port, message_to_log.to_port, message_to_log.from_messages, message_to_log.to_messages);
                     }
                 };
-                std::for_each(coupling.begin(), coupling.end(), route_messages);
+
+                if (threadpool == nullptr) {
+                    std::for_each(coupling.begin(), coupling.end(), route_messages);
+                } else {
+                    cadmium::concurrency::concurrent_for_each(*threadpool, coupling.begin(),
+                                                         coupling.end(), route_messages);
+                }
             }
 
             template<typename TIME, typename LOGGER>
-            void route_internal_coupled_messages_on_subcoordinators(const internal_couplings<TIME>& coupling) {
+            void route_internal_coupled_messages_on_subcoordinators(const internal_couplings<TIME>& coupling, boost::basic_thread_pool* threadpool) {
                 auto route_messages = [](auto & c)->void {
                     for (const auto& l : c.second) {
                         auto& from_outbox = c.first.first->outbox();
@@ -159,7 +176,12 @@ namespace cadmium {
                         LOGGER::template log<cadmium::logger::logger_message_routing, cadmium::logger::coor_routing_collect>(message_to_log.from_port, message_to_log.to_port, message_to_log.from_messages, message_to_log.to_messages);
                     }
                 };
-                std::for_each(coupling.begin(), coupling.end(), route_messages);
+                if (threadpool == nullptr) {
+                    std::for_each(coupling.begin(), coupling.end(), route_messages);
+                } else {
+                    cadmium::concurrency::concurrent_for_each(*threadpool, coupling.begin(),
+                                                         coupling.end(), route_messages);
+                }
             }
 
             template<typename TIME>
