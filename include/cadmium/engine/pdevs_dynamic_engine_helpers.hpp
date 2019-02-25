@@ -29,7 +29,7 @@
 
 #include <cadmium/modeling/dynamic_message_bag.hpp>
 #include <cadmium/engine/pdevs_dynamic_engine.hpp>
-#include <cadmium/engine/common_helpers.hpp>
+#include <cadmium/engine/concurrency_helpers.hpp>
 #include <cadmium/logger/common_loggers.hpp>
 
 #include <boost/any.hpp>
@@ -109,7 +109,7 @@ namespace cadmium {
                 if (threadpool == nullptr) {
                     std::for_each(subcoordinators.begin(), subcoordinators.end(), advance_time);
                 } else {
-                    cadmium::helper::concurrent_for_each(*threadpool, subcoordinators.begin(),
+                    cadmium::concurrency::concurrent_for_each(*threadpool, subcoordinators.begin(),
                                                          subcoordinators.end(), advance_time);
                 }
             }

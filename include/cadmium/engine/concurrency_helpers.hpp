@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2018, Laouen M. L. Belloli
+ * Copyright (c) 2019, Juan Lanuza
  * Carleton University, Universidad de Buenos Aires
  * All rights reserved.
  *
@@ -24,42 +24,37 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CADMIUM_COMMON_HELPERS_HPP
-#define CADMIUM_COMMON_HELPERS_HPP
+#ifndef CADMIUM_CONCURRENCY_HELPERS_HPP
+#define CADMIUM_CONCURRENCY_HELPERS_HPP
 
-#include <tuple>
 #include <vector>
-#include <sstream>
+
+#define BOOST_THREAD_PROVIDES_FUTURE
+#include <boost/thread/executors/basic_thread_pool.hpp>
+#include <boost/thread/future.hpp>
 
 namespace cadmium {
-    namespace helper {
+    namespace concurrency {
+        /*
+         * for_each that runs using a thread_pool (assumed without running tasks),
+         * and waits por all tasks to finish until it returns
+         */
+        template<typename ITERATOR, typename FUNC>
+        void concurrent_for_each(boost::basic_thread_pool& threadpool, ITERATOR first, ITERATOR last, FUNC& f) {
+          std::vector<boost::future<void> > task_statuses;
 
-        //Generic tuple for_each function
-        template<typename TUPLE, typename FUNC>
-        void for_each(TUPLE& ts, FUNC&& f) {
+          for (; first != last; ++first) {
+            boost::packaged_task<void> task(boost::bind<void>(f, *first));
+            task_statuses.push_back(task.get_future());
 
-            auto for_each_fold_expression = [&f](auto &... e)->void { (f(e) , ...); };
-            std::apply(for_each_fold_expression, ts);
+            threadpool.submit(std::move(task));
+          }
+          auto wait_until_done = [](auto &t)->void { t.wait(); };
+          std::for_each(task_statuses.begin(), task_statuses.end(), wait_until_done);
         }
 
-        std::string join(std::vector<std::string> v) {
-            std::ostringstream oss;
-            oss << "{";
-            auto it = v.begin();
-            if (it != v.end()) {
-                oss << *it;
-                ++it;
-            }
-            while (it != v.end()){
-                oss << ", ";
-                oss << *it;
-                ++it;
-            }
-            oss << "}";
-            return oss.str();
-        }
 
     }
 }
 
-#endif //CADMIUM_COMMON_HELPERS_HPP
+#endif //CADMIUM_CONCURRENCY_HELPERS_HPP
