@@ -73,7 +73,9 @@ endforeach(testCmpFailSrc)
 
 # Examples
 add_executable(clock_example example/main-clock.cpp)
+target_link_libraries(clock_example PUBLIC ${Boost_LIBRARIES})
 add_executable(count_fives_example example/main-count-fives.cpp)
+target_link_libraries(count_fives_example PUBLIC ${Boost_LIBRARIES})
 
 #Library Headers
 add_executable(cadmium_headers include)
