@@ -15,8 +15,7 @@ IF(CMAKE_BUILD_TYPE MATCHES Debug)
 ENDIF(CMAKE_BUILD_TYPE MATCHES Debug)
 
 set(Boost_USE_MULTITHREADED ON)
-find_package(Boost 1.67.0 COMPONENTS filesystem system thread unit_test_framework REQUIRED)
-find_package(Threads)
+find_package(Boost COMPONENTS unit_test_framework system thread REQUIRED)
 
 add_library(Cadmium INTERFACE)
 
@@ -40,8 +39,8 @@ FILE(GLOB TestSources RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} test/*_test.cpp)
 foreach(testSrc ${TestSources})
         get_filename_component(testName ${testSrc} NAME_WE)
         add_executable(${testName} test/main-test.cpp ${testSrc})
-        target_link_libraries(${testName} PUBLIC ${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY} ${Boost_THREAD_LIBRARY} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${CMAKE_THREAD_LIBS_INIT})
-	add_test(${testName} ${testName})
+        target_link_libraries(${testName} PUBLIC ${Boost_LIBRARIES})
+	      add_test(${testName} ${testName})
 endforeach(testSrc)
 
 # Tests that should compile

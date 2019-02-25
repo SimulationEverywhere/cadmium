@@ -32,11 +32,11 @@
 #include <cadmium/logger/common_loggers.hpp>
 
 #include <boost/any.hpp>
-#include <boost/thread.hpp>
-#include <boost/asio.hpp>
 #include <boost/bind.hpp>
+#include <boost/thread.hpp>
+#include <boost/thread/executors/basic_thread_pool.hpp>
 
-boost::asio::thread_pool threadpool(boost::thread::hardware_concurrency());
+boost::basic_thread_pool threadpool;
 
 namespace cadmium {
     namespace dynamic {
@@ -106,7 +106,7 @@ namespace cadmium {
             void advance_simulation_in_subengines(TIME t, subcoordinators_type<TIME>& subcoordinators) {
                 auto advance_time= [&t](auto &c)->void { c->advance_simulation(t); };
                 auto async_advance_time = [&advance_time, &threadpool, &t](auto & c)->void {
-                  boost::asio::post(threadpool, boost::bind<void>(advance_time, c));
+                  threadpool.submit(boost::bind<void>(advance_time, c));
                 };
 
                 std::for_each(subcoordinators.begin(), subcoordinators.end(), async_advance_time);
