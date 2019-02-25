@@ -39,11 +39,6 @@
 
 #include <boost/thread/executors/basic_thread_pool.hpp>
 #include <boost/thread/future.hpp>
-#include <numeric>
-#include <algorithm>
-#include <functional>
-#include <iostream>
-#include <list>
 
 namespace cadmium {
     namespace dynamic {
@@ -104,26 +99,29 @@ namespace cadmium {
             using external_couplings = typename std::vector<external_coupling<TIME>>;
 
             template<typename TIME>
-            void init_subcoordinators(TIME t, subcoordinators_type<TIME>& subcoordinators) {
-                auto init_coordinator = [&t](auto & c)->void { c->init(t); };
+            void init_subcoordinators(TIME t, subcoordinators_type<TIME>& subcoordinators, boost::basic_thread_pool* threadpool) {
+                auto init_coordinator = [&t, threadpool](auto & c)->void { c->init(t, threadpool); };
                 std::for_each(subcoordinators.begin(), subcoordinators.end(), init_coordinator);
             }
 
             template<typename TIME>
-            void advance_simulation_in_subengines(TIME t, subcoordinators_type<TIME>& subcoordinators) {
-              boost::basic_thread_pool threadpool;
+            void advance_simulation_in_subengines(TIME t, subcoordinators_type<TIME>& subcoordinators, boost::basic_thread_pool* threadpool) {
               auto advance_time= [&t](auto &c)->void { c->advance_simulation(t); };
 
-              std::vector<boost::future<void> > advance_simulation_done;
-              for (auto coord: subcoordinators) {
-                boost::packaged_task<void> taskaaa(boost::bind<void>(advance_time, coord));
-                advance_simulation_done.push_back(taskaaa.get_future());
+              if (threadpool == nullptr) {
+                std::for_each(subcoordinators.begin(), subcoordinators.end(), advance_time);
+              } else {
+                std::vector<boost::future<void> > task_statuses;
+                for (auto coord: subcoordinators) {
+                  boost::packaged_task<void> taskaaa(boost::bind<void>(advance_time, coord));
+                  task_statuses.push_back(taskaaa.get_future());
 
-                threadpool.submit(std::move(taskaaa));
+                  threadpool->submit(std::move(taskaaa));
+                }
+
+                auto wait_until_done = [](auto &t)->void { t.wait(); };
+                std::for_each(task_statuses.begin(), task_statuses.end(), wait_until_done);
               }
-
-              auto wait_done = [](auto &t)->void { t.wait(); };
-              std::for_each(advance_simulation_done.begin(), advance_simulation_done.end(), wait_done);
             }
 
             template<typename TIME>

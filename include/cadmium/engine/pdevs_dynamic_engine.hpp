@@ -28,6 +28,7 @@
 #define CADMIUM_PDEVS_DYNAMIC_ENGINE_HPP
 
 #include <cadmium/modeling/dynamic_message_bag.hpp>
+#include <boost/thread/executors/basic_thread_pool.hpp>
 
 namespace cadmium {
     namespace dynamic {
@@ -43,6 +44,8 @@ namespace cadmium {
             class engine {
             public:
                 virtual void init(TIME initial_time) = 0;
+
+                virtual void init(TIME initial_time, boost::basic_thread_pool* threadpool) = 0;
 
                 virtual std::string get_model_id() const = 0;
 

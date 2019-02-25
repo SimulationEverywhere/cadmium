@@ -53,6 +53,8 @@ namespace cadmium {
                 external_couplings<TIME> _external_input_couplings;
                 internal_couplings<TIME> _internal_coupligns;
 
+                boost::basic_thread_pool* _threadpool;
+
             public:
 
                 dynamic::message_bags _inbox;
@@ -66,7 +68,7 @@ namespace cadmium {
                 coordinator() = delete;
 
                 coordinator(std::shared_ptr<model_type> coupled_model)
-                        : _model_id(coupled_model->get_id())
+                        : _model_id(coupled_model->get_id()), _threadpool(nullptr)
                 {
 
                     std::map<std::string, std::shared_ptr<engine<TIME>>> enginges_by_id;
@@ -171,9 +173,14 @@ namespace cadmium {
 
                     _last = initial_time;
                     //init all subcoordinators and find next transition time.
-                    cadmium::dynamic::engine::init_subcoordinators<TIME>(initial_time, _subcoordinators);
+                    cadmium::dynamic::engine::init_subcoordinators<TIME>(initial_time, _subcoordinators, _threadpool);
                     //find the one with the lowest next time
                     _next = cadmium::dynamic::engine::min_next_in_subcoordinators<TIME>(_subcoordinators);
+                }
+
+                void init(TIME initial_time, boost::basic_thread_pool* threadpool) {
+                    _threadpool = threadpool;
+                    this->init(initial_time);
                 }
 
                 std::string get_model_id() const override {
@@ -249,7 +256,7 @@ namespace cadmium {
                         cadmium::dynamic::engine::route_external_input_coupled_messages_on_subcoordinators<TIME, LOGGER>(_inbox, _external_input_couplings);
 
                         //recurse on advance_simulation
-                        cadmium::dynamic::engine::advance_simulation_in_subengines<TIME>(t, _subcoordinators);
+                        cadmium::dynamic::engine::advance_simulation_in_subengines<TIME>(t, _subcoordinators, _threadpool);
 
                         //set _last and _next
                         _last = t;

@@ -29,6 +29,9 @@
 
 #include <cadmium/engine/pdevs_dynamic_coordinator.hpp>
 
+// #include <boost/thread.hpp>
+#include <boost/thread/executors/basic_thread_pool.hpp>
+
 namespace cadmium {
     namespace dynamic {
         namespace engine {
@@ -54,17 +57,19 @@ namespace cadmium {
 
                 cadmium::dynamic::engine::coordinator<TIME, LOGGER> _top_coordinator; //this only works for coupled models.
 
+                boost::basic_thread_pool _threadpool;
             public:
                 //contructors
                 /**
                  * @brief set the dynamic parameters for the simulation
                  * @param init_time is the initial time of the simulation.
                  */
-                explicit runner(std::shared_ptr<cadmium::dynamic::modeling::coupled<TIME>> coupled_model, const TIME &init_time)
-                : _top_coordinator(coupled_model) {
+                explicit runner(std::shared_ptr<cadmium::dynamic::modeling::coupled<TIME>> coupled_model, const TIME &init_time, unsigned const thread_count = boost::thread::hardware_concurrency())
+                : _top_coordinator(coupled_model),
+                  _threadpool(thread_count){
                     LOGGER::template log<cadmium::logger::logger_global_time, cadmium::logger::run_global_time>(init_time);
                     LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Preparing model");
-                    _top_coordinator.init(init_time);
+                    _top_coordinator.init(init_time, &_threadpool);
                     _next = _top_coordinator.next();
                 }
 
