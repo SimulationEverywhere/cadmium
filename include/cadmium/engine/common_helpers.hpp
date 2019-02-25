@@ -31,6 +31,10 @@
 #include <vector>
 #include <sstream>
 
+#define BOOST_THREAD_PROVIDES_FUTURE
+#include <boost/thread/executors/basic_thread_pool.hpp>
+#include <boost/thread/future.hpp>
+
 namespace cadmium {
     namespace helper {
 
@@ -40,6 +44,24 @@ namespace cadmium {
 
             auto for_each_fold_expression = [&f](auto &... e)->void { (f(e) , ...); };
             std::apply(for_each_fold_expression, ts);
+        }
+
+        /*
+         * for_each that runs using a thread_pool (assumed without running tasks),
+         * and waits por all tasks to finish until it returns
+         */
+        template<typename ITERATOR, typename FUNC>
+        void concurrent_for_each(boost::basic_thread_pool& threadpool, ITERATOR first, ITERATOR last, FUNC& f) {
+          std::vector<boost::future<void> > task_statuses;
+
+          for (; first != last; ++first) {
+            boost::packaged_task<void> task(boost::bind<void>(f, *first));
+            task_statuses.push_back(task.get_future());
+
+            threadpool.submit(std::move(task));
+          }
+          auto wait_until_done = [](auto &t)->void { t.wait(); };
+          std::for_each(task_statuses.begin(), task_statuses.end(), wait_until_done);
         }
 
         std::string join(std::vector<std::string> v) {
