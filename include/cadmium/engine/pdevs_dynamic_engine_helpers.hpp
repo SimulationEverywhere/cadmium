@@ -27,6 +27,8 @@
 #ifndef CADMIUM_PDEVS_DYNAMIC_ENGINE_HELPERS_HPP
 #define CADMIUM_PDEVS_DYNAMIC_ENGINE_HELPERS_HPP
 
+#define BOOST_THREAD_PROVIDES_FUTURE
+
 #include <cadmium/modeling/dynamic_message_bag.hpp>
 #include <cadmium/engine/pdevs_dynamic_engine.hpp>
 #include <cadmium/logger/common_loggers.hpp>
@@ -34,9 +36,14 @@
 #include <boost/any.hpp>
 #include <boost/bind.hpp>
 #include <boost/thread.hpp>
-#include <boost/thread/executors/basic_thread_pool.hpp>
 
-boost::basic_thread_pool threadpool;
+#include <boost/thread/executors/basic_thread_pool.hpp>
+#include <boost/thread/future.hpp>
+#include <numeric>
+#include <algorithm>
+#include <functional>
+#include <iostream>
+#include <list>
 
 namespace cadmium {
     namespace dynamic {
@@ -104,14 +111,19 @@ namespace cadmium {
 
             template<typename TIME>
             void advance_simulation_in_subengines(TIME t, subcoordinators_type<TIME>& subcoordinators) {
-                auto advance_time= [&t](auto &c)->void { c->advance_simulation(t); };
-                auto async_advance_time = [&advance_time, &threadpool, &t](auto & c)->void {
-                  threadpool.submit(boost::bind<void>(advance_time, c));
-                };
+              boost::basic_thread_pool threadpool;
+              auto advance_time= [&t](auto &c)->void { c->advance_simulation(t); };
 
-                std::for_each(subcoordinators.begin(), subcoordinators.end(), async_advance_time);
+              std::vector<boost::future<void> > advance_simulation_done;
+              for (auto coord: subcoordinators) {
+                boost::packaged_task<void> taskaaa(boost::bind<void>(advance_time, coord));
+                advance_simulation_done.push_back(taskaaa.get_future());
 
-                threadpool.join();
+                threadpool.submit(std::move(taskaaa));
+              }
+
+              auto wait_done = [](auto &t)->void { t.wait(); };
+              std::for_each(advance_simulation_done.begin(), advance_simulation_done.end(), wait_done);
             }
 
             template<typename TIME>
