@@ -89,13 +89,7 @@ namespace cadmium {
                  * @brief runUntilPassivate starts the simulation and stops when there is no next internal event to happen.
                  */
                 void run_until_passivate() {
-                    LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Starting run");
-                    while (_next != std::numeric_limits<TIME>::infinity()) {
-                        LOGGER::template log<cadmium::logger::logger_global_time, TIME>(_next);
-                        _top_coordinator.advance_simulation(_next);
-                        _next = _top_coordinator.next();
-                    }
-                    LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Finished run");
+                    run_until(std::numeric_limits<TIME>::infinity());
                 }
             };
         }
