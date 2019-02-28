@@ -256,7 +256,7 @@ namespace cadmium {
                         cadmium::dynamic::engine::route_external_input_coupled_messages_on_subcoordinators<TIME, LOGGER>(_inbox, _external_input_couplings, _threadpool);
 
                         //recurse on advance_simulation
-                        cadmium::dynamic::engine::advance_simulation_in_subengines<TIME>(t, _subcoordinators, _threadpool);
+                        cadmium::dynamic::engine::advance_simulation_in_subengines<TIME>(t, _subcoordinators);
 
                         //set _last and _next
                         _last = t;
