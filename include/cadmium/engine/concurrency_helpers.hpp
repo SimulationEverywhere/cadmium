@@ -43,11 +43,18 @@ namespace cadmium {
         void concurrent_for_each(boost::basic_thread_pool& threadpool, ITERATOR first, ITERATOR last, FUNC& f) {
           std::vector<boost::future<void> > task_statuses;
 
-          for (; first != last; ++first) {
-            boost::packaged_task<void> task(boost::bind<void>(f, *first));
-            task_statuses.push_back(task.get_future());
+          //we start at the second task
+          if (first != last) {
+              for (ITERATOR it = std::next(first); it != last; ++it) {
+                  boost::packaged_task<void> task(boost::bind<void>(f, *it));
+                  task_statuses.push_back(task.get_future());
 
-            threadpool.submit(std::move(task));
+                  if(it != first)
+                  threadpool.submit(std::move(task));
+              }
+              // first task executes on the same thread
+              f(*first);
+
           }
           auto wait_until_done = [](auto &t)->void { t.wait(); };
           std::for_each(task_statuses.begin(), task_statuses.end(), wait_until_done);
