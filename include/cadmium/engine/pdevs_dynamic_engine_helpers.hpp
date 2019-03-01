@@ -103,10 +103,15 @@ namespace cadmium {
             }
 
             template<typename TIME>
-            void advance_simulation_in_subengines(TIME t, subcoordinators_type<TIME>& subcoordinators) {
+            void advance_simulation_in_subengines(TIME t, subcoordinators_type<TIME>& subcoordinators, boost::basic_thread_pool* threadpool) {
                 auto advance_time= [&t](auto &c)->void { c->advance_simulation(t); };
 
-                std::for_each(subcoordinators.begin(), subcoordinators.end(), advance_time);
+                if (threadpool == nullptr) {
+                    std::for_each(subcoordinators.begin(), subcoordinators.end(), advance_time);
+                } else {
+                    cadmium::concurrency::concurrent_for_each(*threadpool, subcoordinators.begin(),
+                                                         subcoordinators.end(), advance_time);
+                }
             }
 
             template<typename TIME>
