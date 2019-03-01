@@ -92,10 +92,8 @@ namespace cadmium {
              * @brief runUntilPassivate starts the simulation and stops when there is no next internal event to happen.
              */
             void run_until_passivate() {
-                LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Starting run");
                 static_assert(std::numeric_limits<TIME>::has_infinity, "TIME datatype has no infinity defined");
                 run_until(std::numeric_limits<TIME>::infinity());
-                LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Finished run");
             }
         };
     }
