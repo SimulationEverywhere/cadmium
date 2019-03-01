@@ -56,8 +56,12 @@ namespace cadmium {
               f(*first);
 
           }
-          auto wait_until_done = [](auto &t)->void { t.wait(); };
-          std::for_each(task_statuses.begin(), task_statuses.end(), wait_until_done);
+          auto thread_ready = [](auto& t){ return t.is_ready(); };
+          while(! std::all_of(task_statuses.begin(), task_statuses.end(), thread_ready) ){
+              threadpool.schedule_one_or_yield();
+          }
+          // auto wait_until_done = [](auto &t)->void { t.wait(); };
+          // std::for_each(task_statuses.begin(), task_statuses.end(), wait_until_done);
         }
 
 
