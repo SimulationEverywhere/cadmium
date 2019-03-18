@@ -51,10 +51,10 @@ namespace cadmium {
           }
           auto thread_ready = [](auto& t){ return t.is_ready(); };
           while(! std::all_of(task_statuses.begin(), task_statuses.end(), thread_ready) ){
+              // if there are tasks in the threadpool queue, the main thread executes one
               threadpool.schedule_one_or_yield();
           }
-          // auto wait_until_done = [](auto &t)->void { t.wait(); };
-          // std::for_each(task_statuses.begin(), task_statuses.end(), wait_until_done);
+          //when concurrent_for_each end threadpool queue is empty
         }
 
 

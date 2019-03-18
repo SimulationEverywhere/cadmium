@@ -29,7 +29,6 @@
 
 #include <cadmium/engine/pdevs_dynamic_coordinator.hpp>
 
-// #include <boost/thread.hpp>
 #include <boost/thread/executors/basic_thread_pool.hpp>
 
 namespace cadmium {

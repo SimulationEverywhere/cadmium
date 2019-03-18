@@ -32,10 +32,6 @@
 #include <cadmium/engine/concurrency_helpers.hpp>
 #include <cadmium/logger/common_loggers.hpp>
 
-#include <boost/any.hpp>
-#include <boost/bind.hpp>
-#include <boost/thread.hpp>
-
 #include <boost/thread/executors/basic_thread_pool.hpp>
 
 namespace cadmium {
