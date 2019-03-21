@@ -28,10 +28,11 @@
 #define CADMIUM_CONCURRENCY_HELPERS_HPP
 
 #include <vector>
+#include <functional>
+#include <future>
+#include <chrono>
 
-#define BOOST_THREAD_PROVIDES_FUTURE
 #include <boost/thread/executors/basic_thread_pool.hpp>
-#include <boost/thread/future.hpp>
 
 namespace cadmium {
     namespace concurrency {
@@ -41,16 +42,16 @@ namespace cadmium {
          */
         template<typename ITERATOR, typename FUNC>
         void concurrent_for_each(boost::basic_thread_pool& threadpool, ITERATOR first, ITERATOR last, FUNC& f) {
-          std::vector<boost::future<void> > task_statuses;
+          std::vector<std::future<void> > task_statuses;
 
           for (ITERATOR it = first; it != last; it++) {
-              boost::packaged_task<void> task(boost::bind<void>(f, *it));
+              std::packaged_task<void()> task(std::bind<void>(f, *it));
               task_statuses.push_back(task.get_future());
 
               threadpool.submit(std::move(task));
           }
-          auto thread_ready = [](auto& t){ return t.is_ready(); };
-          while(! std::all_of(task_statuses.begin(), task_statuses.end(), thread_ready) ){
+          auto future_ready = [](auto& f) -> bool { return f.wait_for(std::chrono::seconds(0)) == std::future_status::ready; };
+          while(! std::all_of(task_statuses.begin(), task_statuses.end(), future_ready) ){
               // if there are tasks in the threadpool queue, the main thread executes one
               threadpool.schedule_one_or_yield();
           }
