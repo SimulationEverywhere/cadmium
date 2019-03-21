@@ -13,10 +13,15 @@ This project goal is replace CD++ with a more flexible and better performant imp
 
 ## Quick start
 ### Requirements
-* A C++14 compliant compiler. 
+* A C++14 compliant compiler.
 
 ### Install
 * The library is headers only. Then, it is enough to put the include directory in the path the compiler looks up for them.
+
+### Running cadmium in concurrent mode
+By default, cadmium runs single threaded. There is also a concurrent version behind a flag, but it requires Boost.Thread library and some changes need to be made when compiling:
+* The preprocessor variable CADMIUM_EXECUTE_CONCURRENT should be defined (add '-DCADMIUM_EXECUTE_CONCURRENT' when compiling ).
+* Boost.Thread and Boost.System libraries should be linked (add '-lboost_system -lboost_thread')
 
 ### Building tests and examples
 * Boost.Test, if running the testsfor running the tests.
