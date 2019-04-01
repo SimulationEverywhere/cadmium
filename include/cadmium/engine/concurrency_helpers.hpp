@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2017, Laouen M. L. Belloli
+ * Copyright (c) 2019, Juan Lanuza
  * Carleton University, Universidad de Buenos Aires
  * All rights reserved.
  *
@@ -24,48 +24,42 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CADMIUM_PDEVS_DYNAMIC_ENGINE_HPP
-#define CADMIUM_PDEVS_DYNAMIC_ENGINE_HPP
+#ifndef CADMIUM_CONCURRENCY_HELPERS_HPP
+#define CADMIUM_CONCURRENCY_HELPERS_HPP
 
-#include <cadmium/modeling/dynamic_message_bag.hpp>
+#include <vector>
+#include <functional>
+#include <future>
+#include <chrono>
 
-#ifdef CADMIUM_EXECUTE_CONCURRENT
 #include <boost/thread/executors/basic_thread_pool.hpp>
-#endif
 
 namespace cadmium {
-    namespace dynamic {
-        namespace engine {
+    namespace concurrency {
+        /*
+         * for_each that runs using a thread_pool (assumed without running tasks),
+         * and waits por all tasks to finish until it returns
+         */
+        template<typename ITERATOR, typename FUNC>
+        void concurrent_for_each(boost::basic_thread_pool& threadpool, ITERATOR first, ITERATOR last, FUNC& f) {
+          std::vector<std::future<void> > task_statuses;
 
-            /**
-             * @brief Abstract class to allow pointer polymorphism between dynamic::coordinator
-             * and dynamic::atomic
-             *
-             * @tparam TIME
-             */
-            template<typename TIME>
-            class engine {
-            public:
-                virtual void init(TIME initial_time) = 0;
+          for (ITERATOR it = first; it != last; it++) {
+              std::packaged_task<void()> task(std::bind<void>(f, *it));
+              task_statuses.push_back(task.get_future());
 
-                #ifdef CADMIUM_EXECUTE_CONCURRENT
-                virtual void init(TIME initial_time, boost::basic_thread_pool* threadpool) = 0;
-                #endif
-
-                virtual std::string get_model_id() const = 0;
-
-                virtual TIME next() const noexcept = 0;
-
-                virtual void collect_outputs(const TIME &t) = 0;
-
-                virtual cadmium::dynamic::message_bags& outbox() = 0;
-
-                virtual cadmium::dynamic::message_bags& inbox() = 0;
-
-                virtual void advance_simulation(const TIME &t) = 0;
-            };
+              threadpool.submit(std::move(task));
+          }
+          auto future_ready = [](auto& f) -> bool { return f.wait_for(std::chrono::seconds(0)) == std::future_status::ready; };
+          while(! std::all_of(task_statuses.begin(), task_statuses.end(), future_ready) ){
+              // if there are tasks in the threadpool queue, the main thread executes one
+              threadpool.schedule_one_or_yield();
+          }
+          //when concurrent_for_each end threadpool queue is empty
         }
+
+
     }
 }
 
-#endif //CADMIUM_PDEVS_DYNAMIC_ENGINE_HPP
+#endif //CADMIUM_CONCURRENCY_HELPERS_HPP

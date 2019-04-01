@@ -31,7 +31,10 @@
 #include <cadmium/engine/pdevs_dynamic_engine.hpp>
 #include <cadmium/logger/common_loggers.hpp>
 
-#include <boost/any.hpp>
+#ifdef CADMIUM_EXECUTE_CONCURRENT
+#include <cadmium/engine/concurrency_helpers.hpp>
+#include <boost/thread/executors/basic_thread_pool.hpp>
+#endif //CADMIUM_EXECUTE_CONCURRENT
 
 namespace cadmium {
     namespace dynamic {
@@ -91,23 +94,58 @@ namespace cadmium {
             template<typename TIME>
             using external_couplings = typename std::vector<external_coupling<TIME>>;
 
+            #ifdef CADMIUM_EXECUTE_CONCURRENT
+            template<typename TIME>
+            void init_subcoordinators(TIME t, subcoordinators_type<TIME>& subcoordinators, boost::basic_thread_pool* threadpool) {
+                auto init_coordinator = [&t, threadpool](auto & c)->void { c->init(t, threadpool); };
+                std::for_each(subcoordinators.begin(), subcoordinators.end(), init_coordinator);
+            }
+            #else
             template<typename TIME>
             void init_subcoordinators(TIME t, subcoordinators_type<TIME>& subcoordinators) {
                 auto init_coordinator = [&t](auto & c)->void { c->init(t); };
                 std::for_each(subcoordinators.begin(), subcoordinators.end(), init_coordinator);
             }
+            #endif //CADMIUM_EXECUTE_CONCURRENT
 
+            #ifdef CADMIUM_EXECUTE_CONCURRENT
+            template<typename TIME>
+            void advance_simulation_in_subengines(TIME t, subcoordinators_type<TIME>& subcoordinators, boost::basic_thread_pool* threadpool) {
+                auto advance_time= [&t](auto &c)->void { c->advance_simulation(t); };
+
+                if (threadpool == nullptr) {
+                    std::for_each(subcoordinators.begin(), subcoordinators.end(), advance_time);
+                } else {
+                    cadmium::concurrency::concurrent_for_each(*threadpool, subcoordinators.begin(),
+                                                         subcoordinators.end(), advance_time);
+                }
+            }
+            #else
             template<typename TIME>
             void advance_simulation_in_subengines(TIME t, subcoordinators_type<TIME>& subcoordinators) {
-                auto advance_time= [&t](auto & c)->void { c->advance_simulation(t); };
+                auto advance_time= [&t](auto &c)->void { c->advance_simulation(t); };
                 std::for_each(subcoordinators.begin(), subcoordinators.end(), advance_time);
             }
+            #endif //CADMIUM_EXECUTE_CONCURRENT
 
+            #ifdef CADMIUM_EXECUTE_CONCURRENT
+            template<typename TIME>
+            void collect_outputs_in_subcoordinators(TIME t, subcoordinators_type<TIME>& subcoordinators, boost::basic_thread_pool* threadpool) {
+                auto collect_output = [&t](auto & c)->void { c->collect_outputs(t); };
+                if (threadpool == nullptr) {
+                    std::for_each(subcoordinators.begin(), subcoordinators.end(), collect_output);
+                } else {
+                    cadmium::concurrency::concurrent_for_each(*threadpool, subcoordinators.begin(),
+                                                         subcoordinators.end(), collect_output);
+                }
+            }
+            #else
             template<typename TIME>
             void collect_outputs_in_subcoordinators(TIME t, subcoordinators_type<TIME>& subcoordinators) {
                 auto collect_output = [&t](auto & c)->void { c->collect_outputs(t); };
                 std::for_each(subcoordinators.begin(), subcoordinators.end(), collect_output);
             }
+            #endif //CADMIUM_EXECUTE_CONCURRENT
 
             template<typename TIME, typename LOGGER>
             cadmium::dynamic::message_bags collect_messages_by_eoc(const external_couplings<TIME>& coupling) {
@@ -120,6 +158,7 @@ namespace cadmium {
                         LOGGER::template log<cadmium::logger::logger_message_routing, cadmium::logger::coor_routing_collect>(message_to_log.from_port, message_to_log.to_port, message_to_log.from_messages, message_to_log.to_messages);
                     }
                 };
+
                 std::for_each(coupling.begin(), coupling.end(), collect_output);
                 return ret;
             }
@@ -134,6 +173,7 @@ namespace cadmium {
                         LOGGER::template log<cadmium::logger::logger_message_routing, cadmium::logger::coor_routing_collect>(message_to_log.from_port, message_to_log.to_port, message_to_log.from_messages, message_to_log.to_messages);
                     }
                 };
+
                 std::for_each(coupling.begin(), coupling.end(), route_messages);
             }
 
@@ -148,6 +188,7 @@ namespace cadmium {
                         LOGGER::template log<cadmium::logger::logger_message_routing, cadmium::logger::coor_routing_collect>(message_to_log.from_port, message_to_log.to_port, message_to_log.from_messages, message_to_log.to_messages);
                     }
                 };
+
                 std::for_each(coupling.begin(), coupling.end(), route_messages);
             }
 

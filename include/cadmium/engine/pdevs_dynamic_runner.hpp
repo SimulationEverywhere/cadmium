@@ -29,6 +29,10 @@
 
 #include <cadmium/engine/pdevs_dynamic_coordinator.hpp>
 
+#ifdef CADMIUM_EXECUTE_CONCURRENT
+#include <boost/thread/executors/basic_thread_pool.hpp>
+#endif //CADMIUM_EXECUTE_CONCURRENT
+
 namespace cadmium {
     namespace dynamic {
         namespace engine {
@@ -54,20 +58,37 @@ namespace cadmium {
 
                 cadmium::dynamic::engine::coordinator<TIME, LOGGER> _top_coordinator; //this only works for coupled models.
 
+                #ifdef CADMIUM_EXECUTE_CONCURRENT
+                boost::basic_thread_pool _threadpool;
+                #endif //CADMIUM_EXECUTE_CONCURRENT
+
             public:
                 //contructors
                 /**
                  * @brief set the dynamic parameters for the simulation
                  * @param init_time is the initial time of the simulation.
                  */
+                #ifdef CADMIUM_EXECUTE_CONCURRENT
+                explicit runner(std::shared_ptr<cadmium::dynamic::modeling::coupled<TIME>> coupled_model, const TIME &init_time, unsigned const thread_count = boost::thread::hardware_concurrency())
+                : _top_coordinator(coupled_model),
+                  _threadpool(thread_count){
+                    LOGGER::template log<cadmium::logger::logger_global_time, cadmium::logger::run_global_time>(init_time);
+                    LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Preparing model");
+                    _top_coordinator.init(init_time, &_threadpool);
+                    _next = _top_coordinator.next();
+                }
+
+                #else
+
                 explicit runner(std::shared_ptr<cadmium::dynamic::modeling::coupled<TIME>> coupled_model, const TIME &init_time)
-                : _top_coordinator(coupled_model) {
+                : _top_coordinator(coupled_model){
                     LOGGER::template log<cadmium::logger::logger_global_time, cadmium::logger::run_global_time>(init_time);
                     LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Preparing model");
                     _top_coordinator.init(init_time);
                     _next = _top_coordinator.next();
                 }
-
+                #endif //CADMIUM_EXECUTE_CONCURRENT
+                
                 /**
                  * @brief runUntil starts the simulation and stops when the next event is scheduled after t.
                  * @param t is the limit time for the simulation.
