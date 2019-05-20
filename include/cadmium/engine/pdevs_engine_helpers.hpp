@@ -254,49 +254,44 @@ namespace cadmium {
 
         template<typename TIME, typename INBAGS, typename CST, typename EICs, size_t S, typename LOGGER>
         struct route_external_input_coupled_messages_on_subcoordinators_impl{
-            using current_EIC=typename std::tuple_element<S-1, EICs>::type;
-            using from_port=typename current_EIC::external_input_port;
-            using to_model=typename current_EIC::template submodel<TIME>;
-            using to_port=typename current_EIC::submodel_input_port;
-
+            
             static void route(TIME t, const INBAGS& inbox, CST& engines){
-                auto& to_engine=get_engine_by_model<to_model, CST>(engines);
-                auto& from_messages = cadmium::get_messages<from_port>(inbox);
-                auto& to_messages = cadmium::get_messages<to_port>(to_engine._inbox);
-                to_messages.insert(to_messages.end(), from_messages.begin(), from_messages.end());
+                if constexpr (S != 0) {
+                    using current_EIC=typename std::tuple_element<S-1, EICs>::type;
+                    using from_port=typename current_EIC::external_input_port;
+                    using to_model=typename current_EIC::template submodel<TIME>;
+                    using to_port=typename current_EIC::submodel_input_port;
 
-                //logging data
-                std::ostringstream oss;
-                logger::implode(oss, from_messages);
-                std::string from_messages_str = oss.str();
-                std::string from_port_str = boost::typeindex::type_id<from_port>().pretty_name();
+                    auto& to_engine=get_engine_by_model<to_model, CST>(engines);
+                    auto& from_messages = cadmium::get_messages<from_port>(inbox);
+                    auto& to_messages = cadmium::get_messages<to_port>(to_engine._inbox);
+                    to_messages.insert(to_messages.end(), from_messages.begin(), from_messages.end());
 
-                oss.clear();
-                oss.str("");
-                logger::implode(oss, to_messages);
-                std::string to_messages_str = oss.str();
-                std::string to_port_str = boost::typeindex::type_id<to_port>().pretty_name();
+                    //logging data
+                    std::ostringstream oss;
+                    logger::implode(oss, from_messages);
+                    std::string from_messages_str = oss.str();
+                    std::string from_port_str = boost::typeindex::type_id<from_port>().pretty_name();
 
-                std::string to_model_str = boost::typeindex::type_id<to_model>().pretty_name();
+                    oss.clear();
+                    oss.str("");
+                    logger::implode(oss, to_messages);
+                    std::string to_messages_str = oss.str();
+                    std::string to_port_str = boost::typeindex::type_id<to_port>().pretty_name();
 
-                LOGGER::template log<
-                        cadmium::logger::logger_message_routing,
-                        cadmium::logger::coor_routing_collect_eic
-                >(from_messages_str, to_messages_str, to_port_str, to_model_str, from_port_str);
+                    std::string to_model_str = boost::typeindex::type_id<to_model>().pretty_name();
 
-                //iterate
-                route_external_input_coupled_messages_on_subcoordinators_impl<TIME, INBAGS, CST, EICs, S-1, LOGGER>::route(t, inbox, engines);
+                    LOGGER::template log<
+                            cadmium::logger::logger_message_routing,
+                            cadmium::logger::coor_routing_collect_eic
+                    >(from_messages_str, to_messages_str, to_port_str, to_model_str, from_port_str);
 
+                    //iterate
+                    route_external_input_coupled_messages_on_subcoordinators_impl<TIME, INBAGS, CST, EICs, S-1, LOGGER>::route(t, inbox, engines);
+
+                }
             }
         };
-
-        template<typename TIME, typename INBAGS, typename CST, typename EICs, typename LOGGER>
-        struct route_external_input_coupled_messages_on_subcoordinators_impl<TIME, INBAGS, CST, EICs, 0, LOGGER>{
-            static void route(TIME T, const INBAGS& inbox, CST& engines){
-            //nothing to do here
-            }
-        };
-
 
         template <typename TIME, typename INBAGS, typename CST, typename EICs, typename LOGGER >
         void route_external_input_coupled_messages_on_subcoordinators(const TIME& t, const INBAGS& inbox, CST& cst){
@@ -313,7 +308,6 @@ namespace cadmium {
             return std::apply(check_empty, box);
         }
     }
-
 
 }
 #endif // PDEVS_ENGINE_HELPERS_HPP
