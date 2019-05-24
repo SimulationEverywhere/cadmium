@@ -33,6 +33,10 @@
 #include <boost/thread/executors/basic_thread_pool.hpp>
 #endif //CADMIUM_EXECUTE_CONCURRENT
 
+#ifdef ECADMIUM
+#include <mbed.h>
+#endif
+
 namespace cadmium {
     namespace dynamic {
         namespace engine {
@@ -88,7 +92,7 @@ namespace cadmium {
                     _next = _top_coordinator.next();
                 }
                 #endif //CADMIUM_EXECUTE_CONCURRENT
-                
+
                 /**
                  * @brief runUntil starts the simulation and stops when the next event is scheduled after t.
                  * @param t is the limit time for the simulation.
@@ -96,7 +100,20 @@ namespace cadmium {
                  */
                 TIME run_until(const TIME &t) {
                     LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Starting run");
+
+                    #ifdef ECADMIUM
+                      TIME elapsed = TIME();
+                    #endif
+
                     while (_next < t) {
+
+                        #ifdef ECADMIUM
+                          while (elapsed < _next) {
+                            wait_ms(1);
+                            elapsed += TIME("00:00:00:02");
+                          }
+                        #endif
+
                         LOGGER::template log<cadmium::logger::logger_global_time, cadmium::logger::run_global_time>(_next);
                         _top_coordinator.collect_outputs(_next);
                         _top_coordinator.advance_simulation(_next);
