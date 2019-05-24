@@ -51,7 +51,10 @@ BOOST_AUTO_TEST_SUITE( pdevs_dynamic_atomic_test_suite )
         int_accumulator<float> model;
         cadmium::dynamic::modeling::atomic<int_accumulator, float> wrapped_model;
 
-        static_assert(std::is_same<decltype(model.state), decltype(wrapped_model.state)>::value);
+        #ifndef ECADMIUM
+          static_assert(std::is_same<decltype(model.state), decltype(wrapped_model.state)>::value);
+        #endif
+        
         BOOST_CHECK(model.state == wrapped_model.state);
     }
 
