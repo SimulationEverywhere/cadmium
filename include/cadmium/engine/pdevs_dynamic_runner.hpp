@@ -110,7 +110,7 @@ namespace cadmium {
                         #ifdef ECADMIUM
                           while (elapsed < _next) {
                             wait_ms(1);
-                            elapsed += TIME("00:00:00:02");
+                            elapsed += TIME("00:00:00:01");
                           }
                         #endif
 
