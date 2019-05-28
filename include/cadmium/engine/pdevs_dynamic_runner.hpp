@@ -34,7 +34,7 @@
 #endif //CADMIUM_EXECUTE_CONCURRENT
 
 #ifdef ECADMIUM
-#include <mbed.h>
+#include <cadmium/embedded/wall_clock.hpp>
 #endif
 
 namespace cadmium {
@@ -58,6 +58,7 @@ namespace cadmium {
             //TODO: migrate specialization FEL behavior from CDBoost. At this point, there is no parametrized FEL.
             template<class TIME, typename LOGGER=default_logger<TIME>>
             class runner {
+                TIME _last;
                 TIME _next; //next scheduled event
 
                 cadmium::dynamic::engine::coordinator<TIME, LOGGER> _top_coordinator; //this only works for coupled models.
@@ -102,16 +103,15 @@ namespace cadmium {
                     LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Starting run");
 
                     #ifdef ECADMIUM
-                      TIME elapsed = TIME();
+                      _last = TIME();
+                      cadmium::embedded::wall_clock<TIME> timer;
                     #endif
 
                     while (_next < t) {
 
                         #ifdef ECADMIUM
-                          while (elapsed < _next) {
-                            wait_ms(1);
-                            elapsed += TIME("00:00:00:01");
-                          }
+                          timer.wait_for(_next - _last);
+                          _last = _next;
                         #endif
 
                         LOGGER::template log<cadmium::logger::logger_global_time, cadmium::logger::run_global_time>(_next);
