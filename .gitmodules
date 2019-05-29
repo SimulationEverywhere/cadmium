@@ -1,6 +1,3 @@
-[submodule "cmake-modules"]
-	path = cmake-modules
-	url = https://github.com/bilke/cmake-modules.git
 [submodule "DESTimes"]
 	path = DESTimes
-	url = https://github.com/Laouen/DESTimes.git
+	url = https://github.com/KyleBjornson/DESTimes.git

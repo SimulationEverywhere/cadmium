@@ -58,7 +58,7 @@ namespace cadmium {
           void wait_for(const TIME &t) {
 
             this->expired = false;
-            long time_left = t.getUs();
+            long time_left = t.getMicroSeconds();
 
             //Handle waits of over ~35 minutes as timer overflows
             while (time_left > INT_MAX) {
