@@ -89,9 +89,9 @@ struct iestream_input_defs{
     };
 };
 
-template<typename MSG, typename TIME>
+template<typename MSG, typename TIME, typename PORT_TYPE>
 class iestream_input {
-    using defs=iestream_input_defs<MSG>;
+    using defs=PORT_TYPE;
 
 public:
 
@@ -197,7 +197,7 @@ public:
         return state._next_time;
     }
 
-    friend std::ostringstream& operator<<(std::ostringstream& os, const typename iestream_input<MSG,TIME>::state_type& i) {
+    friend std::ostringstream& operator<<(std::ostringstream& os, const typename iestream_input<MSG,TIME,PORT_TYPE>::state_type& i) {
         os << "next time: " << i._next_time;
         return os;
     }
