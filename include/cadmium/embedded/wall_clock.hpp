@@ -42,23 +42,30 @@ namespace cadmium {
         private:
 
           Timeout _timeout; //mbed timeout object
+          bool expired;
 
           void timeout_expired() {
             expired = true;
           }
 
-       public:
-          bool expired;
+          //Return a long of time in microseconds
+          long get_time_in_micro_seconds(const TIME &t) const {
 
-            /**
-             * @brief wait_for delays simulation by given time
-             * @param t is the time to delay
-             * @return the TIME of the next event to happen when simulation stopped.
-             */
-          void wait_for(const TIME &t) {
+            //Ignore Anything below 1 microsecond (Round down always)
+            return t.getMicroseconds() +
+               1000 * (t.getMilliseconds() +
+                   1000 * (t.getSeconds()  +
+                       60 * (t.getMinutes() +
+                           60 * t.getHours()
+                            )
+                          )
+                      );
+           }
+
+          //Given a long in microseconds, sleep the thread for that time
+          void set_timeout(long time_left) {
 
             this->expired = false;
-            long time_left = t.getMicroSeconds();
 
             //Handle waits of over ~35 minutes as timer overflows
             while (time_left > INT_MAX) {
@@ -72,6 +79,33 @@ namespace cadmium {
             //Handle waits of under INT_MAX microseconds
             this->_timeout.attach_us(callback(this, &wall_clock::timeout_expired), time_left);
             while (!expired) sleep();
+
+          }
+
+
+       public:
+
+            /**
+             * @brief wait_for delays simulation by given time
+             * @param t is the time to delay
+             * @return the TIME of the next event to happen when simulation stopped.
+             */
+          void wait_for(const TIME &t) {
+
+            //If negative time, halt and print error over UART
+            MBED_ASSERT(t >= TIME::zero());
+
+            //Wait forever
+            if (t == TIME::infinity()) {
+              while (1) sleep();
+
+            //Don't wait
+            } else if (t == TIME::zero()) {
+              return;
+
+            } else {
+              set_timeout(get_time_in_micro_seconds(t));
+            }
 
           }
         };
