@@ -24,8 +24,6 @@
 #include <limits>
 #include <random>
 
-#include "../data_structures/message.hpp"
-
 #ifdef ECADMIUM
   #include "../mbed.h"
 
@@ -34,7 +32,7 @@
 
   //Port definition
   struct pwmOutput_defs{
-    struct in : public in_port<Message_t> {};
+    struct in : public in_port<float> {};
   };
 
   template<typename TIME>
@@ -51,9 +49,13 @@
     }
 
     PwmOutput(PinName pin) {
+      new (this) PwmOutput(pin, 10);
+    }
+
+    PwmOutput(PinName pin, int periodInMs) {
       state.output = 0;
       pwmPin = new mbed::PwmOut(pin);
-      pwmPin->period_ms(10);
+      pwmPin->period_ms(periodInMs);
       pwmPin->pulsewidth_ms(0);
     }
     
@@ -73,7 +75,7 @@
     // external transition
     void external_transition(TIME e, typename make_message_bags<input_ports>::type mbs) { 
       for(const auto &x : get_messages<typename defs::in>(mbs)){
-        state.output = x.value;
+        state.output = x;
       }
       pwmPin->write(state.output);
     }
@@ -106,14 +108,14 @@
 
   //Port definition
   struct pwmOutput_defs{
-    struct in : public in_port<Message_t> {};
+    struct in : public in_port<float> {};
   };
 
   template<typename TIME>
-  class PwmOutput : public oestream_output<Message_t,TIME, pwmOutput_defs>{
+  class PwmOutput : public oestream_output<float,TIME, pwmOutput_defs>{
     public:
       PwmOutput() = default;
-      PwmOutput(const char* file_path) : oestream_output<Message_t,TIME, pwmOutput_defs>(file_path) {}
+      PwmOutput(const char* file_path) : oestream_output<float,TIME, pwmOutput_defs>(file_path) {}
   };
 #endif //ECADMIUM
 

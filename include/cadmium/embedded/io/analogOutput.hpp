@@ -27,8 +27,6 @@
 #include <limits>
 #include <random>
 
-#include "../data_structures/message.hpp"
-
 #ifdef ECADMIUM
   #include "../mbed.h"
 
@@ -37,7 +35,7 @@
 
   //Port definition
   struct analogOutput_defs{
-    struct in : public in_port<Message_t> {};
+    struct in : public in_port<float> {};
   };
 
   template<typename TIME>
@@ -74,7 +72,7 @@
     // external transition
     void external_transition(TIME e, typename make_message_bags<input_ports>::type mbs) { 
       for(const auto &x : get_messages<typename defs::in>(mbs)){
-        state.output = x.value;
+        state.output = x;
       }
       analogPin->write(state.output);
     }
@@ -107,14 +105,14 @@
 
   //Port definition
   struct analogOutput_defs{
-      struct in : public in_port<Message_t> {};
+      struct in : public in_port<float> {};
   };
 
   template<typename TIME>
-  class AnalogOutput : public oestream_output<Message_t,TIME, analogOutput_defs>{
+  class AnalogOutput : public oestream_output<float,TIME, analogOutput_defs>{
     public:
       AnalogOutput() = default;
-      AnalogOutput(const char* file_path) : oestream_output<Message_t,TIME, analogOutput_defs>(file_path) {}
+      AnalogOutput(const char* file_path) : oestream_output<float,TIME, analogOutput_defs>(file_path) {}
   };
 #endif //ECADMIUM
 #endif // BOOST_SIMULATION_PDEVS_ANALOGOUTPUT_HPP

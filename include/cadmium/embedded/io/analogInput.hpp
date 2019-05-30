@@ -23,8 +23,6 @@
 #include <limits>
 #include <random>
 
-#include "../data_structures/message.hpp"
-
 #ifdef ECADMIUM
   #include "../mbed.h"
 
@@ -33,7 +31,7 @@
 
   //Port definition
   struct analogInput_defs{
-    struct out : public out_port<Message_t> { };
+    struct out : public out_port<float> { };
   };
 
   template<typename TIME>
@@ -90,8 +88,7 @@
     typename make_message_bags<output_ports>::type output() const {
       typename make_message_bags<output_ports>::type bags;
       if(state.last != state.output) {
-        Message_t out;              
-        out.value = state.output;
+        float out = state.output;
         get_messages<typename defs::out>(bags).push_back(out);
       }
       return bags;
@@ -114,14 +111,14 @@
 
   //Port definition
   struct analogInput_defs{
-    struct out : public out_port<Message_t> {};
+    struct out : public out_port<float> {};
   };
 
   template<typename TIME>
-  class AnalogInput : public iestream_input<Message_t,TIME, analogInput_defs>{
+  class AnalogInput : public iestream_input<float,TIME, analogInput_defs>{
     public:
       AnalogInput() = default;
-      AnalogInput(const char* file_path) : iestream_input<Message_t,TIME, analogInput_defs>(file_path) {}
+      AnalogInput(const char* file_path) : iestream_input<float,TIME, analogInput_defs>(file_path) {}
   }; 
 #endif // ECADMIUM
 #endif // BOOST_SIMULATION_PDEVS_ANALOGINPUT_HPP

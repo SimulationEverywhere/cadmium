@@ -24,8 +24,6 @@
 #include <limits>
 #include <random>
 
-#include "../data_structures/message.hpp"
-
 #ifdef ECADMIUM
   //This class will interface with a digital input pin.
   #include "../mbed.h"
@@ -35,7 +33,7 @@
 
   //Port definition
   struct digitalInput_defs{
-      struct out : public out_port<Message_t> { };
+      struct out : public out_port<bool> { };
   };
 
   template<typename TIME>
@@ -75,7 +73,7 @@
     // internal transition
     void internal_transition() {
       state.last = state.output;
-      state.output = digiPin->read();
+      state.output = digiPin->read() == 1;
     }
 
     // external transition
@@ -93,8 +91,7 @@
     typename make_message_bags<output_ports>::type output() const {
       typename make_message_bags<output_ports>::type bags;
       if(state.last != state.output) {
-        Message_t out;              
-        out.value = (state.output ? 1 : 0);
+        bool out = state.output;
         get_messages<typename defs::out>(bags).push_back(out);
       }
       return bags;
@@ -117,14 +114,14 @@
 
   //Port definition
   struct digitalInput_defs{
-      struct out : public out_port<Message_t> { };
+      struct out : public out_port<bool> { };
   };
 
   template<typename TIME>
-  class DigitalInput : public iestream_input<Message_t,TIME, digitalInput_defs>{
+  class DigitalInput : public iestream_input<bool,TIME, digitalInput_defs>{
     public:
       DigitalInput() = default;
-      DigitalInput(const char* file_path) : iestream_input<Message_t,TIME, digitalInput_defs>(file_path) {}
+      DigitalInput(const char* file_path) : iestream_input<bool,TIME, digitalInput_defs>(file_path) {}
   };
 #endif // ECADMIUM
 

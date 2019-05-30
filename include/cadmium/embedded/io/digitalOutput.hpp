@@ -25,8 +25,6 @@
 #include <limits>
 #include <random>
 
-#include "../data_structures/message.hpp"
-
 #ifdef ECADMIUM
   #include "../mbed.h"
 
@@ -35,7 +33,7 @@
 
   //Port definition
   struct digitalOutput_defs{
-      struct in : public in_port<Message_t> {};
+    struct in : public in_port<bool> {};
   };
 
   template<typename TIME>
@@ -72,7 +70,7 @@
     // external transition
     void external_transition(TIME e, typename make_message_bags<input_ports>::type mbs) { 
       for(const auto &x : get_messages<typename defs::in>(mbs)){
-        state.output = x.value;
+        state.output = x;
       }
       digiPin->write(state.output ? 1 : 0);
     }
@@ -106,14 +104,14 @@
 
   //Port definition
   struct digitalOutput_defs{
-      struct in : public in_port<Message_t> {};
+      struct in : public in_port<bool> {};
   };
 
   template<typename TIME>
-  class DigitalOutput : public oestream_output<Message_t,TIME, digitalOutput_defs>{
+  class DigitalOutput : public oestream_output<bool,TIME, digitalOutput_defs>{
     public:
       DigitalOutput() = default;
-      DigitalOutput(const char* file_path) : oestream_output<Message_t,TIME, digitalOutput_defs>(file_path) {}
+      DigitalOutput(const char* file_path) : oestream_output<bool,TIME, digitalOutput_defs>(file_path) {}
   };
 
 #endif //ECADMIUM
