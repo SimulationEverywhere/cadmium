@@ -41,44 +41,41 @@ namespace cadmium {
 
         private:
 
-          Timeout _timeout; //mbed timeout object
-          bool expired;
+           //Return a long of time in microseconds
+           long get_time_in_milli_seconds(const TIME &t) const {
 
-          void timeout_expired() {
-            expired = true;
-          }
-
-          //Return a long of time in microseconds
-          long get_time_in_micro_seconds(const TIME &t) const {
-
-            //Ignore Anything below 1 microsecond (Round down always)
-            return t.getMicroseconds() +
-               1000 * (t.getMilliseconds() +
-                   1000 * (t.getSeconds()  +
-                       60 * (t.getMinutes() +
-                           60 * t.getHours()
-                            )
-                          )
-                      );
-           }
-
-          //Given a long in microseconds, sleep the thread for that time
-          void set_timeout(long time_left) {
-
-            this->expired = false;
-
-            //Handle waits of over ~35 minutes as timer overflows
-            while (time_left > INT_MAX) {
-              this->expired = false;
-              this->_timeout.attach_us(callback(this, &wall_clock::timeout_expired), INT_MAX);
-              time_left -= INT_MAX;
-
-              while (!expired) sleep();
+             //Ignore Anything below 1 millisecond
+             return t.getMilliseconds() +
+                    1000 * (t.getSeconds()  +
+                        60 * (t.getMinutes() +
+                            60 * t.getHours()
+                             )
+                           );
             }
 
-            //Handle waits of under INT_MAX microseconds
-            this->_timeout.attach_us(callback(this, &wall_clock::timeout_expired), time_left);
-            while (!expired) sleep();
+          //Given a long in microseconds, sleep the thread for that time
+          void set_timeout(long delay_ms, int delay_remainder_us) {
+
+            //Use non blocking thread sleep for time advance > 1 ms
+            //This allows other lower priority threads to execute
+            if (delay_ms > 0) {
+
+              //Handle waits over 50 days if necessary.
+              while (delay_ms > INT_MAX) {
+                ThisThread::sleep_for(INT_MAX);
+                delay_ms -= INT_MAX;
+              }
+
+              //Sleep this thread for desired time
+              ThisThread::sleep_for(delay_ms);
+
+            }
+
+            //Cannot sleep thread for less than 1 millisecond
+            //Use blocking wait based on different timer instead
+            if (delay_remainder_us > 0) {
+              wait_us(delay_remainder_us);
+            }
 
           }
 
@@ -97,14 +94,14 @@ namespace cadmium {
 
             //Wait forever
             if (t == TIME::infinity()) {
-              while (1) sleep();
+              while(1); //Sleep
 
             //Don't wait
             } else if (t == TIME::zero()) {
               return;
 
             } else {
-              set_timeout(get_time_in_micro_seconds(t));
+              set_timeout(get_time_in_milli_seconds(t), t.getMicroseconds());
             }
 
           }
@@ -112,4 +109,4 @@ namespace cadmium {
     }
 }
 
-#endif //CADMIUM_PDEVS_DYNAMIC_RUNNER_HPP
+#endif //CADMIUM_WALL_CLOCK_HPP
