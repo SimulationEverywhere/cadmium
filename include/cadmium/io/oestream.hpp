@@ -83,7 +83,7 @@ public:
     void external_transition(TIME e, typename make_message_bags<input_ports>::type mbs) {
         state.currentTime += e;
         for(const auto &x : get_messages<typename defs::in>(mbs)){
-            state.file << state.currentTime << "; " << x << "\n";
+            state.file << state.currentTime << " " << x << "\n";
         }
     }
 
