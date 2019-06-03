@@ -32,8 +32,6 @@
 namespace cadmium {
     namespace embedded {
 
-
-
         /**
          * @brief Wall Clock class used to delay execution and follow actual time.
          * Used mbed timeout, and attempts to sleep the main thread to save some power.
@@ -60,26 +58,22 @@ namespace cadmium {
                      );
             }
 
-           //Given a long in microseconds, sleep the thread for that time
+           //Given a long in microseconds, sleep for that time
            void set_timeout(long delay_ms, int delay_remainder_us) {
 
-           //Use non blocking thread sleep for time advance > 1 ms
-           //This allows other lower priority threads to execute
             if (delay_ms > 0) {
 
               //Handle waits over 50 days if necessary.
               while (delay_ms > INT_MAX) {
-                ThisThread::sleep_for(INT_MAX);
+                wait_ms(INT_MAX);
                 delay_ms -= INT_MAX;
               }
 
-              //Sleep this thread for desired time
-              ThisThread::sleep_for(delay_ms);
+              //Sleep for the remaining time
+              wait_ms(delay_ms);
 
             }
 
-            //Cannot sleep thread for less than 1 millisecond
-            //Use blocking wait based on different timer instead
             if (delay_remainder_us > 0) {
               wait_us(delay_remainder_us);
             }
