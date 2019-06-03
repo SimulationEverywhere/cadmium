@@ -32,6 +32,8 @@
 namespace cadmium {
     namespace embedded {
 
+
+
         /**
          * @brief Wall Clock class used to delay execution and follow actual time.
          * Used mbed timeout, and attempts to sleep the main thread to save some power.
@@ -41,23 +43,28 @@ namespace cadmium {
 
         private:
 
-           //Return a long of time in microseconds
-           long get_time_in_milli_seconds(const TIME &t) const {
+          //Time since last time advance, how long the simulator took to advance
+          Timer execution_timer;
 
-             //Ignore Anything below 1 millisecond
-             return t.getMilliseconds() +
-                    1000 * (t.getSeconds()  +
-                        60 * (t.getMinutes() +
-                            60 * t.getHours()
-                             )
-                           );
+          //Return a long of time in microseconds
+          long get_time_in_micro_seconds(const TIME &t) const {
+
+            //Ignore Anything below 1 microsecond
+            return t.getMicroseconds() +
+              1000 * (t.getMilliseconds() +
+                1000 * (t.getSeconds() +
+                    60 * (t.getMinutes() +
+                      60 * t.getHours()
+                         )
+                       )
+                     );
             }
 
-          //Given a long in microseconds, sleep the thread for that time
-          void set_timeout(long delay_ms, int delay_remainder_us) {
+           //Given a long in microseconds, sleep the thread for that time
+           void set_timeout(long delay_ms, int delay_remainder_us) {
 
-            //Use non blocking thread sleep for time advance > 1 ms
-            //This allows other lower priority threads to execute
+           //Use non blocking thread sleep for time advance > 1 ms
+           //This allows other lower priority threads to execute
             if (delay_ms > 0) {
 
               //Handle waits over 50 days if necessary.
@@ -88,6 +95,7 @@ namespace cadmium {
              * @return the TIME of the next event to happen when simulation stopped.
              */
           void wait_for(const TIME &t) {
+            long actual_delay;
 
             //If negative time, halt and print error over UART
             MBED_ASSERT(t >= TIME::zero());
@@ -95,14 +103,21 @@ namespace cadmium {
             //Wait forever
             if (t == TIME::infinity()) {
               while(1); //Sleep
-
-            //Don't wait
-            } else if (t == TIME::zero()) {
-              return;
-
-            } else {
-              set_timeout(get_time_in_milli_seconds(t), t.getMicroseconds());
             }
+
+            execution_timer.stop();
+            actual_delay = get_time_in_micro_seconds(t)
+                                - execution_timer.read_us();
+
+            if (actual_delay > 0) {
+              set_timeout(actual_delay / 1000, actual_delay % 1000);
+            } else {
+              //Missed Real Time Deadline!!
+              MBED_ASSERT(false); //Do something meaningful here.
+            }
+
+            execution_timer.reset();
+            execution_timer.start();
 
           }
         };
