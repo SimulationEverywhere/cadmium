@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019, Kyle Bjornson
+ * Copyright (c) 2019, Kyle Bjornson, Ben Earle
  * Carleton University
  * All rights reserved.
  *
@@ -28,6 +28,10 @@
 #define CADMIUM_WALL_CLOCK_HPP
 
 #include <mbed.h>
+
+#ifndef MISSED_DEADLINE_TOLERANCE
+  #define MISSED_DEADLINE_TOLERANCE 0
+#endif
 
 namespace cadmium {
     namespace embedded {
@@ -103,11 +107,12 @@ namespace cadmium {
             actual_delay = get_time_in_micro_seconds(t)
                                 - execution_timer.read_us();
 
-            if (actual_delay > 0) {
+            if (actual_delay >= -MISSED_DEADLINE_TOLERANCE) {
               set_timeout(actual_delay / 1000, actual_delay % 1000);
             } else {
+              cout << "\n" << "***********************************" << "\n" "Missed deadline of " << MISSED_DEADLINE_TOLERANCE << ", with delay of " << -actual_delay <<"\n";
+              MBED_ASSERT(actual_delay >= -MISSED_DEADLINE_TOLERANCE); //Do something meaningful here.
               //Missed Real Time Deadline!!
-              MBED_ASSERT(false); //Do something meaningful here.
             }
 
             execution_timer.reset();
