@@ -28,12 +28,12 @@
 #ifdef ECADMIUM
   //This class will interface with a interrupt input pin.
   #include "../mbed.h"
-
+  extern bool interrupted;
   using namespace cadmium;
   using namespace std;
 
   void notifySchedulerIsr(){
-
+    interrupted = true;
   }
 
   //Port definition
@@ -56,8 +56,8 @@
     }
     InterruptInput(PinName pin) {
       intPin = new InterruptIn(pin);
-      intPin.rise(&notifySchedulerIsr);
-      intPin.fall(&notifySchedulerIsr);
+      intPin->rise(&notifySchedulerIsr);
+      intPin->fall(&notifySchedulerIsr);
       state.output = intPin->read();
       state.last = state.output;
     }

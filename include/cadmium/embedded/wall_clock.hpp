@@ -28,12 +28,13 @@
 #define CADMIUM_WALL_CLOCK_HPP
 
 #include <mbed.h>
+#include <cadmium/engine/pdevs_dynamic_runner.hpp>
 #include <cadmium/logger/common_loggers.hpp>
 
 #ifndef MISSED_DEADLINE_TOLERANCE
   #define MISSED_DEADLINE_TOLERANCE -1
 #endif
-
+extern bool interrupted;
 namespace cadmium {
     namespace embedded {
 
@@ -45,7 +46,6 @@ namespace cadmium {
                                              cadmium::dynamic::logger::formatter<TIME>,
                                              cadmium::logger::cout_sink_provider>>
         class wall_clock {
-
         private:
 
           //Time since last time advance, how long the simulator took to advance
@@ -77,9 +77,9 @@ namespace cadmium {
             }
 
           //Given a long in microseconds, sleep for that time
-          long set_timeout(long delay_ms, int delay_remainder_us) {
+          long set_timeout(long delay_us) {
             this->expired = false;
-            long time_left = t.getUs();
+            long time_left = delay_us;
             execution_timer.reset();
             execution_timer.start();
 
@@ -87,19 +87,24 @@ namespace cadmium {
             while ((time_left > INT_MAX) && !interrupted) {
               this->expired = false;
               this->_timeout.attach_us(callback(this, &wall_clock::timeout_expired), INT_MAX);
-              time_left -= INT_MAX;
 
               while (!expired && !interrupted) sleep();
+
+              if(!interrupted){
+                time_left -= INT_MAX;
+              }
             }
 
             //Handle waits of under INT_MAX microseconds
-            this->_timeout.attach_us(callback(this, &wall_clock::timeout_expired), time_left);
-            while (!expired && !interrupted) sleep();
+            if(!interrupted) {
+              this->_timeout.attach_us(callback(this, &wall_clock::timeout_expired), time_left);
+              while (!expired && !interrupted) sleep();
+            }
 
             execution_timer.stop();
             if(interrupted) {
               time_left -= execution_timer.read_us();
-              return time_left;
+              return delay_us - time_left;
             }
             return 0;
           }
@@ -112,7 +117,7 @@ namespace cadmium {
              * @param t is the time to delay
              * @return the TIME of the next event to happen when simulation stopped.
              */
-          void wait_for(const TIME &t) {
+          long wait_for(const TIME &t) {
             long actual_delay;
 
             //If negative time, halt and print error over UART
@@ -141,6 +146,7 @@ namespace cadmium {
                                   ("MISSED SCHEDULED TIME ADVANCE! SLIP = " + to_string(-scheduler_slip) + " microseconds\n");
               #endif
             }
+
             if (MISSED_DEADLINE_TOLERANCE != -1 ){
               if (actual_delay >= -MISSED_DEADLINE_TOLERANCE) {
                 set_timeout(actual_delay / 1000, actual_delay % 1000);
@@ -152,6 +158,7 @@ namespace cadmium {
             execution_timer.reset();
             execution_timer.start();
 
+            return actual_delay;
           }
         };
     }
