@@ -51,6 +51,12 @@ namespace cadmium {
           //Time since last time advance, how long the simulator took to advance
           Timer execution_timer;
 
+          Timeout _timeout; //mbed timeout object
+
+          void timeout_expired() {
+            expired = true;
+          }
+
           // If the next event (actual_delay) is in the future AKA we are ahead of schedule it will be reset to 0
           // If actual_delay is negative we are behind schedule, in this case we will store how long behind schedule we are in scheduler_slip.
           // This is then added to the next actual delay and updated until we surpass the tolerance or recover from the slip.
@@ -70,30 +76,37 @@ namespace cadmium {
                      );
             }
 
-           //Given a long in microseconds, sleep for that time
-           void set_timeout(long delay_ms, int delay_remainder_us) {
+          //Given a long in microseconds, sleep for that time
+          long set_timeout(long delay_ms, int delay_remainder_us) {
+            this->expired = false;
+            long time_left = t.getUs();
+            execution_timer.reset();
+            execution_timer.start();
 
-            if (delay_ms > 0) {
+            //Handle waits of over ~35 minutes as timer overflows
+            while ((time_left > INT_MAX) && !interrupted) {
+              this->expired = false;
+              this->_timeout.attach_us(callback(this, &wall_clock::timeout_expired), INT_MAX);
+              time_left -= INT_MAX;
 
-              //Handle waits over 50 days if necessary.
-              while (delay_ms > INT_MAX) {
-                wait_ms(INT_MAX);
-                delay_ms -= INT_MAX;
-              }
-
-              //Sleep for the remaining time
-              wait_ms(delay_ms);
-
+              while (!expired && !interrupted) sleep();
             }
 
-            if (delay_remainder_us > 0) {
-              wait_us(delay_remainder_us);
-            }
+            //Handle waits of under INT_MAX microseconds
+            this->_timeout.attach_us(callback(this, &wall_clock::timeout_expired), time_left);
+            while (!expired && !interrupted) sleep();
 
+            execution_timer.stop();
+            if(interrupted) {
+              time_left -= execution_timer.read_us();
+              return time_left;
+            }
+            return 0;
           }
 
 
        public:
+          bool expired;
             /**
              * @brief wait_for delays simulation by given time
              * @param t is the time to delay
