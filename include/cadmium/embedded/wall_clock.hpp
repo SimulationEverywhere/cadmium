@@ -48,6 +48,11 @@ namespace cadmium {
           //Time since last time advance, how long the simulator took to advance
           Timer execution_timer;
 
+          // If the next event (actual_delay) is in the future AKA we are ahead of schedule it will be reset to 0
+          // If actual_delay is negative we are behind schedule, in this case we will store how long behind schedule we are in scheduler_slip.
+          // This is then added to the next actual delay and updated until we surpass the tolerance or recover from the slip.
+          long scheduler_slip = 0;
+
           //Return a long of time in microseconds
           long get_time_in_micro_seconds(const TIME &t) const {
 
@@ -84,9 +89,8 @@ namespace cadmium {
 
           }
 
-
+           long count = 0;
        public:
-
             /**
              * @brief wait_for delays simulation by given time
              * @param t is the time to delay
@@ -105,12 +109,22 @@ namespace cadmium {
 
             execution_timer.stop();
             actual_delay = get_time_in_micro_seconds(t)
-                                - execution_timer.read_us();
+                                - execution_timer.read_us()
+                                + scheduler_slip;
+
+            // Slip keeps track of how far behind schedule we are.
+            scheduler_slip = actual_delay;
+            // If we are ahead of schedule, then reset it to zero
+            if (scheduler_slip > 0) scheduler_slip = 0;
+
+            // Used for testing program slip. TODO: Add a log feature that does this.
+            // else if(count % 10 == 0) cout << "Slip: " << scheduler_slip << "\n";
+            // count ++;
 
             if (actual_delay >= -MISSED_DEADLINE_TOLERANCE) {
               set_timeout(actual_delay / 1000, actual_delay % 1000);
             } else {
-              cout << "\n" << "***********************************" << "\n" "Missed deadline of " << MISSED_DEADLINE_TOLERANCE << ", with delay of " << -actual_delay <<"\n";
+              cout << "\n" << "**********************************************" << "\n" "Missed deadline of " << MISSED_DEADLINE_TOLERANCE << ", with slip of " << -actual_delay <<"\n";
               MBED_ASSERT(actual_delay >= -MISSED_DEADLINE_TOLERANCE); //Do something meaningful here.
               //Missed Real Time Deadline!!
             }
