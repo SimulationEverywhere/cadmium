@@ -28,6 +28,7 @@
 #define CADMIUM_WALL_CLOCK_HPP
 
 #include <mbed.h>
+#include <cadmium/logger/common_loggers.hpp>
 
 #ifndef MISSED_DEADLINE_TOLERANCE
   #define MISSED_DEADLINE_TOLERANCE 0
@@ -40,7 +41,9 @@ namespace cadmium {
          * @brief Wall Clock class used to delay execution and follow actual time.
          * Used mbed timeout, and attempts to sleep the main thread to save some power.
          */
-        template<class TIME>
+        template<class TIME, typename LOGGER=cadmium::logger::logger<cadmium::logger::logger_debug,
+                                             cadmium::dynamic::logger::formatter<TIME>,
+                                             cadmium::logger::cout_sink_provider>>
         class wall_clock {
 
         private:
@@ -89,7 +92,7 @@ namespace cadmium {
 
           }
 
-           long count = 0;
+
        public:
             /**
              * @brief wait_for delays simulation by given time
@@ -115,18 +118,20 @@ namespace cadmium {
             // Slip keeps track of how far behind schedule we are.
             scheduler_slip = actual_delay;
             // If we are ahead of schedule, then reset it to zero
-            if (scheduler_slip > 0) scheduler_slip = 0;
+            if (scheduler_slip > 0) {
+              scheduler_slip = 0;
 
-            // Used for testing program slip. TODO: Add a log feature that does this.
-            // else if(count % 10 == 0) cout << "Slip: " << scheduler_slip << "\n";
-            // count ++;
+            //Enable debug logs to see schedule slip
+            } else {
+              LOGGER::template log<cadmium::logger::logger_debug,cadmium::logger::run_info>
+                                  ("MISSED SCHEDULED TIME ADVANCE! SLIP = " + to_string(-scheduler_slip) + " microseconds\n");
+            }
 
             if (actual_delay >= -MISSED_DEADLINE_TOLERANCE) {
               set_timeout(actual_delay / 1000, actual_delay % 1000);
             } else {
-              cout << "\n" << "**********************************************" << "\n" "Missed deadline of " << MISSED_DEADLINE_TOLERANCE << ", with slip of " << -actual_delay <<"\n";
-              MBED_ASSERT(actual_delay >= -MISSED_DEADLINE_TOLERANCE); //Do something meaningful here.
-              //Missed Real Time Deadline!!
+              //Missed Real Time Deadline and could not recover (Slip is passed the threshold)
+              error("\n\n++ ECadmium Error Info ++ \n MISSED SCHEDULED TIME ADVANCE DEADLINE BY: %d microseconds \n-- ECadmium Error Info -- ", -actual_delay);
             }
 
             execution_timer.reset();
