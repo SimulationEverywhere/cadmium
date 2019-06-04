@@ -35,6 +35,7 @@
 
 #ifdef ECADMIUM
 #include <cadmium/embedded/wall_clock.hpp>
+bool interrupted = false;
 #endif
 
 namespace cadmium {
@@ -101,15 +102,25 @@ namespace cadmium {
                  */
                 #ifdef ECADMIUM
                 TIME run_until(const TIME &t) {
+                    long e;
                     LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Starting run");
 
                     _last = TIME();
                     cadmium::embedded::wall_clock<TIME> timer;
 
                     while (_next < t) {
-                        timer.wait_for(_next - _last);
-                        _last = _next;
+                        
+                        e = timer.wait_for(_next - _last);
+                        if(e == 0){
+                            _last = _next;
 
+                        } else {
+                            //interrupt occured, we must handle it.
+                                                        
+                            //_top_coordinator.notifyInterruptModels();
+                            //_last += e;
+                            error("Interrupt occured! e = %d\n", e);
+                        }
                         LOGGER::template log<cadmium::logger::logger_global_time, cadmium::logger::run_global_time>(_next);
                         _top_coordinator.collect_outputs(_next);
                         _top_coordinator.advance_simulation(_next);
