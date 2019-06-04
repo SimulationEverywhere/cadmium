@@ -99,20 +99,16 @@ namespace cadmium {
                  * @param t is the limit time for the simulation.
                  * @return the TIME of the next event to happen when simulation stopped.
                  */
+                #ifdef ECADMIUM
                 TIME run_until(const TIME &t) {
                     LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Starting run");
 
-                    #ifdef ECADMIUM
-                      _last = TIME();
-                      cadmium::embedded::wall_clock<TIME> timer;
-                    #endif
+                    _last = TIME();
+                    cadmium::embedded::wall_clock<TIME> timer;
 
                     while (_next < t) {
-
-                        #ifdef ECADMIUM
-                          timer.wait_for(_next - _last);
-                          _last = _next;
-                        #endif
+                        timer.wait_for(_next - _last);
+                        _last = _next;
 
                         LOGGER::template log<cadmium::logger::logger_global_time, cadmium::logger::run_global_time>(_next);
                         _top_coordinator.collect_outputs(_next);
@@ -123,6 +119,22 @@ namespace cadmium {
                     return _next;
                 }
 
+                #else
+
+                TIME run_until(const TIME &t) {
+                    LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Starting run");
+
+                    while (_next < t) {
+                        LOGGER::template log<cadmium::logger::logger_global_time, cadmium::logger::run_global_time>(_next);
+                        _top_coordinator.collect_outputs(_next);
+                        _top_coordinator.advance_simulation(_next);
+                        _next = _top_coordinator.next();
+                    }
+                    LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Finished run");
+                    return _next;
+                }
+                #endif
+                
                 /**
                  * @brief runUntilPassivate starts the simulation and stops when there is no next internal event to happen.
                  */
