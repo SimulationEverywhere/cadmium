@@ -126,6 +126,28 @@ namespace cadmium {
                 virtual TIME time_advance() const = 0;
             };
 
+            template<typename TIME>
+            class asynchronus_atomic_abstract : public cadmium::dynamic::modeling::model {
+            public:
+                // Simulation purpose, because the model type are hidden, we need the model wrapper
+                // help for dealing with the model type dependant methods for message routing.
+                virtual std::string get_id() const override = 0;
+                virtual cadmium::dynamic::modeling::Ports get_input_ports() const override = 0;
+                virtual cadmium::dynamic::modeling::Ports get_output_ports() const override = 0;
+
+                // Logging purpose methods, also because the model type is needed for logging the
+                // state and message bags.
+                virtual std::string model_state_as_string() const = 0;
+                virtual std::string messages_by_port_as_string(cadmium::dynamic::message_bags outbox) const = 0;
+
+                // atomic model methods
+                virtual void internal_transition() = 0;
+                virtual void external_transition(TIME e, cadmium::dynamic::message_bags dynamic_bags) = 0;
+                virtual void confluence_transition(TIME e, cadmium::dynamic::message_bags dynamic_bags) = 0;
+                virtual dynamic::message_bags output() const = 0;
+                virtual TIME time_advance() const = 0;
+            };
+
             using Models = std::vector<std::shared_ptr<cadmium::dynamic::modeling::model>>;
             using initializer_list_Models = std::initializer_list<std::shared_ptr<cadmium::dynamic::modeling::model>>;
         }

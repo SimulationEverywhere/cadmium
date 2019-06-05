@@ -126,6 +126,7 @@ namespace cadmium {
             execution_timer.stop();
             if(interrupted) {
               time_left -= execution_timer.read_us();
+              hal_critical_section_enter();
               return delay_us - time_left;
             }
             return 0;

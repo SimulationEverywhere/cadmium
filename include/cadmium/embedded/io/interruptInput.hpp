@@ -28,7 +28,7 @@
 #ifdef ECADMIUM
   //This class will interface with a interrupt input pin.
   #include "../mbed.h"
-  extern bool interrupted;
+  volatile extern bool interrupted;
   using namespace cadmium;
   using namespace std;
 

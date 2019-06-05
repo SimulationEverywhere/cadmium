@@ -35,7 +35,11 @@
 
 #ifdef ECADMIUM
 #include <cadmium/embedded/wall_clock.hpp>
-bool interrupted = false;
+
+//Gross global boolean to say if an interrupt occured. 
+//Todo: Do this better
+volatile bool interrupted = false;
+bool serviceInterrupts = false;
 #endif
 
 namespace cadmium {
@@ -117,19 +121,23 @@ namespace cadmium {
 
                         } else {
                             //interrupt occured, we must handle it.
-                            //_top_coordinator.notifyInterruptModels();
-                            cout << "Last event at " <<_last << "\n";
-                            cout << "e = " << e << "\n";
+                            //cout << "Last event at " <<_last << "\n";
+                            //cout << "e = " << e << "\n";
                             _last += e;
-                            cout << "Current time " << _last << "\n";
-                            error("Interrupt occured! \n");
+                            //cout << "Current time " << _last << "\n";
+
+                            _top_coordinator.interrupt_notify(_last);
+                            serviceInterrupts = true;
+                            interrupted = false;
+                            hal_critical_section_exit();
                         }
-                        LOGGER::template log<cadmium::logger::logger_global_time, cadmium::logger::run_global_time>(_next);
-                        _top_coordinator.collect_outputs(_next);
-                        _top_coordinator.advance_simulation(_next);
+                        LOGGER::template log<cadmium::logger::logger_global_time, cadmium::logger::run_global_time>(_last);
+                        _top_coordinator.collect_outputs(_last);
+                        _top_coordinator.advance_simulation(_last);
                         _next = _top_coordinator.next();
                     }
                     LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Finished run");
+                    if(serviceInterrupts) serviceInterrupts = false;
                     return _next;
                 }
 
