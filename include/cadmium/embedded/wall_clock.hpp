@@ -31,6 +31,10 @@
 #include <cadmium/engine/pdevs_dynamic_runner.hpp>
 #include <cadmium/logger/common_loggers.hpp>
 
+static long MIN_TO_MICRO   = (1000*1000*60);
+static long SEC_TO_MICRO   = (1000*1000);
+static long MILI_TO_MICRO  = (1000);
+
 #ifndef MISSED_DEADLINE_TOLERANCE
   #define MISSED_DEADLINE_TOLERANCE -1
 #endif
@@ -76,6 +80,24 @@ namespace cadmium {
                      );
             }
 
+          TIME micro_seconds_to_time(long us) const {
+            int hours, min, sec, ms, microseconds;
+            hours = us / MIN_TO_MICRO;
+            hours /= 60;
+            us = us % (MIN_TO_MICRO*60);
+
+            min = us / MIN_TO_MICRO;
+            us = us % MIN_TO_MICRO;
+
+            sec = us / SEC_TO_MICRO;
+            us = us % SEC_TO_MICRO;
+
+            ms = us / MILI_TO_MICRO;
+            microseconds = us % MILI_TO_MICRO;
+
+            return TIME{hours, min, sec, ms, microseconds};
+          }
+
           //Given a long in microseconds, sleep for that time
           long set_timeout(long delay_us) {
             this->expired = false;
@@ -117,7 +139,7 @@ namespace cadmium {
              * @param t is the time to delay
              * @return the TIME of the next event to happen when simulation stopped.
              */
-          long wait_for(const TIME &t) {
+          TIME wait_for(const TIME &t) {
             long actual_delay;
 
             //If negative time, halt and print error over UART
@@ -158,7 +180,7 @@ namespace cadmium {
             execution_timer.reset();
             execution_timer.start();
 
-            return actual_delay;
+            return micro_seconds_to_time(actual_delay);
           }
         };
     }

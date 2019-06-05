@@ -101,8 +101,9 @@ namespace cadmium {
                  * @return the TIME of the next event to happen when simulation stopped.
                  */
                 #ifdef ECADMIUM
+                
                 TIME run_until(const TIME &t) {
-                    long e;
+                    TIME e;
                     LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Starting run");
 
                     _last = TIME();
@@ -111,15 +112,17 @@ namespace cadmium {
                     while (_next < t) {
                         
                         e = timer.wait_for(_next - _last);
-                        if(e == 0){
+                        if(e == TIME::zero()){
                             _last = _next;
 
                         } else {
                             //interrupt occured, we must handle it.
-                                                        
                             //_top_coordinator.notifyInterruptModels();
-                            //_last += e;
-                            error("Interrupt occured! e = %d\n", e);
+                            cout << "Last event at " <<_last << "\n";
+                            cout << "e = " << e << "\n";
+                            _last += e;
+                            cout << "Current time " << _last << "\n";
+                            error("Interrupt occured! \n");
                         }
                         LOGGER::template log<cadmium::logger::logger_global_time, cadmium::logger::run_global_time>(_next);
                         _top_coordinator.collect_outputs(_next);
