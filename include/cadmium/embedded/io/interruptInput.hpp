@@ -60,12 +60,14 @@
       intPin->fall(&notifySchedulerIsr);
       state.output = intPin->read();
       state.last = state.output;
+      state.prop = true;
     }
 
     // state definition
     struct state_type{
       bool output;
       bool last;
+      bool prop;
     }; 
     state_type state;
 
@@ -75,12 +77,15 @@
 
     // internal transition
     void internal_transition() {
+      state.prop = false;
       state.last = state.output;
       state.output = intPin->read() == 1;
     }
 
     // external transition
-    void external_transition(TIME e, typename make_message_bags<input_ports>::type mbs) {}
+    void external_transition(TIME e, typename make_message_bags<input_ports>::type mbs) {
+        state.prop = true;
+      }
     
     // confluence transition
     void confluence_transition(TIME e, typename make_message_bags<input_ports>::type mbs) {
@@ -99,7 +104,11 @@
     }
 
     // time_advance function
-    TIME time_advance() const {     
+    TIME time_advance() const {
+      if(state.prop){
+        return TIME("00:00:00:00");     
+      } 
+
       return std::numeric_limits<TIME>::infinity();
     }
 
