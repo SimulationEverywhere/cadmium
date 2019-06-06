@@ -30,6 +30,7 @@
 #include <mbed.h>
 #include <cadmium/engine/pdevs_dynamic_runner.hpp>
 #include <cadmium/logger/common_loggers.hpp>
+#include <cadmium/embedded/embedded_error.hpp>
 
 static long MIN_TO_MICRO   = (1000*1000*60);
 static long SEC_TO_MICRO   = (1000*1000);
@@ -170,14 +171,15 @@ namespace cadmium {
               #endif
             }
 
-            if (MISSED_DEADLINE_TOLERANCE != -1 ){
+            if (MISSED_DEADLINE_TOLERANCE != -1 ) {
               if (actual_delay >= -MISSED_DEADLINE_TOLERANCE) {
-                set_timeout(actual_delay / 1000, actual_delay % 1000);
+                actual_delay = set_timeout(actual_delay);
               } else {
                 //Missed Real Time Deadline and could not recover (Slip is passed the threshold)
-                error("\n\n++ ECadmium Error Info ++ \n MISSED SCHEDULED TIME ADVANCE DEADLINE BY: %d microseconds \n-- ECadmium Error Info -- ", -actual_delay);
+                cadmium::embedded::embedded_error::hard_fault("MISSED SCHEDULED TIME ADVANCE DEADLINE BY: %d microseconds", -actual_delay);
               }
             }
+
             execution_timer.reset();
             execution_timer.start();
 

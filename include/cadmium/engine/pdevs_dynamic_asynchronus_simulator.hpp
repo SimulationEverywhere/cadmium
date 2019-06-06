@@ -27,7 +27,7 @@
  */
 
 #include <limits>
-#include <math.h> 
+#include <math.h>
 #include <assert.h>
 #include <memory>
 #include <iomanip>
@@ -46,10 +46,10 @@
 #include <cadmium/logger/common_loggers.hpp>
 
 #ifdef ECADMIUM
-//Gross global boolean to say if an interrupt occured. 
+//Gross global boolean to say if an interrupt occured.
 //Todo: Do this better
 extern bool serviceInterrupts;
-#include "mbed.h"
+#include <cadmium/embedded/embedded_error.hpp>
 #endif
 
 namespace cadmium {
@@ -186,7 +186,7 @@ namespace cadmium {
                     LOGGER::template log<cadmium::logger::logger_state,cadmium::logger::sim_state>(t, _model->get_id(), _model->model_state_as_string());
                 }
 
-            #else 
+            #else
                 void collect_outputs(const TIME &t) override {
                 LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::sim_info_collect>(t, _model->get_id());
 
@@ -195,7 +195,7 @@ namespace cadmium {
                     if(serviceInterrupts) _next = t;
 
                     if (_next < t) {
-                        error("Trying to obtain output in a higher time than the next scheduled internal event");
+                        cadmium::embedded::embedded_error::hard_fault("Trying to obtain output in a higher time than the next scheduled internal event");
                     } else if (_next == t) {
                         _outbox = _model->output();
                     } else {
@@ -215,9 +215,9 @@ namespace cadmium {
                     LOGGER::template log<cadmium::logger::logger_local_time,cadmium::logger::sim_local_time>(_last, t, _model->get_id());
 
                     if (t < _last) {
-                        error("Event received for executing in the past of current simulation time");
+                        cadmium::embedded::embedded_error::hard_fault("Event received for executing in the past of current simulation time");
                     } else if (_next < t) {
-                        error("Event received for executing after next internal event");
+                        cadmium::embedded::embedded_error::hard_fault("Event received for executing after next internal event");
                     } else {
                         if (!_inbox.empty() || serviceInterrupts) { //input available
                             if (t == _next) { //confluence
