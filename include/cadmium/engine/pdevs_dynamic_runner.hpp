@@ -129,15 +129,15 @@ namespace cadmium {
                             _top_coordinator.interrupt_notify(_last);
                             serviceInterrupts = true;
                             interrupted = false;
-                            hal_critical_section_exit();
+                            //hal_critical_section_exit();
                         }
                         LOGGER::template log<cadmium::logger::logger_global_time, cadmium::logger::run_global_time>(_last);
                         _top_coordinator.collect_outputs(_last);
                         _top_coordinator.advance_simulation(_last);
                         _next = _top_coordinator.next();
+                        if(serviceInterrupts) serviceInterrupts = false;
                     }
                     LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Finished run");
-                    if(serviceInterrupts) serviceInterrupts = false;
                     return _next;
                 }
 

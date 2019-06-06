@@ -77,9 +77,10 @@
 
     // internal transition
     void internal_transition() {
+      cout << "\n\nHit internal transition " << (intPin->read() == 1) << "\n\n";
       state.prop = false;
       state.last = state.output;
-      state.output = intPin->read() == 1;
+      state.output = (intPin->read() == 1);
     }
 
     // external transition

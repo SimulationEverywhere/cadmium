@@ -26,6 +26,19 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <limits>
+#include <math.h> 
+#include <assert.h>
+#include <memory>
+#include <iomanip>
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <chrono>
+#include <algorithm>
+#include <limits>
+#include <random>
+
 #include <cadmium/modeling/dynamic_model.hpp>
 #include <cadmium/modeling/dynamic_message_bag.hpp>
 #include <cadmium/engine/pdevs_dynamic_engine.hpp>
@@ -35,7 +48,8 @@
 #ifdef ECADMIUM
 //Gross global boolean to say if an interrupt occured. 
 //Todo: Do this better
-volatile extern bool serviceInterrupts;
+extern bool serviceInterrupts;
+#include "mbed.h"
 #endif
 
 namespace cadmium {
@@ -178,9 +192,10 @@ namespace cadmium {
 
                     // Cleaning the inbox and producing outbox
                     _inbox = cadmium::dynamic::message_bags();
+                    if(serviceInterrupts) _next = t;
 
                     if (_next < t) {
-                        throw std::domain_error("Trying to obtain output in a higher time than the next scheduled internal event");
+                        error("Trying to obtain output in a higher time than the next scheduled internal event");
                     } else if (_next == t) {
                         _outbox = _model->output();
                     } else {
@@ -190,7 +205,6 @@ namespace cadmium {
                     std::string messages_by_port = _model->messages_by_port_as_string(_outbox);
                     LOGGER::template log<cadmium::logger::logger_messages, cadmium::logger::sim_messages_collect>(t, _model->get_id(), messages_by_port);
 
-                    if(interrupted) _next = t;
                 }
 
                 void advance_simulation(const TIME &t) override {
@@ -201,9 +215,9 @@ namespace cadmium {
                     LOGGER::template log<cadmium::logger::logger_local_time,cadmium::logger::sim_local_time>(_last, t, _model->get_id());
 
                     if (t < _last) {
-                        throw std::domain_error("Event received for executing in the past of current simulation time");
+                        error("Event received for executing in the past of current simulation time");
                     } else if (_next < t) {
-                        throw std::domain_error("Event received for executing after next internal event");
+                        error("Event received for executing after next internal event");
                     } else {
                         if (!_inbox.empty() || serviceInterrupts) { //input available
                             if (t == _next) { //confluence
@@ -228,7 +242,7 @@ namespace cadmium {
                             }
                         }
                     }
-
+                }
             #endif
 			};
         }

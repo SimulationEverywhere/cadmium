@@ -81,21 +81,23 @@ namespace cadmium {
 
                     for(auto& m : coupled_model->_models) {
                         std::shared_ptr<cadmium::dynamic::modeling::coupled<TIME>> m_coupled = std::dynamic_pointer_cast<cadmium::dynamic::modeling::coupled<TIME>>(m);
-                        std::shared_ptr<cadmium::dynamic::modeling::atomic_abstract<TIME>> m_atomic = std::dynamic_pointer_cast<cadmium::dynamic::modeling::atomic_abstract<TIME>>(m);
                         std::shared_ptr<cadmium::dynamic::modeling::asynchronus_atomic_abstract<TIME>> m_async = std::dynamic_pointer_cast<cadmium::dynamic::modeling::asynchronus_atomic_abstract<TIME>>(m);
+                        std::shared_ptr<cadmium::dynamic::modeling::atomic_abstract<TIME>> m_atomic = std::dynamic_pointer_cast<cadmium::dynamic::modeling::atomic_abstract<TIME>>(m);
 
                         if (m_coupled == nullptr) {
                             if (m_atomic == nullptr && m_async == nullptr) {
                                 throw std::domain_error("Invalid submodel is neither coupled nor atomic");
+                            } else if(m_atomic != nullptr && m_async != nullptr) {
+                                throw std::domain_error("Invalid submodel is both atomic and async");
                             }
-                            std::shared_ptr<cadmium::dynamic::engine::engine<TIME>> simulator;
 
                             if(m_async == nullptr) {
-                                simulator = std::make_shared<cadmium::dynamic::engine::simulator<TIME, LOGGER>>(m_atomic);
+                                std::shared_ptr<cadmium::dynamic::engine::engine<TIME>> simulator = std::make_shared<cadmium::dynamic::engine::simulator<TIME, LOGGER>>(m_atomic);
+                                _subcoordinators.push_back(simulator);
                             } else {
-                                simulator = std::make_shared<cadmium::dynamic::engine::asynchronus_simulator<TIME, LOGGER>>(m_async);
+                                std::shared_ptr<cadmium::dynamic::engine::engine<TIME>> simulator = std::make_shared<cadmium::dynamic::engine::asynchronus_simulator<TIME, LOGGER>>(m_async);
+                                _subcoordinators.push_back(simulator);
                             }
-                            _subcoordinators.push_back(simulator);
                         } else {
                             if (m_atomic != nullptr || m_async != nullptr) {
                                 throw std::domain_error("Invalid submodel is defined as both coupled and atomic");
