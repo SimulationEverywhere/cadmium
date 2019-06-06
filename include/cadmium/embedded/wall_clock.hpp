@@ -38,7 +38,7 @@ static long MILI_TO_MICRO  = (1000);
 #ifndef MISSED_DEADLINE_TOLERANCE
   #define MISSED_DEADLINE_TOLERANCE 0
 #endif
-extern bool interrupted;
+extern volatile bool interrupted;
 namespace cadmium {
     namespace embedded {
 
@@ -126,7 +126,7 @@ namespace cadmium {
             execution_timer.stop();
             if(interrupted) {
               time_left -= execution_timer.read_us();
-              hal_critical_section_enter();
+              //hal_critical_section_enter();
               return delay_us - time_left;
             }
             return 0;
