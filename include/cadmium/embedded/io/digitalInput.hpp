@@ -122,6 +122,7 @@
     public:
       DigitalInput() = default;
       DigitalInput(const char* file_path) : iestream_input<bool,TIME, digitalInput_defs>(file_path) {}
+      DigitalInput(const char* file_path, TIME t) : iestream_input<bool,TIME, digitalInput_defs>(file_path) {}
   };
 #endif // ECADMIUM
 
