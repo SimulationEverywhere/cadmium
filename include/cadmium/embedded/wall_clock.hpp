@@ -31,7 +31,7 @@
 #include <cadmium/logger/common_loggers.hpp>
 
 #ifndef MISSED_DEADLINE_TOLERANCE
-  #define MISSED_DEADLINE_TOLERANCE 0
+  #define MISSED_DEADLINE_TOLERANCE -1
 #endif
 
 namespace cadmium {
@@ -118,7 +118,7 @@ namespace cadmium {
             // Slip keeps track of how far behind schedule we are.
             scheduler_slip = actual_delay;
             // If we are ahead of schedule, then reset it to zero
-            if (scheduler_slip > 0) {
+            if (scheduler_slip >= 0) {
               scheduler_slip = 0;
 
             //Enable debug logs to see schedule slip
@@ -126,14 +126,14 @@ namespace cadmium {
               LOGGER::template log<cadmium::logger::logger_debug,cadmium::logger::run_info>
                                   ("MISSED SCHEDULED TIME ADVANCE! SLIP = " + to_string(-scheduler_slip) + " microseconds\n");
             }
-
-            if (actual_delay >= -MISSED_DEADLINE_TOLERANCE) {
-              set_timeout(actual_delay / 1000, actual_delay % 1000);
-            } else {
-              //Missed Real Time Deadline and could not recover (Slip is passed the threshold)
-              error("\n\n++ ECadmium Error Info ++ \n MISSED SCHEDULED TIME ADVANCE DEADLINE BY: %d microseconds \n-- ECadmium Error Info -- ", -actual_delay);
+            if (MISSED_DEADLINE_TOLERANCE != -1 ){
+              if (actual_delay >= -MISSED_DEADLINE_TOLERANCE) {
+                set_timeout(actual_delay / 1000, actual_delay % 1000);
+              } else {
+                //Missed Real Time Deadline and could not recover (Slip is passed the threshold)
+                error("\n\n++ ECadmium Error Info ++ \n MISSED SCHEDULED TIME ADVANCE DEADLINE BY: %d microseconds \n-- ECadmium Error Info -- ", -actual_delay);
+              }
             }
-
             execution_timer.reset();
             execution_timer.start();
 
