@@ -13,7 +13,7 @@
 #include <cadmium/modeling/ports.hpp>
 #include <cadmium/modeling/message_bag.hpp>
 #include <limits>
-#include <math.h> 
+#include <math.h>
 #include <assert.h>
 #include <memory>
 #include <iomanip>
@@ -68,7 +68,7 @@
       bool output;
       bool last;
       bool prop;
-    }; 
+    };
     state_type state;
 
     // ports definition
@@ -77,17 +77,16 @@
 
     // internal transition
     void internal_transition() {
-      cout << "\n\nHit internal transition " << (intPin->read() == 1) << "\n\n";
       state.prop = false;
-      state.last = state.output;
-      state.output = (intPin->read() == 1);
     }
 
     // external transition
     void external_transition(TIME e, typename make_message_bags<input_ports>::type mbs) {
         state.prop = true;
+        state.last = state.output;
+        state.output = (intPin->read() == 1);
       }
-    
+
     // confluence transition
     void confluence_transition(TIME e, typename make_message_bags<input_ports>::type mbs) {
         internal_transition();
@@ -107,17 +106,17 @@
     // time_advance function
     TIME time_advance() const {
       if(state.prop){
-        return TIME("00:00:00:00");     
-      } 
+        return TIME("00:00:00:00");
+      }
 
       return std::numeric_limits<TIME>::infinity();
     }
 
     friend std::ostringstream& operator<<(std::ostringstream& os, const typename InterruptInput<TIME>::state_type& i) {
-      os << "Input Pin: " << (i.output ? 1 : 0); 
+      os << "Input Pin: " << (i.output ? 1 : 0);
       return os;
     }
-  };     
+  };
 #else
   #include <cadmium/io/iestream.hpp>
   using namespace cadmium;
