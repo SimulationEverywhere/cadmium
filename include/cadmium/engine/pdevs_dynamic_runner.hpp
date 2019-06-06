@@ -36,7 +36,7 @@
 #ifdef ECADMIUM
 #include <cadmium/embedded/wall_clock.hpp>
 
-//Gross global boolean to say if an interrupt occured. 
+//Gross global boolean to say if an interrupt occured.
 //Todo: Do this better
 volatile bool interrupted = false;
 bool serviceInterrupts = false;
@@ -105,7 +105,7 @@ namespace cadmium {
                  * @return the TIME of the next event to happen when simulation stopped.
                  */
                 #ifdef ECADMIUM
-                
+
                 TIME run_until(const TIME &t) {
                     TIME e;
                     LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Starting run");
@@ -114,28 +114,25 @@ namespace cadmium {
                     cadmium::embedded::wall_clock<TIME> timer;
 
                     while (_next < t) {
-                        
+
                         e = timer.wait_for(_next - _last);
                         if(e == TIME::zero()){
                             _last = _next;
 
                         } else {
                             //interrupt occured, we must handle it.
-                            //cout << "Last event at " <<_last << "\n";
-                            //cout << "e = " << e << "\n";
                             _last += e;
-                            //cout << "Current time " << _last << "\n";
-
                             _top_coordinator.interrupt_notify(_last);
                             serviceInterrupts = true;
                             interrupted = false;
-                            //hal_critical_section_exit();
                         }
                         LOGGER::template log<cadmium::logger::logger_global_time, cadmium::logger::run_global_time>(_last);
                         _top_coordinator.collect_outputs(_last);
                         _top_coordinator.advance_simulation(_last);
                         _next = _top_coordinator.next();
-                        if(serviceInterrupts) serviceInterrupts = false;
+                        if(serviceInterrupts) {
+                            serviceInterrupts = false;
+                        }
                     }
                     LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Finished run");
                     return _next;
@@ -156,7 +153,7 @@ namespace cadmium {
                     return _next;
                 }
                 #endif
-                
+
                 /**
                  * @brief runUntilPassivate starts the simulation and stops when there is no next internal event to happen.
                  */
