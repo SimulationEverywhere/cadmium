@@ -7,8 +7,8 @@
 */
 
 
-#ifndef MAJORITYVOTE_HPP
-#define MAJORITYVOTE_HPP
+#ifndef AVERAGEINPUT_HPP
+#define AVERAGEINPUT_HPP
 
 #include <cadmium/modeling/ports.hpp>
 #include <cadmium/modeling/message_bag.hpp>
@@ -29,33 +29,33 @@ using namespace cadmium;
 using namespace std;
 #define MAX_NUMBER_OF_IN_PORTS 10
 //Port definition
-struct majorityVote_defs{
-  struct in1 : public in_port<bool>{};
-  struct in2 : public in_port<bool>{};
-  struct in3 : public in_port<bool>{};
-  struct in4 : public in_port<bool>{};
-  struct in5 : public in_port<bool>{};
-  struct in6 : public in_port<bool>{};
-  struct in7 : public in_port<bool>{};
-  struct in8 : public in_port<bool>{};
-  struct in9 : public in_port<bool>{};
-  struct in10: public in_port<bool>{};
-  struct out : public out_port<bool> {};
+struct averageInput_defs{
+  struct in1 : public in_port<float>{};
+  struct in2 : public in_port<float>{};
+  struct in3 : public in_port<float>{};
+  struct in4 : public in_port<float>{};
+  struct in5 : public in_port<float>{};
+  struct in6 : public in_port<float>{};
+  struct in7 : public in_port<float>{};
+  struct in8 : public in_port<float>{};
+  struct in9 : public in_port<float>{};
+  struct in10: public in_port<float>{};
+  struct out : public out_port<float> {};
 };
 
 template<typename TIME>
-class MajorityVote {
-  using defs=majorityVote_defs; // putting definitions in context
+class AverageInput {
+  using defs=averageInput_defs; // putting definitions in context
   public:
     //Parameters to be overwriten when instantiating the atomic model
   
     // default constructor
-    MajorityVote() noexcept{
+    AverageInput() noexcept{
         cout << "Must specify the number of in ports.";
         assert(false);
     }
 
-    MajorityVote(int inCount) noexcept{
+    AverageInput(int inCount) noexcept{
       assert(inCount <= MAX_NUMBER_OF_IN_PORTS);
       for(int i = 0; i < MAX_NUMBER_OF_IN_PORTS; i++){
         state.in[i] = false;
@@ -68,11 +68,11 @@ class MajorityVote {
 
     // state definition
     struct state_type{
-      bool in [MAX_NUMBER_OF_IN_PORTS];
+      float in [MAX_NUMBER_OF_IN_PORTS];
       int inCount;
-      bool output;
-      bool prop;
-      bool last;
+      float output;
+      float prop;
+      float last;
     };
     state_type state;
     
@@ -101,15 +101,12 @@ class MajorityVote {
       for(const auto &x : get_messages<typename defs::in10>(mbs)) state.in[9] = x;
 
       // Count true inputs
-      int trueCount = 0;
+      float sum = 0;
       for(int i = 0; i < state.inCount; i++)
-        if(state.in[i]) trueCount++;
-
-      //If more then half our sensors are true then output true
-       state.output = trueCount > (state.inCount/2);
-      //Don't change the output if there is a tie, only applicable if using an even number of inputs
-      if(((state.inCount % 2) == 0) && (trueCount == (state.inCount/2))) 
-        state.output = state.last;
+        sum += state.in[i];
+      cout << "sum = " << sum << "\n";
+      state.output = sum / state.inCount;\
+      cout << "out = " << state.output << "\n";
 
       //If the output changed then propogate outputs
       if(state.last != state.output) state.prop = true;
@@ -125,7 +122,7 @@ class MajorityVote {
     // output function
     typename make_message_bags<output_ports>::type output() const {
       typename make_message_bags<output_ports>::type bags;
-      bool out = state.output;
+      float out = state.output;
       get_messages<typename defs::out>(bags).push_back(out);
       return bags;
     }
@@ -137,11 +134,11 @@ class MajorityVote {
       return std::numeric_limits<TIME>::infinity();
     }
 
-    friend std::ostringstream& operator<<(std::ostringstream& os, const typename MajorityVote<TIME>::state_type& i) {
-      os << "Majority Vote Out: " << (i.output ? 1 : 0); 
+    friend std::ostringstream& operator<<(std::ostringstream& os, const typename AverageInput<TIME>::state_type& i) {
+      os << "Average Input Out: " << (i.output ? 1 : 0); 
       return os;
     }
 
 };
 
-#endif // MAJORITYVOTE_HPP
+#endif // AVERAGEINPUT_HPP
