@@ -95,10 +95,17 @@ namespace cadmium {
 
             ms = us / MILI_TO_MICRO;
             microseconds = us % MILI_TO_MICRO;
+<<<<<<< HEAD
 
             return TIME{hours, min, sec, ms, microseconds};
           }
 
+=======
+
+            return TIME{hours, min, sec, ms, microseconds};
+          }
+
+>>>>>>> 34b0e897abb7914748a49a77c968be3b217dfbf5
           //Given a long in microseconds, sleep for that time
           long set_timeout(long delay_us) {
             this->expired = false;
