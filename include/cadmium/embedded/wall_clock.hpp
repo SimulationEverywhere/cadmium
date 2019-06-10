@@ -123,8 +123,10 @@ namespace cadmium {
 
             //Enable debug logs to see schedule slip
             } else {
+              #ifdef DEBUG_SCHEDULING
               LOGGER::template log<cadmium::logger::logger_debug,cadmium::logger::run_info>
                                   ("MISSED SCHEDULED TIME ADVANCE! SLIP = " + to_string(-scheduler_slip) + " microseconds\n");
+              #endif
             }
             if (MISSED_DEADLINE_TOLERANCE != -1 ){
               if (actual_delay >= -MISSED_DEADLINE_TOLERANCE) {

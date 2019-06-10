@@ -104,10 +104,8 @@ class AverageInput {
       float sum = 0;
       for(int i = 0; i < state.inCount; i++)
         sum += state.in[i];
-      cout << "sum = " << sum << "\n";
-      state.output = sum / state.inCount;\
-      cout << "out = " << state.output << "\n";
 
+      state.output = sum / state.inCount;
       //If the output changed then propogate outputs
       if(state.last != state.output) state.prop = true;
       state.last = state.output;
