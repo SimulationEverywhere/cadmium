@@ -108,23 +108,25 @@ namespace cadmium {
 
                 TIME run_until(const TIME &t) {
                     TIME e;
+                    TIME temp;
                     LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Starting run");
 
                     _last = TIME();
                     cadmium::embedded::wall_clock<TIME> timer;
 
                     while (_next < t) {
+                        if (_next != _last) {
+                            e = timer.wait_for(_next - _last);
+                            if(e == TIME::zero()){
+                                _last = _next;
 
-                        e = timer.wait_for(_next - _last);
-                        if(e == TIME::zero()){
-                            _last = _next;
-
-                        } else {
-                            //interrupt occured, we must handle it.
-                            _last += e;
-                            _top_coordinator.interrupt_notify(_last);
-                            serviceInterrupts = true;
-                            interrupted = false;
+                            } else {
+                                //interrupt occured, we must handle it.
+                                _last += e;
+                                _top_coordinator.interrupt_notify(_last);
+                                serviceInterrupts = true;
+                                interrupted = false;
+                            }
                         }
                         LOGGER::template log<cadmium::logger::logger_global_time, cadmium::logger::run_global_time>(_last);
                         _top_coordinator.collect_outputs(_last);

@@ -48,7 +48,7 @@
 #ifdef ECADMIUM
 //Gross global boolean to say if an interrupt occured.
 //Todo: Do this better
-extern bool serviceInterrupts;
+// extern bool serviceInterrupts;
 #include <cadmium/embedded/embedded_error.hpp>
 #endif
 
@@ -64,13 +64,14 @@ namespace cadmium {
              * @tparam LOGGER - The logger type used to log simulation information as model states.
              */
             template<typename TIME, typename LOGGER>
-            class asynchronus_simulator : public engine<TIME> {
+            class asynchronus_simulator : public engine<TIME>, cadmium::dynamic::modeling::InterruptObserver {
                 using model_type=typename cadmium::dynamic::modeling::asynchronus_atomic_abstract<TIME>;
 
                 std::shared_ptr<cadmium::dynamic::modeling::asynchronus_atomic_abstract<TIME>> _model;
                 TIME _last;
                 TIME _next;
-
+                bool interrupted;
+                bool serviceInterrupts;
             public:
 
                 cadmium::dynamic::message_bags _outbox;
@@ -79,7 +80,15 @@ namespace cadmium {
                 asynchronus_simulator() = delete;
 
                 asynchronus_simulator(std::shared_ptr<cadmium::dynamic::modeling::asynchronus_atomic_abstract<TIME>> model)
-                : _model(model) {}
+                : InterruptObserver(model.get()), _model(model) {
+                    serviceInterrupts = false;
+                    interrupted = false;
+                }
+
+                void update() {
+                    //cout << "Got update() \n";
+                    interrupted = true;
+                }
 
                 /**
                  * @brief sets the last and next times according to the initial_time parameter.
@@ -188,8 +197,11 @@ namespace cadmium {
 
             #else
                 void collect_outputs(const TIME &t) override {
-                LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::sim_info_collect>(t, _model->get_id());
-
+                    LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::sim_info_collect>(t, _model->get_id());
+                    if(interrupted) {
+                        serviceInterrupts = true;
+                        //interrupted = false;
+                    }
                     // Cleaning the inbox and producing outbox
                     _inbox = cadmium::dynamic::message_bags();
                     if(serviceInterrupts) _next = t;
@@ -204,7 +216,6 @@ namespace cadmium {
 
                     std::string messages_by_port = _model->messages_by_port_as_string(_outbox);
                     LOGGER::template log<cadmium::logger::logger_messages, cadmium::logger::sim_messages_collect>(t, _model->get_id(), messages_by_port);
-
                 }
 
                 void advance_simulation(const TIME &t) override {
@@ -220,6 +231,11 @@ namespace cadmium {
                         cadmium::embedded::embedded_error::hard_fault("Event received for executing after next internal event");
                     } else {
                         if (!_inbox.empty() || serviceInterrupts) { //input available
+                            // Clear the serviceInterrupts flag, if it is set then they are about to be serviced.
+                            if (serviceInterrupts){
+                                serviceInterrupts = false;  
+                                interrupted = false;
+                            } 
                             if (t == _next) { //confluence
                                 _model->confluence_transition(t - _last, _inbox);
                             } else { //external

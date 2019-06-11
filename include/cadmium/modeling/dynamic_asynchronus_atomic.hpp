@@ -61,7 +61,7 @@ namespace cadmium {
                 cadmium::dynamic::modeling::Ports _output_ports;
 
                 std::string _id;
-
+                
             public:
                 using model_type=ATOMIC<TIME>;
 
@@ -82,7 +82,10 @@ namespace cadmium {
                     _output_ports = cadmium::dynamic::modeling::create_dynamic_ports<output_ports>();
                 }
 
-                asynchronus_atomic(const std::string& model_id, Args&&... args) : ATOMIC<TIME>(std::forward<Args>(args)...) {
+                asynchronus_atomic(const std::string& model_id, Args&&... args) : 
+                InterruptSubject(model_id), 
+                ATOMIC<TIME>((InterruptSubject *)this, std::forward<Args>(args)...) {
+                    
                     #ifndef ECADMIUM
                       static_assert(cadmium::concept::is_atomic<ATOMIC>::value, "This is not an atomic model");
                       cadmium::concept::atomic_model_assert<ATOMIC>();

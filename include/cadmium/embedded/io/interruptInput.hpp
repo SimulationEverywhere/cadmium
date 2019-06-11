@@ -12,6 +12,10 @@
 #include <cadmium/engine/pdevs_dynamic_runner.hpp>
 #include <cadmium/modeling/ports.hpp>
 #include <cadmium/modeling/message_bag.hpp>
+#include <cadmium/modeling/dynamic_model.hpp>
+
+#include <boost/bind.hpp>
+
 #include <limits>
 #include <math.h>
 #include <assert.h>
@@ -28,13 +32,8 @@
 #ifdef ECADMIUM
   //This class will interface with a interrupt input pin.
   #include "../mbed.h"
-  volatile extern bool interrupted;
   using namespace cadmium;
   using namespace std;
-
-  void notifySchedulerIsr(){
-    interrupted = true;
-  }
 
   //Port definition
   struct interruptInput_defs{
@@ -45,6 +44,9 @@
   class InterruptInput {
     using defs=interruptInput_defs; // putting definitions in context
 
+    private:
+      cadmium::dynamic::modeling::InterruptSubject *_sub;
+
     public:
     //Parameters to be overwriten when instantiating the atomic model
     InterruptIn* intPin;
@@ -54,10 +56,10 @@
       MBED_ASSERT(false);
       throw std::logic_error("Input atomic model requires a pin definition");
     }
-    InterruptInput(PinName pin) {
+    InterruptInput(cadmium::dynamic::modeling::InterruptSubject* sub, PinName pin) {
       intPin = new InterruptIn(pin);
-      intPin->rise(&notifySchedulerIsr);
-      intPin->fall(&notifySchedulerIsr);
+      intPin->rise(callback(sub, &cadmium::dynamic::modeling::InterruptSubject::setInterrupted));
+      intPin->fall(callback(sub, &cadmium::dynamic::modeling::InterruptSubject::setInterrupted));
       state.output = intPin->read();
       state.last = state.output;
       state.prop = true;
@@ -131,7 +133,7 @@
   class InterruptInput : public iestream_input<bool,TIME, interruptInput_defs>{
     public:
       InterruptInput() = default;
-      InterruptInput(const char* file_path) : iestream_input<bool,TIME, interruptInput_defs>(file_path) {}
+      InterruptInput(cadmium::dynamic::modeling::InterruptSubject *sub, const char* file_path) : iestream_input<bool,TIME, interruptInput_defs>(file_path) {}
   };
 #endif // ECADMIUM
 

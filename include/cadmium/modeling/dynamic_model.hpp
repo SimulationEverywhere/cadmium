@@ -27,8 +27,12 @@
 #ifndef CADMIUM_ATOMIC_HPP
 #define CADMIUM_ATOMIC_HPP
 
+#include <iostream>
+#include <vector>
 #include <cadmium/modeling/dynamic_message_bag.hpp>
 #include <cadmium/engine/pdevs_dynamic_link.hpp>
+//TEMP FIX:
+volatile extern bool interrupted;
 
 namespace cadmium {
     namespace dynamic {
@@ -126,8 +130,58 @@ namespace cadmium {
                 virtual TIME time_advance() const = 0;
             };
 
+            class InterruptSubject {
+                std::vector < class InterruptObserver * > views; 
+                bool value;
+                std::string _id;
+            public:
+                InterruptSubject(std::string subId){
+                    _id = subId;
+                }
+                void attach(InterruptObserver *obs) {
+                    views.push_back(obs);
+                }
+                void setInterrupted() {
+                    interrupted = true;
+                    value = true;
+                    notify();
+                }
+                void clearInterrupted() {
+                    value = false;
+                }
+                bool getInterrupted() {
+                    return value;
+                }
+                std::string getId() {
+                    return _id;
+                }
+                void notify();
+            };
+            
+            class InterruptObserver {
+                InterruptSubject *sub;
+                
+            public:
+                InterruptObserver(InterruptSubject *s) {
+                    sub = s;
+                    sub->attach(this);
+                }
+                virtual void update() = 0;
+
+            protected:
+                bool interrupted;
+                InterruptSubject *getSubject() {
+                    return sub;
+                }
+            };
+            
+            void InterruptSubject::notify() {
+                for (unsigned int i = 0; i < views.size(); i++)
+                    views[i]->update();
+            }
+
             template<typename TIME>
-            class asynchronus_atomic_abstract : public cadmium::dynamic::modeling::model {
+            class asynchronus_atomic_abstract : public cadmium::dynamic::modeling::model, public virtual cadmium::dynamic::modeling::InterruptSubject {
             public:
                 // Simulation purpose, because the model type are hidden, we need the model wrapper
                 // help for dealing with the model type dependant methods for message routing.
