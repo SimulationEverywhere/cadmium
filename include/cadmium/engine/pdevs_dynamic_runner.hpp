@@ -33,7 +33,7 @@
 #include <boost/thread/executors/basic_thread_pool.hpp>
 #endif //CADMIUM_EXECUTE_CONCURRENT
 
-#ifdef ECADMIUM
+#ifdef RT_ARM_MBED
 #include <cadmium/real_time/arm_mbed/wall_clock.hpp>
 
 //Gross global boolean to say if an interrupt occured.
@@ -104,7 +104,7 @@ namespace cadmium {
                  * @param t is the limit time for the simulation.
                  * @return the TIME of the next event to happen when simulation stopped.
                  */
-                #ifdef ECADMIUM
+                #ifdef RT_ARM_MBED
 
                 TIME run_until(const TIME &t) {
                     TIME e;

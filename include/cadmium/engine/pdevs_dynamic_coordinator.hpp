@@ -299,7 +299,7 @@ namespace cadmium {
                         _inbox = cadmium::dynamic::message_bags();
                     }
                 }
-                #ifdef ECADMIUM
+                #ifdef RT_ARM_MBED
                 /**
                  * @brief interrupt_notify will force the simulator to wakeup its sub-engines in the event of an interrupt.
                  * @param t should be the current time of the simulation

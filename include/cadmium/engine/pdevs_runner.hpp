@@ -92,7 +92,7 @@ namespace cadmium {
              * @brief runUntilPassivate starts the simulation and stops when there is no next internal event to happen.
              */
             void run_until_passivate() {
-                #ifndef ECADMIUM
+                #ifndef RT_ARM_MBED
                   static_assert(std::numeric_limits<TIME>::has_infinity, "TIME datatype has no infinity defined");
                 #endif
                 

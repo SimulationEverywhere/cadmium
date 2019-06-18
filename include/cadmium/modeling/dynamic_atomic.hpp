@@ -70,7 +70,7 @@ namespace cadmium {
                 using input_bags = typename make_message_bags<input_ports>::type;
 
                 atomic() {
-                    #ifndef ECADMIUM
+                    #ifndef RT_ARM_MBED
                       static_assert(cadmium::concept::is_atomic<ATOMIC>::value, "This is not an atomic model");
                       cadmium::concept::atomic_model_assert<ATOMIC>();
                     #endif
@@ -80,7 +80,7 @@ namespace cadmium {
                 }
 
                 atomic(const std::string& model_id, Args&&... args) : ATOMIC<TIME>(std::forward<Args>(args)...) {
-                    #ifndef ECADMIUM
+                    #ifndef RT_ARM_MBED
                       static_assert(cadmium::concept::is_atomic<ATOMIC>::value, "This is not an atomic model");
                       cadmium::concept::atomic_model_assert<ATOMIC>();
                     #endif

@@ -23,7 +23,7 @@
 #include <limits>
 #include <random>
 
-#ifdef ECADMIUM
+#ifdef RT_ARM_MBED
   #include "../mbed.h"
 
   using namespace cadmium;
@@ -121,5 +121,5 @@
       AnalogInput(const char* file_path) : iestream_input<float,TIME, analogInput_defs>(file_path) {}
       AnalogInput(const char* file_path, TIME t) : iestream_input<bool,TIME, analogInput_defs>(file_path) {}
   }; 
-#endif // ECADMIUM
+#endif // RT_ARM_MBED
 #endif // BOOST_SIMULATION_PDEVS_ANALOGINPUT_HPP

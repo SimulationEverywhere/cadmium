@@ -61,7 +61,7 @@ namespace cadmium {
                 using to_message_bag_type = typename cadmium::message_bag<PORT_TO>;
 
                 link() {
-                  #ifndef ECADMIUM
+                  #ifndef RT_ARM_MBED
                     static_assert(
                             std::is_same<from_message_type, to_message_type>::value,
                             "PORT_FROM message type and PORT_TO message types must be the same type"

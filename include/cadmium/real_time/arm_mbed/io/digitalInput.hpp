@@ -24,7 +24,7 @@
 #include <limits>
 #include <random>
 
-#ifdef ECADMIUM
+#ifdef RT_ARM_MBED
   //This class will interface with a digital input pin.
   #include "../mbed.h"
 
@@ -124,6 +124,6 @@
       DigitalInput(const char* file_path) : iestream_input<bool,TIME, digitalInput_defs>(file_path) {}
       DigitalInput(const char* file_path, TIME t) : iestream_input<bool,TIME, digitalInput_defs>(file_path) {}
   };
-#endif // ECADMIUM
+#endif // RT_ARM_MBED
 
 #endif // BOOST_SIMULATION_PDEVS_DIGITALINPUT_HPP

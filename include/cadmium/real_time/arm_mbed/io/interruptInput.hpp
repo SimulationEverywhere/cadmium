@@ -29,7 +29,7 @@
 #include <limits>
 #include <random>
 
-#ifdef ECADMIUM
+#ifdef RT_ARM_MBED
   //This class will interface with a interrupt input pin.
   #include "../mbed.h"
   using namespace cadmium;
@@ -135,6 +135,6 @@
       InterruptInput() = default;
       InterruptInput(cadmium::dynamic::modeling::InterruptSubject *sub, const char* file_path) : iestream_input<bool,TIME, interruptInput_defs>(file_path) {}
   };
-#endif // ECADMIUM
+#endif // RT_ARM_MBED
 
 #endif // BOOST_SIMULATION_PDEVS_INTERRUPTINPUT_HPP

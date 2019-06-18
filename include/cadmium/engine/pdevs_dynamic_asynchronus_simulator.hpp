@@ -45,7 +45,7 @@
 #include <cadmium/logger/dynamic_common_loggers.hpp>
 #include <cadmium/logger/common_loggers.hpp>
 
-#ifdef ECADMIUM
+#ifdef RT_ARM_MBED
 //Gross global boolean to say if an interrupt occured.
 //Todo: Do this better
 // extern bool serviceInterrupts;
@@ -133,7 +133,7 @@ namespace cadmium {
                     return _inbox;
                 }
 
-            #ifndef ECADMIUM
+            #ifndef RT_ARM_MBED
                 void collect_outputs(const TIME &t) override {
                 LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::sim_info_collect>(t, _model->get_id());
 

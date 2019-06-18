@@ -73,7 +73,7 @@ namespace cadmium {
                 using input_bags = typename make_message_bags<input_ports>::type;
 
                 asynchronus_atomic() {
-                    #ifndef ECADMIUM
+                    #ifndef RT_ARM_MBED
                       static_assert(cadmium::concept::is_atomic<ATOMIC>::value, "This is not an atomic model");
                       cadmium::concept::atomic_model_assert<ATOMIC>();
                     #endif
@@ -86,7 +86,7 @@ namespace cadmium {
                 InterruptSubject(model_id), 
                 ATOMIC<TIME>((InterruptSubject *)this, std::forward<Args>(args)...) {
                     
-                    #ifndef ECADMIUM
+                    #ifndef RT_ARM_MBED
                       static_assert(cadmium::concept::is_atomic<ATOMIC>::value, "This is not an atomic model");
                       cadmium::concept::atomic_model_assert<ATOMIC>();
                     #endif

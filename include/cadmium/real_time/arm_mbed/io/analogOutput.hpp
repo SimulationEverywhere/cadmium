@@ -27,7 +27,7 @@
 #include <limits>
 #include <random>
 
-#ifdef ECADMIUM
+#ifdef RT_ARM_MBED
   #include "../mbed.h"
 
   using namespace cadmium;
@@ -114,5 +114,5 @@
       AnalogOutput() = default;
       AnalogOutput(const char* file_path) : oestream_output<float,TIME, analogOutput_defs>(file_path) {}
   };
-#endif //ECADMIUM
+#endif //RT_ARM_MBED
 #endif // BOOST_SIMULATION_PDEVS_ANALOGOUTPUT_HPP

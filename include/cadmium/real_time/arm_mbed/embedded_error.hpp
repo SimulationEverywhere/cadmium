@@ -45,9 +45,9 @@ namespace cadmium {
                  template <typename H, typename... T> static void hard_fault(H p, T... t) {
 
                      //Construct Error string
-                     std::string str ("\n\n++ ECadmium Error Info ++ \n");
+                     std::string str ("\n\n++ RT_ARM_MBED Error Info ++ \n");
                      str += p;
-                     str += "\n-- ECadmium Error Info --\n\n";
+                     str += "\n-- RT_ARM_MBED Error Info --\n\n";
 
                      //Call mbed error
                      error(str.c_str(), t...);
