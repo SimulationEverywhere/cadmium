@@ -33,13 +33,20 @@
 #include <boost/thread/executors/basic_thread_pool.hpp>
 #endif //CADMIUM_EXECUTE_CONCURRENT
 
-#ifdef RT_ARM_MBED
-#include <cadmium/real_time/arm_mbed/wall_clock.hpp>
+#ifdef RT_ARM_MBED 
+    #define RT_DEVS
+    #include <cadmium/real_time/arm_mbed/wall_clock.hpp>
+#elif RT_LINUX
+    #define RT_DEVS
+    #include <cadmium/real_time/linux/wall_clock.hpp>
+#endif
 
-//Gross global boolean to say if an interrupt occured.
-//Todo: Do this better
-volatile bool interrupted = false;
-bool serviceInterrupts = false;
+#ifdef RT_DEVS
+    //Gross global boolean to say if an interrupt occured.
+    //Todo: Do this better - can we avoid making it a global bool?
+    //      Maybe have every enlist as an asynchronus atomic observer?
+    volatile bool interrupted = false;
+    bool serviceInterrupts = false;
 #endif
 
 namespace cadmium {
@@ -104,56 +111,56 @@ namespace cadmium {
                  * @param t is the limit time for the simulation.
                  * @return the TIME of the next event to happen when simulation stopped.
                  */
-                #ifdef RT_ARM_MBED
+                #ifdef RT_DEVS
 
-                TIME run_until(const TIME &t) {
-                    TIME e;
-                    TIME temp;
-                    LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Starting run");
+                    TIME run_until(const TIME &t) {
+                        TIME e;
+                        TIME temp;
+                        LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Starting run");
 
-                    _last = TIME();
-                    cadmium::embedded::wall_clock<TIME> timer;
+                        _last = TIME();
+                        cadmium::embedded::wall_clock<TIME> timer;
 
-                    while (_next < t) {
-                        if (_next != _last) {
-                            e = timer.wait_for(_next - _last);
-                            if(e == TIME::zero()){
-                                _last = _next;
+                        while (_next < t) {
+                            if (_next != _last) {
+                                e = timer.wait_for(_next - _last);
+                                if(e == TIME::zero()){
+                                    _last = _next;
 
-                            } else {
-                                //interrupt occured, we must handle it.
-                                _last += e;
-                                _top_coordinator.interrupt_notify(_last);
-                                serviceInterrupts = true;
-                                interrupted = false;
+                                } else {
+                                    //interrupt occured, we must handle it.
+                                    _last += e;
+                                    _top_coordinator.interrupt_notify(_last);
+                                    serviceInterrupts = true;
+                                    interrupted = false;
+                                }
+                            }
+                            LOGGER::template log<cadmium::logger::logger_global_time, cadmium::logger::run_global_time>(_last);
+                            _top_coordinator.collect_outputs(_last);
+                            _top_coordinator.advance_simulation(_last);
+                            _next = _top_coordinator.next();
+                            if(serviceInterrupts) {
+                                serviceInterrupts = false;
                             }
                         }
-                        LOGGER::template log<cadmium::logger::logger_global_time, cadmium::logger::run_global_time>(_last);
-                        _top_coordinator.collect_outputs(_last);
-                        _top_coordinator.advance_simulation(_last);
-                        _next = _top_coordinator.next();
-                        if(serviceInterrupts) {
-                            serviceInterrupts = false;
-                        }
+                        LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Finished run");
+                        return _next;
                     }
-                    LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Finished run");
-                    return _next;
-                }
 
                 #else
 
-                TIME run_until(const TIME &t) {
-                    LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Starting run");
+                    TIME run_until(const TIME &t) {
+                        LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Starting run");
 
-                    while (_next < t) {
-                        LOGGER::template log<cadmium::logger::logger_global_time, cadmium::logger::run_global_time>(_next);
-                        _top_coordinator.collect_outputs(_next);
-                        _top_coordinator.advance_simulation(_next);
-                        _next = _top_coordinator.next();
+                        while (_next < t) {
+                            LOGGER::template log<cadmium::logger::logger_global_time, cadmium::logger::run_global_time>(_next);
+                            _top_coordinator.collect_outputs(_next);
+                            _top_coordinator.advance_simulation(_next);
+                            _next = _top_coordinator.next();
+                        }
+                        LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Finished run");
+                        return _next;
                     }
-                    LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Finished run");
-                    return _next;
-                }
                 #endif
 
                 /**
