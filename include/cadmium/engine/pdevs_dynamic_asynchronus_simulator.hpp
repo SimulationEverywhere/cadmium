@@ -49,7 +49,7 @@
 //Gross global boolean to say if an interrupt occured.
 //Todo: Do this better
 // extern bool serviceInterrupts;
-#include <cadmium/embedded/embedded_error.hpp>
+#include <cadmium/real_time/arm_mbed/embedded_error.hpp>
 #endif
 
 namespace cadmium {

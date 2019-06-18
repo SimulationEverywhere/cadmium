@@ -34,7 +34,7 @@
 #endif //CADMIUM_EXECUTE_CONCURRENT
 
 #ifdef ECADMIUM
-#include <cadmium/embedded/wall_clock.hpp>
+#include <cadmium/real_time/arm_mbed/wall_clock.hpp>
 
 //Gross global boolean to say if an interrupt occured.
 //Todo: Do this better

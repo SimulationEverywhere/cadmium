@@ -30,7 +30,7 @@
 #include <mbed.h>
 #include <cadmium/engine/pdevs_dynamic_runner.hpp>
 #include <cadmium/logger/common_loggers.hpp>
-#include <cadmium/embedded/embedded_error.hpp>
+#include <cadmium/real_time/arm_mbed/embedded_error.hpp>
 
 static long MIN_TO_MICRO   = (1000*1000*60);
 static long SEC_TO_MICRO   = (1000*1000);
