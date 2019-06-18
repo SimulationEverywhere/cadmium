@@ -56,4 +56,4 @@ namespace cadmium {
     }
 }
 
-#endif //CADMIUM_WALL_CLOCK_HPP
+#endif //CADMIUM_RT_CLOCK_HPP

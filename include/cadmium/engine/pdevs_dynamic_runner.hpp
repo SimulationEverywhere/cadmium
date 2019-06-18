@@ -35,9 +35,9 @@
 
 //SET RT_DEVS and load load the correct clock
 #ifdef RT_ARM_MBED 
-    #include <cadmium/real_time/arm_mbed/wall_clock.hpp>
+    #include <cadmium/real_time/arm_mbed/rt_clock.hpp>
 #elif RT_LINUX
-    #include <cadmium/real_time/linux/wall_clock.hpp>
+    #include <cadmium/real_time/linux/rt_clock.hpp>
 #endif
 
 #ifdef RT_DEVS
@@ -118,7 +118,7 @@ namespace cadmium {
                         LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Starting run");
 
                         _last = TIME();
-                        cadmium::embedded::wall_clock<TIME> timer;
+                        cadmium::embedded::rt_clock<TIME> timer;
 
                         while (_next < t) {
                             if (_next != _last) {

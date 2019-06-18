@@ -24,8 +24,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CADMIUM_WALL_CLOCK_HPP
-#define CADMIUM_WALL_CLOCK_HPP
+#ifndef CADMIUM_RT_CLOCK_HPP
+#define CADMIUM_RT_CLOCK_HPP
 
 #include <mbed.h>
 #include <cadmium/engine/pdevs_dynamic_runner.hpp>
@@ -50,7 +50,7 @@ namespace cadmium {
         template<class TIME, typename LOGGER=cadmium::logger::logger<cadmium::logger::logger_debug,
                                              cadmium::dynamic::logger::formatter<TIME>,
                                              cadmium::logger::cout_sink_provider>>
-        class wall_clock {
+        class rt_clock {
         private:
 
           //Time since last time advance, how long the simulator took to advance
@@ -109,7 +109,7 @@ namespace cadmium {
             //Handle waits of over ~35 minutes as timer overflows
             while ((time_left > INT_MAX) && !interrupted) {
               this->expired = false;
-              this->_timeout.attach_us(callback(this, &wall_clock::timeout_expired), INT_MAX);
+              this->_timeout.attach_us(callback(this, &rt_clock::timeout_expired), INT_MAX);
 
               while (!expired && !interrupted) sleep();
 
@@ -120,7 +120,7 @@ namespace cadmium {
 
             //Handle waits of under INT_MAX microseconds
             if(!interrupted) {
-              this->_timeout.attach_us(callback(this, &wall_clock::timeout_expired), time_left);
+              this->_timeout.attach_us(callback(this, &rt_clock::timeout_expired), time_left);
               while (!expired && !interrupted) sleep();
             }
 
@@ -190,4 +190,4 @@ namespace cadmium {
     }
 }
 
-#endif //CADMIUM_WALL_CLOCK_HPP
+#endif //CADMIUM_RT_CLOCK_HPP
