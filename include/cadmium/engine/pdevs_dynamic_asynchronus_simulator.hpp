@@ -46,10 +46,9 @@
 #include <cadmium/logger/common_loggers.hpp>
 
 #ifdef RT_ARM_MBED
-//Gross global boolean to say if an interrupt occured.
-//Todo: Do this better
-// extern bool serviceInterrupts;
-#include <cadmium/real_time/arm_mbed/embedded_error.hpp>
+    #define RT_DEVS
+    //Special error handler for MBed applications
+    #include <cadmium/real_time/arm_mbed/embedded_error.hpp>
 #endif
 
 namespace cadmium {
@@ -133,7 +132,7 @@ namespace cadmium {
                     return _inbox;
                 }
 
-            #ifndef RT_ARM_MBED
+            #ifndef RT_DEVS
                 void collect_outputs(const TIME &t) override {
                 LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::sim_info_collect>(t, _model->get_id());
 
@@ -200,14 +199,17 @@ namespace cadmium {
                     LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::sim_info_collect>(t, _model->get_id());
                     if(interrupted) {
                         serviceInterrupts = true;
-                        //interrupted = false;
                     }
                     // Cleaning the inbox and producing outbox
                     _inbox = cadmium::dynamic::message_bags();
                     if(serviceInterrupts) _next = t;
 
                     if (_next < t) {
-                        cadmium::embedded::embedded_error::hard_fault("Trying to obtain output in a higher time than the next scheduled internal event");
+                        #ifdef RT_ARM_MBED
+                            cadmium::embedded::embedded_error::hard_fault("Trying to obtain output in a higher time than the next scheduled internal event");
+                        #else
+                            throw std::domain_error("Trying to obtain output in a higher time than the next scheduled internal event");
+                        #endif 
                     } else if (_next == t) {
                         _outbox = _model->output();
                     } else {
@@ -226,9 +228,17 @@ namespace cadmium {
                     LOGGER::template log<cadmium::logger::logger_local_time,cadmium::logger::sim_local_time>(_last, t, _model->get_id());
 
                     if (t < _last) {
-                        cadmium::embedded::embedded_error::hard_fault("Event received for executing in the past of current simulation time");
+                        #ifdef RT_ARM_MBED
+                            cadmium::embedded::embedded_error::hard_fault("Event received for executing in the past of current simulation time");
+                        #else
+                            throw std::domain_error("Event received for executing in the past of current simulation time");
+                        #endif 
                     } else if (_next < t) {
-                        cadmium::embedded::embedded_error::hard_fault("Event received for executing after next internal event");
+                        #ifdef RT_ARM_MBED
+                            cadmium::embedded::embedded_error::hard_fault("Event received for executing after next internal event");
+                        #else
+                            throw std::domain_error("Event received for executing after next internal event");
+                        #endif 
                     } else {
                         if (!_inbox.empty() || serviceInterrupts) { //input available
                             // Clear the serviceInterrupts flag, if it is set then they are about to be serviced.
