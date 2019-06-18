@@ -35,10 +35,8 @@
 
 //SET RT_DEVS and load load the correct clock
 #ifdef RT_ARM_MBED 
-    #define RT_DEVS
     #include <cadmium/real_time/arm_mbed/wall_clock.hpp>
 #elif RT_LINUX
-    #define RT_DEVS
     #include <cadmium/real_time/linux/wall_clock.hpp>
 #endif
 

@@ -36,10 +36,6 @@
 #include <cadmium/engine/pdevs_dynamic_engine_helpers.hpp>
 #include <cadmium/logger/common_loggers.hpp>
 
-#ifdef RT_ARM_MBED 
-    #define RT_DEVS
-#endif
-
 namespace cadmium {
     namespace dynamic {
         namespace engine {

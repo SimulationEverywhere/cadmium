@@ -46,7 +46,6 @@
 #include <cadmium/logger/common_loggers.hpp>
 
 #ifdef RT_ARM_MBED
-    #define RT_DEVS
     //Special error handler for MBed applications
     #include <cadmium/real_time/arm_mbed/embedded_error.hpp>
 #endif
