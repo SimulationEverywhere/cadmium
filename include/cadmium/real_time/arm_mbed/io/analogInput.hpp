@@ -119,7 +119,7 @@
     public:
       AnalogInput() = default;
       AnalogInput(const char* file_path) : iestream_input<float,TIME, analogInput_defs>(file_path) {}
-      AnalogInput(const char* file_path, TIME t) : iestream_input<bool,TIME, analogInput_defs>(file_path) {}
+      AnalogInput(const char* file_path, TIME t) : iestream_input<float,TIME, analogInput_defs>(file_path) {}
   }; 
 #endif // RT_ARM_MBED
 #endif // BOOST_SIMULATION_PDEVS_ANALOGINPUT_HPP
