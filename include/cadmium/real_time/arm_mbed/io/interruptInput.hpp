@@ -14,8 +14,6 @@
 #include <cadmium/modeling/message_bag.hpp>
 #include <cadmium/modeling/dynamic_model.hpp>
 
-#include <boost/bind.hpp>
-
 #include <limits>
 #include <math.h>
 #include <assert.h>
@@ -45,7 +43,7 @@
     using defs=interruptInput_defs; // putting definitions in context
 
     private:
-      cadmium::dynamic::modeling::InterruptSubject *_sub;
+      cadmium::dynamic::modeling::AsyncEventSubject *_sub;
 
     public:
     //Parameters to be overwriten when instantiating the atomic model
@@ -56,10 +54,10 @@
       MBED_ASSERT(false);
       throw std::logic_error("Input atomic model requires a pin definition");
     }
-    InterruptInput(cadmium::dynamic::modeling::InterruptSubject* sub, PinName pin) {
+    InterruptInput(cadmium::dynamic::modeling::AsyncEventSubject* sub, PinName pin) {
       intPin = new InterruptIn(pin);
-      intPin->rise(callback(sub, &cadmium::dynamic::modeling::InterruptSubject::setInterrupted));
-      intPin->fall(callback(sub, &cadmium::dynamic::modeling::InterruptSubject::setInterrupted));
+      intPin->rise(callback(sub, &cadmium::dynamic::modeling::AsyncEventSubject::notify));
+      intPin->fall(callback(sub, &cadmium::dynamic::modeling::AsyncEventSubject::notify));
       state.output = intPin->read();
       state.last = state.output;
       state.prop = true;
@@ -133,7 +131,7 @@
   class InterruptInput : public iestream_input<bool,TIME, interruptInput_defs>{
     public:
       InterruptInput() = default;
-      InterruptInput(cadmium::dynamic::modeling::InterruptSubject *sub, const char* file_path) : iestream_input<bool,TIME, interruptInput_defs>(file_path) {}
+      InterruptInput(cadmium::dynamic::modeling::AsyncEventSubject *sub, const char* file_path) : iestream_input<bool,TIME, interruptInput_defs>(file_path) {}
   };
 #endif // RT_ARM_MBED
 

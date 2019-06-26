@@ -41,10 +41,11 @@
 #endif
 
 #ifdef RT_DEVS
+    #include <cadmium/modeling/dynamic_model.hpp>
     //Gross global boolean to say if an interrupt occured.
     //Todo: Do this better - can we avoid making it a global bool?
     //      Maybe have every enlist as an asynchronus atomic observer?
-    volatile bool interrupted = false;
+    // volatile bool interrupted = false;
     bool serviceInterrupts = false;
 #endif
 
@@ -102,6 +103,7 @@ namespace cadmium {
                     LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Preparing model");
                     _top_coordinator.init(init_time);
                     _next = _top_coordinator.next();
+
                 }
                 #endif //CADMIUM_EXECUTE_CONCURRENT
 
@@ -118,7 +120,7 @@ namespace cadmium {
                         LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Starting run");
 
                         _last = TIME();
-                        cadmium::embedded::rt_clock<TIME> timer;
+                        cadmium::embedded::rt_clock<TIME> timer(_top_coordinator.get_async_subjects());
 
                         while (_next < t) {
                             if (_next != _last) {
@@ -131,7 +133,6 @@ namespace cadmium {
                                     _last += e;
                                     _top_coordinator.interrupt_notify(_last);
                                     serviceInterrupts = true;
-                                    interrupted = false;
                                 }
                             }
                             LOGGER::template log<cadmium::logger::logger_global_time, cadmium::logger::run_global_time>(_last);

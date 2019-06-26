@@ -83,8 +83,8 @@ namespace cadmium {
                 }
 
                 asynchronus_atomic(const std::string& model_id, Args&&... args) : 
-                InterruptSubject(model_id), 
-                ATOMIC<TIME>((InterruptSubject *)this, std::forward<Args>(args)...) {
+                AsyncEventSubject(model_id), 
+                ATOMIC<TIME>((AsyncEventSubject *)this, std::forward<Args>(args)...) {
                     
                     #ifndef RT_ARM_MBED
                       static_assert(cadmium::concept::is_atomic<ATOMIC>::value, "This is not an atomic model");

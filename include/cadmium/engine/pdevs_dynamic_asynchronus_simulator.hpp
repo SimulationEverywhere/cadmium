@@ -62,7 +62,7 @@ namespace cadmium {
              * @tparam LOGGER - The logger type used to log simulation information as model states.
              */
             template<typename TIME, typename LOGGER>
-            class asynchronus_simulator : public engine<TIME>, cadmium::dynamic::modeling::InterruptObserver {
+            class asynchronus_simulator : public engine<TIME>, cadmium::dynamic::modeling::AsyncEventObserver {
                 using model_type=typename cadmium::dynamic::modeling::asynchronus_atomic_abstract<TIME>;
 
                 std::shared_ptr<cadmium::dynamic::modeling::asynchronus_atomic_abstract<TIME>> _model;
@@ -78,7 +78,7 @@ namespace cadmium {
                 asynchronus_simulator() = delete;
 
                 asynchronus_simulator(std::shared_ptr<cadmium::dynamic::modeling::asynchronus_atomic_abstract<TIME>> model)
-                : InterruptObserver(model.get()), _model(model) {
+                : AsyncEventObserver(model.get()), _model(model) {
                     serviceInterrupts = false;
                     interrupted = false;
                 }

@@ -58,6 +58,10 @@ namespace cadmium {
                 boost::basic_thread_pool* _threadpool;
                 #endif //CADMIUM_EXECUTE_CONCURRENT
 
+                #ifdef RT_DEVS
+                    std::vector <class cadmium::dynamic::modeling::AsyncEventSubject *> _async_subjects;
+                #endif
+
             public:
 
                 dynamic::message_bags _inbox;
@@ -97,6 +101,7 @@ namespace cadmium {
                             } else {
                                 std::shared_ptr<cadmium::dynamic::engine::engine<TIME>> simulator = std::make_shared<cadmium::dynamic::engine::asynchronus_simulator<TIME, LOGGER>>(m_async);
                                 _subcoordinators.push_back(simulator);
+                                _async_subjects.push_back((cadmium::dynamic::modeling::AsyncEventSubject *) m_async.get());
                             }
                         } else {
                             if (m_atomic != nullptr || m_async != nullptr) {
@@ -104,6 +109,9 @@ namespace cadmium {
                             }
                             std::shared_ptr<cadmium::dynamic::engine::engine<TIME>> coordinator = std::make_shared<cadmium::dynamic::engine::coordinator<TIME, LOGGER>>(m_coupled);
                             _subcoordinators.push_back(coordinator);
+                            for(auto x : dynamic_cast<cadmium::dynamic::engine::coordinator<TIME, LOGGER> *>(coordinator.get())->get_async_subjects()){
+                                _async_subjects.push_back(x);
+                            }
                         }
 
                         enginges_by_id.insert(std::make_pair(_subcoordinators.back()->get_model_id(), _subcoordinators.back()));
@@ -307,6 +315,11 @@ namespace cadmium {
                 void interrupt_notify(const TIME &t) {
                     _next = t;
                 }
+
+                std::vector <class cadmium::dynamic::modeling::AsyncEventSubject *> get_async_subjects() {
+                    return _async_subjects;
+                }
+
                 #endif
             };
         }
