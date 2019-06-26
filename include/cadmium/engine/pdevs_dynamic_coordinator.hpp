@@ -58,10 +58,8 @@ namespace cadmium {
                 boost::basic_thread_pool* _threadpool;
                 #endif //CADMIUM_EXECUTE_CONCURRENT
 
-                #ifdef RT_DEVS
-                    std::vector <class cadmium::dynamic::modeling::AsyncEventSubject *> _async_subjects;
-                #endif
-
+                std::vector <class cadmium::dynamic::modeling::AsyncEventSubject *> _async_subjects;
+                
             public:
 
                 dynamic::message_bags _inbox;
@@ -307,6 +305,11 @@ namespace cadmium {
                         _inbox = cadmium::dynamic::message_bags();
                     }
                 }
+
+                std::vector <class cadmium::dynamic::modeling::AsyncEventSubject *> get_async_subjects() {
+                    return _async_subjects;
+                }
+
                 #ifdef RT_DEVS
                 /**
                  * @brief interrupt_notify will force the simulator to wakeup its sub-engines in the event of an interrupt.
@@ -314,10 +317,6 @@ namespace cadmium {
                  */
                 void interrupt_notify(const TIME &t) {
                     _next = t;
-                }
-
-                std::vector <class cadmium::dynamic::modeling::AsyncEventSubject *> get_async_subjects() {
-                    return _async_subjects;
                 }
 
                 #endif
