@@ -29,6 +29,7 @@
 
 #include <mbed.h>
 #include <cadmium/engine/pdevs_dynamic_runner.hpp>
+#include <cadmium/modeling/dynamic_model.hpp>
 #include <cadmium/logger/common_loggers.hpp>
 #include <cadmium/real_time/arm_mbed/embedded_error.hpp>
 
@@ -39,7 +40,7 @@ static long MILI_TO_MICRO  = (1000);
 #ifndef MISSED_DEADLINE_TOLERANCE
   #define MISSED_DEADLINE_TOLERANCE -1
 #endif
-extern volatile bool interrupted;
+
 namespace cadmium {
     namespace embedded {
 
@@ -50,9 +51,11 @@ namespace cadmium {
         template<class TIME, typename LOGGER=cadmium::logger::logger<cadmium::logger::logger_debug,
                                              cadmium::dynamic::logger::formatter<TIME>,
                                              cadmium::logger::cout_sink_provider>>
-        class rt_clock {
+        class rt_clock : public cadmium::dynamic::modeling::AsyncEventObserver {
         private:
 
+          volatile bool interrupted;
+          
           //Time since last time advance, how long the simulator took to advance
           Timer execution_timer;
 
@@ -129,6 +132,7 @@ namespace cadmium {
               time_left -= execution_timer.read_us();
               // if(delay_us < time_left ) return 0;
               //hal_critical_section_enter();
+              interrupted = false;
               return delay_us - time_left;
             }
             return 0;
@@ -137,6 +141,9 @@ namespace cadmium {
 
        public:
           bool expired;
+
+          rt_clock(std::vector < class cadmium::dynamic::modeling::AsyncEventSubject * > sub) : cadmium::dynamic::modeling::AsyncEventObserver(sub) {}
+
             /**
              * @brief wait_for delays simulation by given time
              * @param t is the time to delay
@@ -185,6 +192,10 @@ namespace cadmium {
             execution_timer.start();
 
             return micro_seconds_to_time(actual_delay);
+          }
+
+          void update(){
+            interrupted = true;
           }
         };
     }
