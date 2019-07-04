@@ -25,29 +25,28 @@
  */
 
 /**
- * Test that a valid atomic model does not stop compilation on atomic_model_assert.
+ * Test that when input ports of an atomic model are not defined as a tuple, atomic_model_assert fails compilation
  */
 
 #include<cadmium/modeling/ports.hpp>
 #include<cadmium/concept/atomic_model_assert.hpp>
 #include<tuple>
 #include<cadmium/modeling/message_bag.hpp>
+#include <vector>
 
 /**
- * Test that when an atomic model has duplicated input ports, atomic_model_assert fails compilation
+ * This model has no logic, only used for structural validation tests
  */
 template<typename TIME>
-struct atomic_model_with_repeated_input_ports
+struct atomic_model_with_inputs_as_vector
 {
-    struct in_one : public cadmium::in_port<int>{};
-    struct in_two : public cadmium::in_port<int>{};
-
+    struct in : public cadmium::in_port<int>{};
     struct out : public cadmium::out_port<int>{};
 
-    constexpr atomic_model_with_repeated_input_ports() noexcept {}
+    constexpr atomic_model_with_inputs_as_vector() noexcept {}
     using state_type=int;
     state_type state=0;
-    using input_ports=std::tuple<in_one, in_two, in_one>;
+    using input_ports=std::vector<in>;
     using output_ports=std::tuple<out>;
 
     void internal_transition(){}
@@ -58,5 +57,5 @@ struct atomic_model_with_repeated_input_ports
 };
 
 int main(){
-    cadmium::concept::atomic_model_assert<atomic_model_with_repeated_input_ports>();
+    cadmium::concept::pdevs_atomic_model_assert<atomic_model_with_inputs_as_vector>();
 }

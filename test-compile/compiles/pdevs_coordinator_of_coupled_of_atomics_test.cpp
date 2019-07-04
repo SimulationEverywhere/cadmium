@@ -24,7 +24,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "coupled_of_atomic_models.hpp"
+#include "pdevs_coupled_of_atomic_models.hpp"
 #include <cadmium/engine/pdevs_coordinator.hpp>
 #include <cadmium/logger/common_loggers.hpp>
 

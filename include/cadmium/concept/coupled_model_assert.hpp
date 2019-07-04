@@ -166,7 +166,7 @@ namespace cadmium{
 
             static constexpr bool value(){
                 if(sizeof(test<MODEL>)==sizeof(atomic_detected)){
-                    atomic_model_float_time_assert<MODEL>();
+                    pdevs_atomic_model_float_time_assert<MODEL>();
                 } else {
                     coupled_model_float_time_assert<MODEL>();
                 }

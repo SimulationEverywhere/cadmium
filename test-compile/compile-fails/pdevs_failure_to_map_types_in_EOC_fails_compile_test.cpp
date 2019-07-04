@@ -24,11 +24,43 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "coupled_of_mixed_models.hpp"
-#include <cadmium/engine/pdevs_coordinator.hpp>
-#include <cadmium/logger/common_loggers.hpp>
+/**
+ * Test that failing to declare the right EOC specification in a coupled model fails compilation
+ */
+
+#include <cadmium/basic_model/pdevs/generator.hpp>
+#include <cadmium/modeling/coupled_model.hpp>
+#include <cadmium/modeling/ports.hpp>
+#include <cadmium/concept/coupled_model_assert.hpp>
+
+// a generator using floating point messages
+const float init_period = 0.1f;
+const float init_output_message = 1.0f;
+template<typename TIME>
+using floating_generator_base=cadmium::basic_models::generator<float, TIME>;
+using floating_generator_defs=cadmium::basic_models::generator_defs<float>;
+template<typename TIME>
+struct floating_generator : public floating_generator_base<TIME> {
+    float period() const override {
+        return init_period;
+    }
+    float output_message() const override {
+        return init_output_message;
+    }
+};
+
 
 int main(){
-    cadmium::engine::coordinator<coupled_of_mixed_models, float, cadmium::logger::not_logger> cc;
+    struct out : public cadmium::out_port<int>{};
+    using input_ports=std::tuple<>;
+    using output_ports=std::tuple<out>;
+
+    using submodels = cadmium::modeling::models_tuple<floating_generator>;
+    using EICs = std::tuple<>;
+    using EOCs = std::tuple<cadmium::modeling::EOC<floating_generator, floating_generator_defs::out, out>>;
+    using ICs = std::tuple<>;
+    using C1=cadmium::modeling::coupled_model<input_ports, output_ports, submodels, EICs, EOCs, ICs>;
+
+    cadmium::concept::coupled_model_assert<C1>();
     return 0;
 }

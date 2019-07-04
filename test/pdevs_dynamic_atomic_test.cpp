@@ -27,7 +27,7 @@
 
 #define BOOST_TEST_DYN_LINK
 #include <boost/test/unit_test.hpp>
-#include <cadmium/basic_model/accumulator.hpp>
+#include <cadmium/basic_model/pdevs/accumulator.hpp>
 #include <cadmium/modeling/dynamic_atomic.hpp>
 #include <cadmium/modeling/dynamic_model_translator.hpp>
 

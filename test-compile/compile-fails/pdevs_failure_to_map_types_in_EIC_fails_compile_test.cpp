@@ -25,39 +25,25 @@
  */
 
 /**
- * Test that failing to declare the right EOC specification in a coupled model fails compilation
+ * Test that failing to declare the right EIC specification in a coupled model fails compilation when asserted
  */
-
-#include <cadmium/basic_model/generator.hpp>
+#include <cadmium/basic_model/pdevs/passive.hpp>
 #include <cadmium/modeling/coupled_model.hpp>
 #include <cadmium/modeling/ports.hpp>
 #include <cadmium/concept/coupled_model_assert.hpp>
 
-// a generator using floating point messages
-const float init_period = 0.1f;
-const float init_output_message = 1.0f;
 template<typename TIME>
-using floating_generator_base=cadmium::basic_models::generator<float, TIME>;
-using floating_generator_defs=cadmium::basic_models::generator_defs<float>;
-template<typename TIME>
-struct floating_generator : public floating_generator_base<TIME> {
-    float period() const override {
-        return init_period;
-    }
-    float output_message() const override {
-        return init_output_message;
-    }
-};
-
+using passive = cadmium::basic_models::passive<int, TIME>;
+using passive_in = cadmium::basic_models::passive_defs<int>::in;
 
 int main(){
-    struct out : public cadmium::out_port<int>{};
-    using input_ports=std::tuple<>;
-    using output_ports=std::tuple<out>;
+    struct in : public cadmium::in_port<float>{};
+    using input_ports=std::tuple<in>;
+    using output_ports=std::tuple<>;
 
-    using submodels = cadmium::modeling::models_tuple<floating_generator>;
-    using EICs = std::tuple<>;
-    using EOCs = std::tuple<cadmium::modeling::EOC<floating_generator, floating_generator_defs::out, out>>;
+    using submodels = cadmium::modeling::models_tuple<passive>;
+    using EICs = std::tuple<cadmium::modeling::EIC<in, passive, passive_in>>;
+    using EOCs = std::tuple<>;
     using ICs = std::tuple<>;
     using C1=cadmium::modeling::coupled_model<input_ports, output_ports, submodels, EICs, EOCs, ICs>;
 

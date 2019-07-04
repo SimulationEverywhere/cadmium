@@ -29,10 +29,10 @@
 #include <boost/test/unit_test.hpp>
 #include <cadmium/logger/tuple_to_ostream.hpp>
 
-#include <cadmium/basic_model/int_generator_one_sec.hpp>
-#include <cadmium/basic_model/reset_generator_five_sec.hpp>
-#include <cadmium/basic_model/generator.hpp>
-#include <cadmium/basic_model/accumulator.hpp>
+#include <cadmium/basic_model/pdevs/int_generator_one_sec.hpp>
+#include <cadmium/basic_model/pdevs/reset_generator_five_sec.hpp>
+#include <cadmium/basic_model/pdevs/generator.hpp>
+#include <cadmium/basic_model/pdevs/accumulator.hpp>
 #include <cadmium/modeling/coupled_model.hpp>
 #include <cadmium/engine/pdevs_coordinator.hpp>
 #include <cadmium/engine/pdevs_simulator.hpp>

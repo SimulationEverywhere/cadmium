@@ -29,8 +29,8 @@
 #include <boost/test/unit_test.hpp>
 #include <cadmium/logger/tuple_to_ostream.hpp>
 
-#include <cadmium/basic_model/accumulator.hpp>
-#include <cadmium/basic_model/generator.hpp>
+#include <cadmium/basic_model/pdevs/accumulator.hpp>
+#include <cadmium/basic_model/pdevs/generator.hpp>
 #include <cadmium/modeling/dynamic_message_bag.hpp>
 #include <cadmium/modeling/dynamic_atomic.hpp>
 #include <cadmium/engine/pdevs_dynamic_simulator.hpp>

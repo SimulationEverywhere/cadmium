@@ -30,7 +30,7 @@
 #include <cadmium/engine/pdevs_dynamic_coordinator.hpp>
 #include <cadmium/logger/common_loggers.hpp>
 #include <cadmium/modeling/ports.hpp>
-#include <cadmium/basic_model/generator.hpp>
+#include <cadmium/basic_model/pdevs/generator.hpp>
 #include <cadmium/modeling/coupled_model.hpp>
 #include <cadmium/modeling/dynamic_atomic.hpp>
 #include <cadmium/modeling/dynamic_model_translator.hpp>

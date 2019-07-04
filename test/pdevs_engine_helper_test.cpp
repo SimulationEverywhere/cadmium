@@ -27,10 +27,10 @@
 
 #define BOOST_TEST_DYN_LINK
 #include <boost/test/unit_test.hpp>
-#include <cadmium/basic_model/accumulator.hpp>
+#include <cadmium/basic_model/pdevs/accumulator.hpp>
 #include <cadmium/engine/pdevs_simulator.hpp>
 #include <cadmium/engine/pdevs_coordinator.hpp>
-#include <cadmium/basic_model/generator.hpp>
+#include <cadmium/basic_model/pdevs/generator.hpp>
 #include <cadmium/engine/pdevs_engine_helpers.hpp>
 
 /**

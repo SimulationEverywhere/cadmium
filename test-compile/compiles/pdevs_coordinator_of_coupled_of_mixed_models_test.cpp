@@ -24,41 +24,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * Test that a valid atomic model with multiple ports does not stop compilation on atomic_model_assert.
- */
-
-#include<cadmium/modeling/ports.hpp>
-#include<cadmium/concept/atomic_model_assert.hpp>
-#include<tuple>
-#include<cadmium/modeling/message_bag.hpp>
-
-/**
- * This model has no logic, only used for structural validation tests
- */
-template<typename TIME>
-struct valid_atomic_with_multiple_ports
-{
-    struct in_one : public cadmium::in_port<int>{};
-    struct in_two : public cadmium::in_port<float>{};
-    struct in_three: public cadmium::in_port<int>{};
-    struct out_one : public cadmium::out_port<int[]>{};
-    struct out_two : public cadmium::out_port<float>{};
-    struct out_three : public cadmium::out_port<int[]>{};
-
-    constexpr valid_atomic_with_multiple_ports() noexcept {}
-    using state_type=int;
-    state_type state=0;
-    using input_ports=std::tuple<in_one, in_two, in_three>;
-    using output_ports=std::tuple<out_one, out_two, out_three>;
-
-    void internal_transition(){}
-    void external_transition(TIME e, typename cadmium::make_message_bags<input_ports>::type mbs){}
-    void confluence_transition(TIME e, typename cadmium::make_message_bags<input_ports>::type mbs){}
-    typename cadmium::make_message_bags<output_ports>::type output() const{}
-    TIME time_advance() const{}
-};
+#include "pdevs_coupled_of_mixed_models.hpp"
+#include <cadmium/engine/pdevs_coordinator.hpp>
+#include <cadmium/logger/common_loggers.hpp>
 
 int main(){
-    cadmium::concept::atomic_model_assert<valid_atomic_with_multiple_ports>();
+    cadmium::engine::coordinator<coupled_of_mixed_models, float, cadmium::logger::not_logger> cc;
+    return 0;
 }
