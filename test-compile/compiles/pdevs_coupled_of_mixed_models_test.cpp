@@ -25,27 +25,12 @@
  */
 
 /**
- * Test that generator, when used as expected create valid atomic models not failing compilation on atomic_model_assert.
+ * Test that asserting coupled model with all submodels atomic does not fail compilation
  */
 
-#include<cadmium/concept/atomic_model_assert.hpp>
-#include<cadmium/basic_model/generator.hpp>
-
-//preparing the generator to be used as atomic model
-template<typename TIME>
-using floating_generator_base=cadmium::basic_models::generator<float, TIME>;
-
-template<typename TIME>
-struct floating_generator : public floating_generator_base<TIME> {
-    float period() const override {
-        return 1.0f;
-    }
-    float output_message() const override {
-        return 1.0f;
-    }
-};
-
+#include "pdevs_coupled_of_mixed_models.hpp"
 
 int main(){
-    cadmium::concept::atomic_model_assert<floating_generator>();
+    cadmium::concept::coupled_model_assert<coupled_of_mixed_models>();
+    return 0;
 }

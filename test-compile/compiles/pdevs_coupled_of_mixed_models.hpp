@@ -39,7 +39,7 @@
 #include <cadmium/concept/coupled_model_assert.hpp>
 #include <tuple>
 
-#include <cadmium/basic_model/passive.hpp>
+#include <cadmium/basic_model/pdevs/passive.hpp>
 
 using namespace cadmium;
 //ports

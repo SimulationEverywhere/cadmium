@@ -25,28 +25,40 @@
  */
 
 /**
- * Test that failing to declare the right EIC specification in a coupled model fails compilation when asserted
+ * Test that a valid atomic model with multiple ports does not stop compilation on atomic_model_assert.
  */
-#include <cadmium/basic_model/passive.hpp>
-#include <cadmium/modeling/coupled_model.hpp>
-#include <cadmium/modeling/ports.hpp>
-#include <cadmium/concept/coupled_model_assert.hpp>
 
+#include<cadmium/modeling/ports.hpp>
+#include<cadmium/concept/atomic_model_assert.hpp>
+#include<tuple>
+#include<cadmium/modeling/message_bag.hpp>
+
+/**
+ * This model has no logic, only used for structural validation tests
+ */
 template<typename TIME>
-using passive = cadmium::basic_models::passive<int, TIME>;
-using passive_in = cadmium::basic_models::passive_defs<int>::in;
+struct valid_atomic_with_multiple_ports
+{
+    struct in_one : public cadmium::in_port<int>{};
+    struct in_two : public cadmium::in_port<float>{};
+    struct in_three: public cadmium::in_port<int>{};
+    struct out_one : public cadmium::out_port<int[]>{};
+    struct out_two : public cadmium::out_port<float>{};
+    struct out_three : public cadmium::out_port<int[]>{};
+
+    constexpr valid_atomic_with_multiple_ports() noexcept {}
+    using state_type=int;
+    state_type state=0;
+    using input_ports=std::tuple<in_one, in_two, in_three>;
+    using output_ports=std::tuple<out_one, out_two, out_three>;
+
+    void internal_transition(){}
+    void external_transition(TIME e, typename cadmium::make_message_bags<input_ports>::type mbs){}
+    void confluence_transition(TIME e, typename cadmium::make_message_bags<input_ports>::type mbs){}
+    typename cadmium::make_message_bags<output_ports>::type output() const{}
+    TIME time_advance() const{}
+};
 
 int main(){
-    struct in : public cadmium::in_port<float>{};
-    using input_ports=std::tuple<in>;
-    using output_ports=std::tuple<>;
-
-    using submodels = cadmium::modeling::models_tuple<passive>;
-    using EICs = std::tuple<cadmium::modeling::EIC<in, passive, passive_in>>;
-    using EOCs = std::tuple<>;
-    using ICs = std::tuple<>;
-    using C1=cadmium::modeling::coupled_model<input_ports, output_ports, submodels, EICs, EOCs, ICs>;
-
-    cadmium::concept::coupled_model_assert<C1>();
-    return 0;
+    cadmium::concept::pdevs_atomic_model_assert<valid_atomic_with_multiple_ports>();
 }

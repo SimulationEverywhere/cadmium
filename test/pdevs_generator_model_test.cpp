@@ -29,7 +29,7 @@
 #include<boost/test/unit_test.hpp>
 
 #include<cadmium/modeling/message_bag.hpp>
-#include<cadmium/basic_model/generator.hpp>
+#include<cadmium/basic_model/pdevs/generator.hpp>
 #include<cadmium/concept/concept_helpers.hpp>
 
 BOOST_AUTO_TEST_SUITE( pdevs_basic_models_suite )

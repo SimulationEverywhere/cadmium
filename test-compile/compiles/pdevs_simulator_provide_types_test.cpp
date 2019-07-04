@@ -25,45 +25,21 @@
  */
 
 /**
- * Test that failing to declare the right IC specification in a coupled model fails compilation
+ * Test that a simulator of a valid atomic model provides the model type
  */
 
-#include<cadmium/basic_model/generator.hpp>
-#include<cadmium/basic_model/passive.hpp>
-#include<cadmium/modeling/coupled_model.hpp>
-#include<cadmium/concept/coupled_model_assert.hpp>
+#include<cadmium/modeling/ports.hpp>
+#include<cadmium/concept/atomic_model_assert.hpp>
+#include<tuple>
+#include<cadmium/modeling/message_bag.hpp>
+#include <cadmium/basic_model/pdevs/accumulator.hpp>
+#include <cadmium/engine/pdevs_simulator.hpp>
 
-// a generator using floating point messages
-const float init_period = 0.1f;
-const float init_output_message = 1.0f;
 template<typename TIME>
-using floating_generator_base=cadmium::basic_models::generator<float, TIME>;
-using floating_generator_defs=cadmium::basic_models::generator_defs<float>;
-template<typename TIME>
-struct floating_generator : public floating_generator_base<TIME> {
-    float period() const override {
-        return init_period;
-    }
-    float output_message() const override {
-        return init_output_message;
-    }
-};
-
-//a passive model
-template<typename TIME>
-using passive = cadmium::basic_models::passive<int, TIME>;
-using passive_in = cadmium::basic_models::passive_defs<int>::in;
+using int_accumulator=cadmium::basic_models::accumulator<int, TIME>;
 
 int main(){
-    using input_ports=std::tuple<>;
-    using output_ports=std::tuple<>;
-
-    using submodels = cadmium::modeling::models_tuple<passive, floating_generator>;
-    using EICs = std::tuple<>;
-    using EOCs = std::tuple<>;
-    using ICs = std::tuple<cadmium::modeling::IC<floating_generator, floating_generator_defs::out, passive, passive_in>>;
-    using C1=cadmium::modeling::coupled_model<input_ports, output_ports, submodels, EICs, EOCs, ICs>;
-
-    cadmium::concept::coupled_model_assert<C1>();
-    return 0;
+    using simulation_t = cadmium::engine::simulator<int_accumulator, float, cadmium::logger::not_logger>;
+    using model_t=simulation_t::model_type;
+    model_t model;
 }

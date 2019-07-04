@@ -27,8 +27,8 @@
 #define BOOST_TEST_DYN_LINK
 #include <typeindex>
 #include <boost/test/unit_test.hpp>
-#include <cadmium/basic_model/accumulator.hpp>
-#include <cadmium/basic_model/generator.hpp>
+#include <cadmium/basic_model/pdevs/accumulator.hpp>
+#include <cadmium/basic_model/pdevs/generator.hpp>
 #include <cadmium/modeling/dynamic_message_bag.hpp>
 #include <cadmium/modeling/dynamic_models_helpers.hpp>
 #include <cadmium/engine/pdevs_dynamic_engine_helpers.hpp>

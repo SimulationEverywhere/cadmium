@@ -29,7 +29,7 @@
 #include<boost/test/unit_test.hpp>
 
 #include<cmath>
-#include<cadmium/basic_model/passive.hpp>
+#include<cadmium/basic_model/pdevs/passive.hpp>
 #include<cadmium/concept/concept_helpers.hpp>
 
 

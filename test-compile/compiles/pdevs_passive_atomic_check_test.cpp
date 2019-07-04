@@ -25,12 +25,16 @@
  */
 
 /**
- * Test that asserting coupled model with all submodels atomic does not fail compilation
+ * Test that passive, when used as expected create valid atomic models not failing compilation on atomic_model_assert.
  */
 
-#include "coupled_of_mixed_models.hpp"
+#include<cadmium/concept/atomic_model_assert.hpp>
+#include<cadmium/basic_model/pdevs/passive.hpp>
+
+//preparing the passive to be used as atomic model
+template<typename TIME>
+using floating_passive=cadmium::basic_models::passive<float, TIME>;
 
 int main(){
-    cadmium::concept::coupled_model_assert<coupled_of_mixed_models>();
-    return 0;
+    cadmium::concept::pdevs_atomic_model_assert<floating_passive>();
 }

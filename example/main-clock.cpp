@@ -29,7 +29,7 @@
 #include <iostream>
 #include <chrono>
 #include <algorithm>
-#include <cadmium/basic_model/generator.hpp>
+#include <cadmium/basic_model/pdevs/generator.hpp>
 #include <cadmium/modeling/coupled_model.hpp>
 #include <cadmium/modeling/ports.hpp>
 #include <cadmium/concept/coupled_model_assert.hpp>

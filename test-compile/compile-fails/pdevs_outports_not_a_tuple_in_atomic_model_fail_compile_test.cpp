@@ -25,37 +25,37 @@
  */
 
 /**
- * Test that an atomic model with no input_ports transition fails compilation on atomic_model_assert
- * This is different to say that it has an empty tuple of ports, which is a valid model definition
+ * Test that when output ports of an atomic model are not defined as a tuple, atomic_model_assert fails compilation
  */
 
 #include<cadmium/modeling/ports.hpp>
 #include<cadmium/concept/atomic_model_assert.hpp>
 #include<tuple>
 #include<cadmium/modeling/message_bag.hpp>
+#include<vector>
 
 /**
- * This model has no logic, only used for structural validation tests.
- * In this case it is missing the declaration of input_ports type
- * For external and confluence transition fuctions defined input as empty tuple of ports
+ * This model has no logic, only used for structural validation tests
  */
 template<typename TIME>
-struct atomic_model_with_no_input_ports
+struct atomic_model_with_outputs_as_vector
 {
+    struct in : public cadmium::in_port<int>{};
     struct out : public cadmium::out_port<int>{};
 
-    constexpr atomic_model_with_no_input_ports() noexcept {}
+    constexpr atomic_model_with_outputs_as_vector() noexcept {}
     using state_type=int;
     state_type state=0;
-    using output_ports=std::tuple<out>;
+    using input_ports=std::tuple<in>;
+    using output_ports=std::vector<out>;
 
     void internal_transition(){}
-    void external_transition(TIME e, typename cadmium::make_message_bags<std::tuple<>>::type mbs){}
-    void confluence_transition(TIME e, typename cadmium::make_message_bags<std::tuple<>>::type mbs){}
+    void external_transition(TIME e, typename cadmium::make_message_bags<input_ports>::type mbs){}
+    void confluence_transition(TIME e, typename cadmium::make_message_bags<input_ports>::type mbs){}
     typename cadmium::make_message_bags<output_ports>::type output() const{}
     TIME time_advance() const{}
 };
 
 int main(){
-    cadmium::concept::atomic_model_assert<atomic_model_with_no_input_ports>();
+    cadmium::concept::pdevs_atomic_model_assert<atomic_model_with_outputs_as_vector>();
 }

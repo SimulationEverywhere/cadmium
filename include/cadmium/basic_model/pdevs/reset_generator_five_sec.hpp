@@ -30,7 +30,7 @@
 
 #include<cadmium/modeling/ports.hpp>
 #include<cadmium/modeling/message_bag.hpp>
-#include <cadmium/basic_model/accumulator.hpp>
+#include <cadmium/basic_model/pdevs/accumulator.hpp>
 #include<limits>
 
 

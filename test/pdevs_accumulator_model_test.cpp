@@ -29,7 +29,7 @@
 #include<boost/test/unit_test.hpp>
 
 #include<cadmium/modeling/message_bag.hpp>
-#include<cadmium/basic_model/accumulator.hpp>
+#include<cadmium/basic_model/pdevs/accumulator.hpp>
 #include<cadmium/concept/concept_helpers.hpp>
 #include<cmath>
 

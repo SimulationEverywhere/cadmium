@@ -90,7 +90,7 @@ namespace cadmium {
                 LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::sim_info_init>(initial_time, _model_id);
 
                 _last=initial_time;
-                cadmium::concept::atomic_model_assert<MODEL>();
+                cadmium::concept::pdevs_atomic_model_assert<MODEL>();
                 _next = initial_time + _model.time_advance();
 
                 LOGGER::template log<cadmium::logger::logger_state, cadmium::logger::sim_state>(model_state, _model_id);

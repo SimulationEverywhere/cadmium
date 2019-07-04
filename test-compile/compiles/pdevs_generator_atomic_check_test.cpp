@@ -25,36 +25,27 @@
  */
 
 /**
- * Test that an atomic model with undefined state type fails compilation on atomic_model_assert
+ * Test that generator, when used as expected create valid atomic models not failing compilation on atomic_model_assert.
  */
 
-#include<cadmium/modeling/ports.hpp>
 #include<cadmium/concept/atomic_model_assert.hpp>
-#include<tuple>
-#include<cadmium/modeling/message_bag.hpp>
+#include<cadmium/basic_model/pdevs/generator.hpp>
 
-/**
- * This model has no logic, only used for structural validation tests
- */
+//preparing the generator to be used as atomic model
 template<typename TIME>
-struct atomic_model_missing_state_type_declaration
-{
-    struct in : public cadmium::in_port<int>{};
-    struct out : public cadmium::out_port<int>{};
+using floating_generator_base=cadmium::basic_models::generator<float, TIME>;
 
-    constexpr atomic_model_missing_state_type_declaration() noexcept {}
-
-    int state=0;
-    using input_ports=std::tuple<in>;
-    using output_ports=std::tuple<out>;
-
-    void internal_transition(){}
-    void external_transition(TIME e, typename cadmium::make_message_bags<input_ports>::type mbs){}
-    void confluence_transition(TIME e, typename cadmium::make_message_bags<input_ports>::type mbs){}
-    typename cadmium::make_message_bags<output_ports>::type output() const{}
-    TIME time_advance() const{}
+template<typename TIME>
+struct floating_generator : public floating_generator_base<TIME> {
+    float period() const override {
+        return 1.0f;
+    }
+    float output_message() const override {
+        return 1.0f;
+    }
 };
 
+
 int main(){
-    cadmium::concept::atomic_model_assert<atomic_model_missing_state_type_declaration>();
+    cadmium::concept::pdevs_atomic_model_assert<floating_generator>();
 }

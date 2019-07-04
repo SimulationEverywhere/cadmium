@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2013-2015, Damian Vicino
+ * Copyright (c) 2013-2019, Damian Vicino
  * Carleton University, Universite de Nice-Sophia Antipolis
  * All rights reserved.
  *
@@ -33,7 +33,7 @@
 namespace cadmium{
     namespace concept {
         template<typename FLOATING_MODEL> //check a template argument is required (for time)
-        constexpr void atomic_model_float_time_assert() {
+        constexpr void pdevs_atomic_model_float_time_assert() {
             //check portset types are defined
             using ip=typename FLOATING_MODEL::input_ports;
             using op=typename FLOATING_MODEL::output_ports;
@@ -73,10 +73,10 @@ namespace cadmium{
         }
 
         template<template<typename> class MODEL> //check a template argument is required (for time)
-        constexpr void atomic_model_assert() {
+        constexpr void pdevs_atomic_model_assert() {
             //setting float as time to use by model
             using floating_model=MODEL<float>;
-            atomic_model_float_time_assert<floating_model>();
+            pdevs_atomic_model_float_time_assert<floating_model>();
         }
     }
 }

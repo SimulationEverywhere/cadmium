@@ -27,9 +27,9 @@
 #define BOOST_TEST_DYN_LINK
 #include <boost/test/unit_test.hpp>
 #include <cadmium/logger/tuple_to_ostream.hpp>
-#include <cadmium/basic_model/int_generator_one_sec.hpp>
-#include <cadmium/basic_model/filter_first_output.hpp>
-#include <cadmium/basic_model/accumulator.hpp>
+#include <cadmium/basic_model/pdevs/int_generator_one_sec.hpp>
+#include <cadmium/basic_model/pdevs/filter_first_output.hpp>
+#include <cadmium/basic_model/pdevs/accumulator.hpp>
 #include <cadmium/modeling/coupled_model.hpp>
 #include <cadmium/engine/pdevs_runner.hpp>
 

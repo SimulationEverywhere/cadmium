@@ -25,7 +25,7 @@
  */
 
 /**
- * Test that an atomic model with no internal transition fails compilation on atomic_model_assert
+ * Test that an atomic model with no state fails compilation on atomic_model_assert
  */
 
 #include<cadmium/modeling/ports.hpp>
@@ -37,17 +37,18 @@
  * This model has no logic, only used for structural validation tests
  */
 template<typename TIME>
-struct atomic_model_with_no_internal_transition
+struct atomic_model_missing_state_variable
 {
     struct in : public cadmium::in_port<int>{};
     struct out : public cadmium::out_port<int>{};
 
-    constexpr atomic_model_with_no_internal_transition() noexcept {}
+    constexpr atomic_model_missing_state_variable() noexcept {}
     using state_type=int;
-    state_type state=0;
+
     using input_ports=std::tuple<in>;
     using output_ports=std::tuple<out>;
 
+    void internal_transition(){}
     void external_transition(TIME e, typename cadmium::make_message_bags<input_ports>::type mbs){}
     void confluence_transition(TIME e, typename cadmium::make_message_bags<input_ports>::type mbs){}
     typename cadmium::make_message_bags<output_ports>::type output() const{}
@@ -55,5 +56,5 @@ struct atomic_model_with_no_internal_transition
 };
 
 int main(){
-    cadmium::concept::atomic_model_assert<atomic_model_with_no_internal_transition>();
+    cadmium::concept::pdevs_atomic_model_assert<atomic_model_missing_state_variable>();
 }

@@ -25,7 +25,7 @@
  */
 
 /**
- * Test that an atomic model with no time advance function fails compilation on atomic_model_assert
+ * Test that a valid atomic model does not stop compilation on atomic_model_assert.
  */
 
 #include<cadmium/modeling/ports.hpp>
@@ -34,27 +34,28 @@
 #include<cadmium/modeling/message_bag.hpp>
 
 /**
- * This model has no logic, only used for structural validation tests
- */
+* Test that when an atomic model has duplicated output ports, atomic_model_assert fails compilation */
 template<typename TIME>
-struct atomic_model_missing_time_advance_function
+struct atomic_model_with_repeated_output_ports
 {
     struct in : public cadmium::in_port<int>{};
-    struct out : public cadmium::out_port<int>{};
 
-    constexpr atomic_model_missing_time_advance_function() noexcept {}
+    struct out_one : public cadmium::out_port<int>{};
+    struct out_two : public cadmium::out_port<int>{};
+
+    constexpr atomic_model_with_repeated_output_ports() noexcept {}
     using state_type=int;
     state_type state=0;
     using input_ports=std::tuple<in>;
-    using output_ports=std::tuple<out>;
+    using output_ports=std::tuple<out_one, out_two, out_one>;
 
     void internal_transition(){}
     void external_transition(TIME e, typename cadmium::make_message_bags<input_ports>::type mbs){}
     void confluence_transition(TIME e, typename cadmium::make_message_bags<input_ports>::type mbs){}
     typename cadmium::make_message_bags<output_ports>::type output() const{}
-
+    TIME time_advance() const{}
 };
 
 int main(){
-    cadmium::concept::atomic_model_assert<atomic_model_missing_time_advance_function>();
+    cadmium::concept::pdevs_atomic_model_assert<atomic_model_with_repeated_output_ports>();
 }

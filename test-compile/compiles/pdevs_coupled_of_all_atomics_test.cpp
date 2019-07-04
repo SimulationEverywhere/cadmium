@@ -25,36 +25,12 @@
  */
 
 /**
- * Test that a valid atomic model does not stop compilation on atomic_model_assert.
+ * Test that asserting coupled model with all submodels atomic does not fail compilation
  */
 
-#include<cadmium/modeling/ports.hpp>
-#include<cadmium/concept/atomic_model_assert.hpp>
-#include<tuple>
-#include<cadmium/modeling/message_bag.hpp>
-
-/**
- * This model has no logic, only used for structural validation tests
- */
-template<typename TIME>
-struct valid_atomic_model
-{
-    struct in : public cadmium::in_port<int>{};
-    struct out : public cadmium::out_port<int>{};
-
-    constexpr valid_atomic_model() noexcept {}
-    using state_type=int;
-    state_type state=0;
-    using input_ports=std::tuple<in>;
-    using output_ports=std::tuple<out>;
-
-    void internal_transition(){}
-    void external_transition(TIME e, typename cadmium::make_message_bags<input_ports>::type mbs){}
-    void confluence_transition(TIME e, typename cadmium::make_message_bags<input_ports>::type mbs){}
-    typename cadmium::make_message_bags<output_ports>::type output() const{}
-    TIME time_advance() const{}
-};
+#include "pdevs_coupled_of_atomic_models.hpp"
 
 int main(){
-    cadmium::concept::atomic_model_assert<valid_atomic_model>();
+    cadmium::concept::coupled_model_assert<coupled_of_atomics>();
+    return 0;
 }
