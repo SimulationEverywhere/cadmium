@@ -74,7 +74,7 @@ namespace cadmium {
         template<class TIME, typename LOGGER=cadmium::logger::logger<cadmium::logger::logger_debug,
                                              cadmium::dynamic::logger::formatter<TIME>,
                                              cadmium::logger::cout_sink_provider>>
-        class rt_clock {
+        class rt_clock : public cadmium::dynamic::modeling::AsyncEventObserver {
         private:
 
           //Time since last time advance, how long the simulator took to advance
@@ -128,11 +128,14 @@ namespace cadmium {
             if(interrupted) {
               return delay_us - execution_timer.read_us();
             }
-            return 0;
+            return delay_us;
           }
 
 
        public:
+
+          rt_clock(std::vector < class cadmium::dynamic::modeling::AsyncEventSubject * > sub) : cadmium::dynamic::modeling::AsyncEventObserver(sub) {}
+
             /**
              * @brief wait_for delays simulation by given time
              * @param t is the time to delay
@@ -181,7 +184,10 @@ namespace cadmium {
             execution_timer.reset();
             execution_timer.start();
 
-            return micro_seconds_to_time(actual_delay);
+            return micro_seconds_to_time(0);
+          }
+          void update(){
+            interrupted = true;
           }
         };
     }
