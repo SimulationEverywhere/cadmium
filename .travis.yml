@@ -12,21 +12,23 @@ matrix:
 
   include:
     - os: linux
-      dist: trusty
-      env: CC=gcc-7 CXX=g++-7 BOOST_ROOT=/usr/include/boost 
+      dist: xenial
+      env: 
       compiler: gcc
+      addons:
+          apt:
+              packages: lcov
       before_install:
-          - sudo -E apt-add-repository -y "ppa:ubuntu-toolchain-r/test"
-          - sudo apt-get update
-          - sudo apt-get install g++-7
-          - export BOOST_URL="https://downloads.sourceforge.net/project/boost/boost/1.67.0/boost_1_67_0.tar.gz"
-          - mkdir -p /tmp/boost
-          - wget --quiet -O - ${BOOST_URL} | tar --strip-components=1 -xz -C /tmp/boost  || exit 1
-          - cd /tmp/boost/tools/build && ./bootstrap.sh && ./b2 install --prefix=/tmp/b2
-          - export PATH=/tmp/b2/bin:${PATH}
-          - cd /tmp/boost && b2 toolset=gcc cxxflags="-std=c++14 ${CXXFLAGS}"
+          # C++17
+          - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+          - sudo apt-get update -qq
+      install:
+          # C++17
+          - sudo apt-get install -qq g++-8 libboost-all-dev
+          - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-8 90
+
     - os: osx
-      osx_image: xcode9.4
+      osx_image: xcode10
       env:
       before_install:
           - brew install lcov
@@ -38,9 +40,6 @@ matrix:
           - lcov --list coverage.info #debug info
           # Uploading report to CodeCov
           - bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage reports"
-
-  allow_failures:
-          - os: linux
 
 script:
   - cmake -DCMAKE_BUILD_TYPE=Debug -G "Unix Makefiles" . && make && make test  
