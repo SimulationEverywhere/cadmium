@@ -33,8 +33,8 @@
 #include <cadmium/concept/coupled_model_assert.hpp>
 
 template<typename TIME>
-using passive = cadmium::basic_models::passive<int, TIME>;
-using passive_in = cadmium::basic_models::passive_defs<int>::in;
+using passive = cadmium::basic_models::pdevs::passive<int, TIME>;
+using passive_in = cadmium::basic_models::pdevs::passive_defs<int>::in;
 
 int main(){
     struct in : public cadmium::in_port<float>{};

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2017, Damian Vicino
+ * Copyright (c) 2019, Damian Vicino
  * Carleton University, Universite de Nice-Sophia Antipolis
  * All rights reserved.
  *
@@ -25,73 +25,74 @@
  */
 
 
-#ifndef CADMIUM_FILTER_FIRST_OUTPUT_HPP
-#define CADMIUM_FILTER_FIRST_OUTPUT_HPP
+#ifndef CADMIUM_PDEVS_FILTER_FIRST_OUTPUT_HPP
+#define CADMIUM_PDEVS_FILTER_FIRST_OUTPUT_HPP
+
 #include<cadmium/modeling/ports.hpp>
 #include<cadmium/modeling/message_bag.hpp>
 #include<limits>
 #include<cassert>
 
 
-namespace cadmium {
-    namespace basic_models {
-        
-        /**
-         * @brief filter_first_output PDEVS Model used for testing a bug reported in 2017
-         *
-         * The model starts in passive state
-         * When first exogenous message is received a 1 is output immediately
-         * All following messages are discarded
-         * For the purpose of test all messages are integers
-         */
-        
-        struct filter_first_output_defs{
-            //ports
-            struct in : public in_port<int> {};
-            struct out : public out_port<int> {};
+namespace cadmium::basic_models::pdevs {
+
+    /**
+     * @brief filter_first_output PDEVS Model used for testing a bug reported in 2017
+     *
+     * The model starts in passive state
+     * When first exogenous message is received a 1 is output immediately
+     * All following messages are discarded
+     * For the purpose of test all messages are integers
+     */
+
+    struct filter_first_output_defs {
+        //ports
+        struct in : public in_port<int> {
         };
-        
-        
-        template<typename TIME>
-        class filter_first_output {
-            using defs=basic_models::filter_first_output_defs;// putting definitions in context
-        public:
-            //state
-            using state_type=int;
-            state_type state = 0;
-            
-            //default constructor
-            constexpr filter_first_output() noexcept {}
-            
-            //ports_definition
-            using input_ports=std::tuple<typename defs::in>;
-            using output_ports=std::tuple<typename defs::out>;
-            
-            // PDEVS functions
-            void internal_transition() {
-                state++;
-            }
-            
-            void external_transition(TIME e, typename make_message_bags<input_ports>::type mbs) {
-                state++;
-            }
-            
-            void confluence_transition(TIME e, typename make_message_bags<input_ports>::type mbs) {
-                assert(false); //test should not call confluence
-            }
-            
-            typename make_message_bags<output_ports>::type output() const {
-                typename make_message_bags<output_ports>::type outmb;
-                get_messages<defs::out>(outmb).emplace_back(1);
-                return outmb;
-            }
-            
-            TIME time_advance() const {
-                return (state == 1 ? TIME{}: std::numeric_limits<TIME>::infinity());
-            }
+        struct out : public out_port<int> {
         };
-    }
+    };
+
+
+    template<typename TIME>
+    class filter_first_output {
+        using defs=filter_first_output_defs;// putting definitions in context
+    public:
+        //state
+        using state_type=int;
+        state_type state = 0;
+
+        //default constructor
+        constexpr filter_first_output() noexcept {}
+
+        //ports_definition
+        using input_ports=std::tuple<typename defs::in>;
+        using output_ports=std::tuple<typename defs::out>;
+
+        // PDEVS functions
+        void internal_transition() {
+            state++;
+        }
+
+        void external_transition(TIME e, typename make_message_bags<input_ports>::type mbs) {
+            state++;
+        }
+
+        void confluence_transition(TIME e, typename make_message_bags<input_ports>::type mbs) {
+            assert(false); //test should not call confluence
+        }
+
+        typename make_message_bags<output_ports>::type output() const {
+            typename make_message_bags<output_ports>::type outmb;
+            get_messages<defs::out>(outmb).emplace_back(1);
+            return outmb;
+        }
+
+        TIME time_advance() const {
+            return (state == 1 ? TIME{} : std::numeric_limits<TIME>::infinity());
+        }
+    };
 }
 
 
-#endif // CADMIUM_FILTER_FIRST_OUTPUT_HPP
+#endif // CADMIUM_PDEVS_FILTER_FIRST_OUTPUT_HPP

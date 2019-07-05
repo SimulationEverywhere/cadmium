@@ -36,7 +36,7 @@
 #include <cadmium/engine/pdevs_simulator.hpp>
 
 template<typename TIME>
-using int_accumulator=cadmium::basic_models::accumulator<int, TIME>;
+using int_accumulator=cadmium::basic_models::pdevs::accumulator<int, TIME>;
 
 int main(){
     using simulation_t = cadmium::engine::simulator<int_accumulator, float, cadmium::logger::not_logger>;

@@ -52,9 +52,9 @@ struct tick{};
 
 
 //generators for tick definition
-using out_p = cadmium::basic_models::generator_defs<tick>::out;
+using out_p = cadmium::basic_models::pdevs::generator_defs<tick>::out;
 template <typename TIME>
-using tick_generator_base=cadmium::basic_models::generator<tick, TIME>;
+using tick_generator_base=cadmium::basic_models::pdevs::generator<tick, TIME>;
 
 template<typename TIME>
 struct hour_generator : public tick_generator_base<TIME> {

@@ -37,8 +37,8 @@
 const float init_period = 0.1f;
 const float init_output_message = 1.0f;
 template<typename TIME>
-using floating_generator_base=cadmium::basic_models::generator<float, TIME>;
-using floating_generator_defs=cadmium::basic_models::generator_defs<float>;
+using floating_generator_base=cadmium::basic_models::pdevs::generator<float, TIME>;
+using floating_generator_defs=cadmium::basic_models::pdevs::generator_defs<float>;
 template<typename TIME>
 struct floating_generator : public floating_generator_base<TIME> {
     float period() const override {
@@ -51,8 +51,8 @@ struct floating_generator : public floating_generator_base<TIME> {
 
 //a passive model
 template<typename TIME>
-using passive = cadmium::basic_models::passive<int, TIME>;
-using passive_in = cadmium::basic_models::passive_defs<int>::in;
+using passive = cadmium::basic_models::pdevs::passive<int, TIME>;
+using passive_in = cadmium::basic_models::pdevs::passive_defs<int>::in;
 
 int main(){
     using input_ports=std::tuple<>;

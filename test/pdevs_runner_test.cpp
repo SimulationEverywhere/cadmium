@@ -48,9 +48,9 @@ struct test_tick{
 };
 
 //generator for tick messages
-using out_port = cadmium::basic_models::generator_defs<test_tick>::out;
+using out_port = cadmium::basic_models::pdevs::generator_defs<test_tick>::out;
 template <typename TIME>
-using test_tick_generator_base=cadmium::basic_models::generator<test_tick, TIME>;
+using test_tick_generator_base=cadmium::basic_models::pdevs::generator<test_tick, TIME>;
 
 template<typename TIME>
 struct test_generator : public test_tick_generator_base<TIME> {
@@ -278,21 +278,21 @@ BOOST_AUTO_TEST_CASE( simulation_logs_routing_of_eoc_in_coordinator_test )
 //connecting generators to acumm coupled model definition
 
 template<typename TIME>
-using test_accumulator=cadmium::basic_models::accumulator<int, TIME>;
-using test_accumulator_defs=cadmium::basic_models::accumulator_defs<int>;
-using reset_tick=cadmium::basic_models::accumulator_defs<int>::reset_tick;
+using test_accumulator=cadmium::basic_models::pdevs::accumulator<int, TIME>;
+using test_accumulator_defs=cadmium::basic_models::pdevs::accumulator_defs<int>;
+using reset_tick=cadmium::basic_models::pdevs::accumulator_defs<int>::reset_tick;
 
 using g2a_iports = std::tuple<>;
 struct g2a_coupled_out_port : public cadmium::out_port<int>{};
 using g2a_oports = std::tuple<g2a_coupled_out_port>;
-using g2a_submodels=cadmium::modeling::models_tuple<test_accumulator, cadmium::basic_models::reset_generator_five_sec, cadmium::basic_models::int_generator_one_sec>;
+using g2a_submodels=cadmium::modeling::models_tuple<test_accumulator, cadmium::basic_models::pdevs::reset_generator_five_sec, cadmium::basic_models::pdevs::int_generator_one_sec>;
 using g2a_eics=std::tuple<>;
 using g2a_eocs=std::tuple<
 cadmium::modeling::EOC<test_accumulator, test_accumulator_defs::sum, g2a_coupled_out_port>
 >;
 using g2a_ics=std::tuple<
-cadmium::modeling::IC<cadmium::basic_models::int_generator_one_sec, cadmium::basic_models::int_generator_one_sec_defs::out, test_accumulator, test_accumulator_defs::add>,
-cadmium::modeling::IC<cadmium::basic_models::reset_generator_five_sec, cadmium::basic_models::reset_generator_five_sec_defs::out , test_accumulator, test_accumulator_defs::reset>
+cadmium::modeling::IC<cadmium::basic_models::pdevs::int_generator_one_sec, cadmium::basic_models::pdevs::int_generator_one_sec_defs::out, test_accumulator, test_accumulator_defs::add>,
+cadmium::modeling::IC<cadmium::basic_models::pdevs::reset_generator_five_sec, cadmium::basic_models::pdevs::reset_generator_five_sec_defs::out , test_accumulator, test_accumulator_defs::reset>
 >;
 
 template<typename TIME>
@@ -317,9 +317,9 @@ BOOST_AUTO_TEST_CASE( simulation_logs_routing_of_all_couplings_in_coordinator_te
     expected_oss << "\n in port ";
     expected_oss << boost::typeindex::type_id<g2a_coupled_out_port>().pretty_name();
     expected_oss << " has {} routed from ";
-    expected_oss << boost::typeindex::type_id<cadmium::basic_models::accumulator_defs<int>::sum>().pretty_name();
+    expected_oss << boost::typeindex::type_id<cadmium::basic_models::pdevs::accumulator_defs<int>::sum>().pretty_name();
     expected_oss << " of model ";
-    expected_oss << boost::typeindex::type_id<cadmium::basic_models::accumulator<int, float>>().pretty_name();
+    expected_oss << boost::typeindex::type_id<cadmium::basic_models::pdevs::accumulator<int, float>>().pretty_name();
     expected_oss << " with messages {}\n";
 
     //IC routing
@@ -327,23 +327,23 @@ BOOST_AUTO_TEST_CASE( simulation_logs_routing_of_all_couplings_in_coordinator_te
     expected_oss << boost::typeindex::type_id<coupled_g2a_model<float>>().pretty_name();
 
     expected_oss << "\n in port ";
-    expected_oss << boost::typeindex::type_id<cadmium::basic_models::accumulator_defs<int>::reset>().pretty_name();
+    expected_oss << boost::typeindex::type_id<cadmium::basic_models::pdevs::accumulator_defs<int>::reset>().pretty_name();
     expected_oss << " of model ";
-    expected_oss << boost::typeindex::type_id<cadmium::basic_models::accumulator<int, float>>().pretty_name();
+    expected_oss << boost::typeindex::type_id<cadmium::basic_models::pdevs::accumulator<int, float>>().pretty_name();
     expected_oss << " has {} routed from ";
-    expected_oss << boost::typeindex::type_id<cadmium::basic_models::reset_generator_five_sec_defs::out>().pretty_name();
+    expected_oss << boost::typeindex::type_id<cadmium::basic_models::pdevs::reset_generator_five_sec_defs::out>().pretty_name();
     expected_oss << " of model ";
-    expected_oss << boost::typeindex::type_id<cadmium::basic_models::reset_generator_five_sec<float>>().pretty_name();
+    expected_oss << boost::typeindex::type_id<cadmium::basic_models::pdevs::reset_generator_five_sec<float>>().pretty_name();
     expected_oss << " with messages {}";
 
     expected_oss << "\n in port ";
-    expected_oss << boost::typeindex::type_id<cadmium::basic_models::accumulator_defs<int>::add>().pretty_name();
+    expected_oss << boost::typeindex::type_id<cadmium::basic_models::pdevs::accumulator_defs<int>::add>().pretty_name();
     expected_oss << " of model ";
-    expected_oss << boost::typeindex::type_id<cadmium::basic_models::accumulator<int, float>>().pretty_name();
+    expected_oss << boost::typeindex::type_id<cadmium::basic_models::pdevs::accumulator<int, float>>().pretty_name();
     expected_oss << " has {1} routed from ";
-    expected_oss << boost::typeindex::type_id<cadmium::basic_models::int_generator_one_sec_defs::out>().pretty_name();
+    expected_oss << boost::typeindex::type_id<cadmium::basic_models::pdevs::int_generator_one_sec_defs::out>().pretty_name();
     expected_oss << " of model ";
-    expected_oss << boost::typeindex::type_id<cadmium::basic_models::int_generator_one_sec<float>>().pretty_name();
+    expected_oss << boost::typeindex::type_id<cadmium::basic_models::pdevs::int_generator_one_sec<float>>().pretty_name();
     expected_oss << " with messages {1}\n";
 
     //EIC routing

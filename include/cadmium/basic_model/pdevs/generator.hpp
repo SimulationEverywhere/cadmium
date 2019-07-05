@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2013-2015, Damian Vicino
+ * Copyright (c) 2013-2019, Damian Vicino
  * Carleton University, Universite de Nice-Sophia Antipolis
  * All rights reserved.
  *
@@ -25,15 +25,14 @@
  */
 
 
-#ifndef CADMIUM_GENERATOR_HPP
-#define CADMIUM_GENERATOR_HPP
+#ifndef CADMIUM_PDEVS_GENERATOR_HPP
+#define CADMIUM_PDEVS_GENERATOR_HPP
 
 #include<cadmium/modeling/ports.hpp>
 #include<cadmium/modeling/message_bag.hpp>
 #include<limits>
 
-namespace cadmium {
-    namespace basic_models {
+namespace cadmium::basic_models::pdevs {
 
 /**
  * @brief Generator PDEVS Model
@@ -50,63 +49,61 @@ namespace cadmium {
 
     //definitions used for defining the accumulator that need to be accessed by externals resources before instantiate the models
     //This includes Ports referenced by couplings, and
-        template<typename VALUE>
-        struct generator_defs{
-            //custom ports
-            struct out : public out_port<VALUE> {
-            };
+    template<typename VALUE>
+    struct generator_defs {
+        //custom ports
+        struct out : public out_port<VALUE> {
         };
+    };
 
 
     //This is a meta-model, it should be overloaded for declaring the tick time and tick values in the generator
-        template<typename VALUE, typename TIME> //VALUE is the type of Y
-        class generator {
-            using defs=generator_defs<VALUE>;// putting definitions in context
-        public:
-            //these functions need to be overriden to define the generator behavior
-            virtual TIME period() const =0; // time between consecutive messages
-            virtual VALUE output_message() const =0; // message to be output
-            // required definitions start here
-            // default constructor
-            constexpr generator() noexcept {}
+    template<typename VALUE, typename TIME> //VALUE is the type of Y
+    class generator {
+        using defs=generator_defs<VALUE>;// putting definitions in context
+    public:
+        //these functions need to be overriden to define the generator behavior
+        virtual TIME period() const = 0; // time between consecutive messages
+        virtual VALUE output_message() const = 0; // message to be output
+        // required definitions start here
+        // default constructor
+        constexpr generator() noexcept {}
 
-            // state definition
-            using state_type=int;
-            state_type state = 0;
+        // state definition
+        using state_type=int;
+        state_type state = 0;
 
-            // ports definition
-            using input_ports=std::tuple<>;
-            using output_ports=std::tuple<typename defs::out>;
+        // ports definition
+        using input_ports=std::tuple<>;
+        using output_ports=std::tuple<typename defs::out>;
 
-            // internal transition
-            void internal_transition() {}
+        // internal transition
+        void internal_transition() {}
 
-            // external transition
-            void external_transition(TIME e, typename make_message_bags<input_ports>::type mbs) {
-                throw std::logic_error("External transition called in a model with no input ports");
-            }
+        // external transition
+        void external_transition(TIME e, typename make_message_bags<input_ports>::type mbs) {
+            throw std::logic_error("External transition called in a model with no input ports");
+        }
 
-            // confluence transition
-            void confluence_transition(TIME e, typename make_message_bags<input_ports>::type mbs) {
-                throw std::logic_error("Confluence transition called in a model with no input ports");
-            }
+        // confluence transition
+        void confluence_transition(TIME e, typename make_message_bags<input_ports>::type mbs) {
+            throw std::logic_error("Confluence transition called in a model with no input ports");
+        }
 
-            // output function
-            typename make_message_bags<output_ports>::type output() const {
-                typename make_message_bags<output_ports>::type bags;
-                cadmium::get_messages<typename defs::out>(bags).push_back(output_message());
-                return bags;
-            }
+        // output function
+        typename make_message_bags<output_ports>::type output() const {
+            typename make_message_bags<output_ports>::type bags;
+            cadmium::get_messages<typename defs::out>(bags).push_back(output_message());
+            return bags;
+        }
 
-            // time_advance function
-            TIME time_advance() const {
-                //we assume default constructor of TIME is 0 and infinity is defined in numeric_limits
-                return period();
-            }
-        };
-
-    }
+        // time_advance function
+        TIME time_advance() const {
+            //we assume default constructor of TIME is 0 and infinity is defined in numeric_limits
+            return period();
+        }
+    };
 }
 
-#endif //CADMIUM_GENERATOR_HPP
+#endif //CADMIUM_PDEVS_GENERATOR_HPP
 

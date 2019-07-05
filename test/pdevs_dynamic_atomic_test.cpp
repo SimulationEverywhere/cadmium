@@ -35,10 +35,10 @@
   * This test is for the dynamic atomic class that wraps an atomic model to make it pointer friendly
   */
 template<typename TIME>
-using int_accumulator=cadmium::basic_models::accumulator<int, TIME>;
+using int_accumulator=cadmium::basic_models::pdevs::accumulator<int, TIME>;
 
 template<typename TIME>
-struct test_custom_acumulator : public cadmium::basic_models::accumulator<int, TIME> {
+struct test_custom_acumulator : public cadmium::basic_models::pdevs::accumulator<int, TIME> {
 
     test_custom_acumulator() = default;
 

@@ -47,8 +47,8 @@ struct coupled_ports{
 //submodels
 //passive
 template<typename TIME>
-using floating_passive=cadmium::basic_models::passive<float, TIME>;
-using floating_passive_defs=cadmium::basic_models::passive_defs<float>;
+using floating_passive=cadmium::basic_models::pdevs::passive<float, TIME>;
+using floating_passive_defs=cadmium::basic_models::pdevs::passive_defs<float>;
 
 //First level coupleds having a passive model in each
 using input_ports=std::tuple<coupled_ports::in_1, coupled_ports::in_2>;

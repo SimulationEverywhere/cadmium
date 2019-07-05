@@ -43,9 +43,9 @@ BOOST_AUTO_TEST_SUITE( pdevs_dynamic_runner_test_suite )
     struct test_tick{};
 
     //generator for tick messages
-    using out_port = cadmium::basic_models::generator_defs<test_tick>::out;
+    using out_port = cadmium::basic_models::pdevs::generator_defs<test_tick>::out;
     template <typename TIME>
-    using test_tick_generator_base=cadmium::basic_models::generator<test_tick, TIME>;
+    using test_tick_generator_base=cadmium::basic_models::pdevs::generator<test_tick, TIME>;
 
     template<typename TIME>
     struct test_generator : public test_tick_generator_base<TIME> {

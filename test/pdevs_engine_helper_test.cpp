@@ -40,8 +40,8 @@ BOOST_AUTO_TEST_SUITE( pdevs_engine_helpers_test_suite )
 
 ////Definition of an accumulator of floats
 template<typename TIME>
-using floating_accumulator=cadmium::basic_models::accumulator<float, TIME>;
-using floating_accumulator_defs=cadmium::basic_models::accumulator_defs<float>;
+using floating_accumulator=cadmium::basic_models::pdevs::accumulator<float, TIME>;
+using floating_accumulator_defs=cadmium::basic_models::pdevs::accumulator_defs<float>;
 //Definition of a simulator
 using simulator_of_floating_accumulator=cadmium::engine::simulator<floating_accumulator, float, cadmium::logger::not_logger>;
 //Definition of a tuple with one simulator
@@ -55,8 +55,8 @@ BOOST_AUTO_TEST_CASE(get_engine_by_model__one_element_test){
 const float init_period = 0.1f;
 const float init_output_message = 1.0f;
 template<typename TIME>
-using floating_generator_base=cadmium::basic_models::generator<float, TIME>;
-using floating_generator_defs=cadmium::basic_models::generator_defs<float>;
+using floating_generator_base=cadmium::basic_models::pdevs::generator<float, TIME>;
+using floating_generator_defs=cadmium::basic_models::pdevs::generator_defs<float>;
 template<typename TIME>
 struct floating_generator_a : public floating_generator_base<TIME> {
     float period() const override {
