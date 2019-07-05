@@ -54,20 +54,20 @@ using hclock=chrono::high_resolution_clock;
 
 
 template<typename TIME>
-using test_accumulator=cadmium::basic_models::accumulator<int, TIME>;
-using test_accumulator_defs=cadmium::basic_models::accumulator_defs<int>;
-using reset_tick=cadmium::basic_models::accumulator_defs<int>::reset_tick;
+using test_accumulator=cadmium::basic_models::pdevs::accumulator<int, TIME>;
+using test_accumulator_defs=cadmium::basic_models::pdevs::accumulator_defs<int>;
+using reset_tick=cadmium::basic_models::pdevs::accumulator_defs<int>::reset_tick;
 
 using empty_iports = std::tuple<>;
 using empty_eic=std::tuple<>;
 using empty_ic=std::tuple<>;
 
 //2 generators doing output in 2 ports
-using generators_oports=std::tuple<cadmium::basic_models::int_generator_one_sec_defs::out, cadmium::basic_models::reset_generator_five_sec_defs::out>;
-using generators_submodels=cadmium::modeling::models_tuple<cadmium::basic_models::reset_generator_five_sec, cadmium::basic_models::int_generator_one_sec>;
+using generators_oports=std::tuple<cadmium::basic_models::pdevs::int_generator_one_sec_defs::out, cadmium::basic_models::pdevs::reset_generator_five_sec_defs::out>;
+using generators_submodels=cadmium::modeling::models_tuple<cadmium::basic_models::pdevs::reset_generator_five_sec, cadmium::basic_models::pdevs::int_generator_one_sec>;
 using generators_eoc=std::tuple<
-cadmium::modeling::EOC<cadmium::basic_models::reset_generator_five_sec, cadmium::basic_models::reset_generator_five_sec_defs::out, cadmium::basic_models::reset_generator_five_sec_defs::out>,
-cadmium::modeling::EOC<cadmium::basic_models::int_generator_one_sec, cadmium::basic_models::int_generator_one_sec_defs::out, cadmium::basic_models::int_generator_one_sec_defs::out>
+cadmium::modeling::EOC<cadmium::basic_models::pdevs::reset_generator_five_sec, cadmium::basic_models::pdevs::reset_generator_five_sec_defs::out, cadmium::basic_models::pdevs::reset_generator_five_sec_defs::out>,
+cadmium::modeling::EOC<cadmium::basic_models::pdevs::int_generator_one_sec, cadmium::basic_models::pdevs::int_generator_one_sec_defs::out, cadmium::basic_models::pdevs::int_generator_one_sec_defs::out>
 >;
 
 template<typename TIME>
@@ -98,8 +98,8 @@ using top_eoc=std::tuple<
 cadmium::modeling::EOC<coupled_accumulator_model, test_accumulator_defs::sum, top_outport>
 >;
 using top_ic=std::tuple<
-cadmium::modeling::IC<coupled_generators_model, cadmium::basic_models::int_generator_one_sec_defs::out, coupled_accumulator_model, test_accumulator_defs::add>,
-cadmium::modeling::IC<coupled_generators_model, cadmium::basic_models::reset_generator_five_sec_defs::out , coupled_accumulator_model, test_accumulator_defs::reset>
+cadmium::modeling::IC<coupled_generators_model, cadmium::basic_models::pdevs::int_generator_one_sec_defs::out, coupled_accumulator_model, test_accumulator_defs::add>,
+cadmium::modeling::IC<coupled_generators_model, cadmium::basic_models::pdevs::reset_generator_five_sec_defs::out , coupled_accumulator_model, test_accumulator_defs::reset>
 >;
 
 template<typename TIME>

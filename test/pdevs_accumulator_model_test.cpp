@@ -38,8 +38,8 @@ BOOST_AUTO_TEST_SUITE( pdevs_basic_models_suite )
     BOOST_AUTO_TEST_SUITE( pdevs_accumulator_suite )
 
         template<typename TIME>
-        using floating_accumulator=cadmium::basic_models::accumulator<float, TIME>;
-        using floating_accumulator_defs=cadmium::basic_models::accumulator_defs<float>;
+        using floating_accumulator=cadmium::basic_models::pdevs::accumulator<float, TIME>;
+        using floating_accumulator_defs=cadmium::basic_models::pdevs::accumulator_defs<float>;
 
         BOOST_AUTO_TEST_CASE( it_is_atomic_test ){
             BOOST_CHECK(cadmium::concept::is_atomic<floating_accumulator>::value());

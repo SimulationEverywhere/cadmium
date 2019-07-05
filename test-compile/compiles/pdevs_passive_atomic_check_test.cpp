@@ -33,7 +33,7 @@
 
 //preparing the passive to be used as atomic model
 template<typename TIME>
-using floating_passive=cadmium::basic_models::passive<float, TIME>;
+using floating_passive=cadmium::basic_models::pdevs::passive<float, TIME>;
 
 int main(){
     cadmium::concept::pdevs_atomic_model_assert<floating_passive>();

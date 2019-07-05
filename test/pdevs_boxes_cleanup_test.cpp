@@ -40,7 +40,7 @@
   * and messages were stale and routed multiples times from outboxes in other cases (simple_outbox_cleanup_bug_test)
   */
 BOOST_AUTO_TEST_SUITE( inbox_cleanup_test_suite )
-namespace BM=cadmium::basic_models;
+namespace BM=cadmium::basic_models::pdevs;
 
 //Defining a stream to capture logs for validation
 namespace {
@@ -129,9 +129,9 @@ template<typename TIME>
 struct CTOP : public cadmium::modeling::coupled_model<TIME, ips_TOP, ops_TOP, submodels_TOP, eics_TOP, eocs_TOP, ics_TOP>{};
 
 BOOST_AUTO_TEST_CASE( simple_inbox_cleanup_bug_test){
-    std::string expected_initial_state = "State for model cadmium::basic_models::accumulator<int, float> is [0, 0]";
-    std::string expected_accumulation_of_one = "State for model cadmium::basic_models::accumulator<int, float> is [1, 0]";
-    std::string accum_states = "State for model cadmium::basic_models::accumulator";
+    std::string expected_initial_state = "State for model cadmium::basic_models::pdevs::accumulator<int, float> is [0, 0]";
+    std::string expected_accumulation_of_one = "State for model cadmium::basic_models::pdevs::accumulator<int, float> is [1, 0]";
+    std::string accum_states = "State for model cadmium::basic_models::pdevs::accumulator";
     cadmium::engine::runner<float, CTOP, log_time_and_state> r{0.0};
         r.run_until(5.0);
     
@@ -196,9 +196,9 @@ template<typename TIME>
 struct DTOP : public cadmium::modeling::coupled_model<TIME, ips_DTOP, ops_DTOP, submodels_DTOP, eics_DTOP, eocs_DTOP, ics_DTOP>{};
 
 BOOST_AUTO_TEST_CASE( simple_outbox_cleanup_bug_test){
-    std::string expected_initial_state = "State for model cadmium::basic_models::accumulator<int, float> is [0, 0]";
-    std::string expected_accumulation_of_one = "State for model cadmium::basic_models::accumulator<int, float> is [1, 0]";
-    std::string accum_states = "State for model cadmium::basic_models::accumulator";
+    std::string expected_initial_state = "State for model cadmium::basic_models::pdevs::accumulator<int, float> is [0, 0]";
+    std::string expected_accumulation_of_one = "State for model cadmium::basic_models::pdevs::accumulator<int, float> is [1, 0]";
+    std::string accum_states = "State for model cadmium::basic_models::pdevs::accumulator";
     cadmium::engine::runner<float, DTOP, log_time_and_state> r{0.0};
         r.run_until(5.0);
     int count_initial_states = count_matches(expected_initial_state, oss.str());

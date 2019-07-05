@@ -33,7 +33,7 @@
 
 //preparing the generator to be used as atomic model
 template<typename TIME>
-using floating_generator_base=cadmium::basic_models::generator<float, TIME>;
+using floating_generator_base=cadmium::basic_models::pdevs::generator<float, TIME>;
 
 template<typename TIME>
 struct floating_generator : public floating_generator_base<TIME> {

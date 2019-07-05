@@ -54,14 +54,14 @@ struct coupled_ports{
 //submodels
 //passive
 template<typename TIME>
-using floating_passive=cadmium::basic_models::passive<float, TIME>;
-using floating_passive_defs=cadmium::basic_models::passive_defs<float>;
+using floating_passive=cadmium::basic_models::pdevs::passive<float, TIME>;
+using floating_passive_defs=cadmium::basic_models::pdevs::passive_defs<float>;
 //generator
 const float init_period = 0.1f;
 const float init_output_message = 1.0f;
 template<typename TIME>
-using floating_generator_base=cadmium::basic_models::generator<float, TIME>;
-using floating_generator_defs=cadmium::basic_models::generator_defs<float>;
+using floating_generator_base=cadmium::basic_models::pdevs::generator<float, TIME>;
+using floating_generator_defs=cadmium::basic_models::pdevs::generator_defs<float>;
 template<typename TIME>
 struct floating_generator : public floating_generator_base<TIME>{
     float period() const override {
@@ -73,8 +73,8 @@ struct floating_generator : public floating_generator_base<TIME>{
 };
 //accumulator
 template<typename TIME>
-using floating_accumulator=cadmium::basic_models::accumulator<float, TIME>;
-using floating_accumulator_defs=cadmium::basic_models::accumulator_defs<float>;
+using floating_accumulator=cadmium::basic_models::pdevs::accumulator<float, TIME>;
+using floating_accumulator_defs=cadmium::basic_models::pdevs::accumulator_defs<float>;
 
 //Coupled
 using namespace cadmium::modeling;
