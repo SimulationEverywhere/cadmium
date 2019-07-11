@@ -24,27 +24,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * This struct provides a definition for an empty coupled model, used in multiple compile tests.
- */
+#include "pdevs_empty_coupled_model.hpp"
+#include <cadmium/engine/pdevs_coordinator.hpp>
+#include <cadmium/logger/common_loggers.hpp>
 
-#ifndef EMPTY_COUPLED_MODEL_HPP
-#define EMPTY_COUPLED_MODEL_HPP
-
-#include <cadmium/modeling/ports.hpp>
-#include <cadmium/modeling/coupled_model.hpp>
-#include <tuple>
-
-
-struct empty_coupled_model{
-    using input_ports=std::tuple<>;
-    using output_ports=std::tuple<>;
-    using submodels = cadmium::modeling::models_tuple<>;
-    using EICs = std::tuple<>;
-    using EOCs = std::tuple<>;
-    using ICs = std::tuple<>;
-    template<typename TIME>
-    using type=cadmium::modeling::coupled_model<TIME, input_ports, output_ports, submodels, EICs, EOCs, ICs>;
-};
-
-#endif // EMPTY_COUPLED_MODEL_HPP
+int main(){
+    cadmium::engine::coordinator<pdevs_empty_coupled_model::type, float, cadmium::logger::not_logger>();
+    return 0;
+}

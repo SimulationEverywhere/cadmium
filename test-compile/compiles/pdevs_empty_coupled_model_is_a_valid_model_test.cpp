@@ -24,11 +24,12 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "empty_coupled_model.hpp"
-#include <cadmium/engine/pdevs_coordinator.hpp>
-#include <cadmium/logger/common_loggers.hpp>
-
+/**
+ * Test that asserting couple over an empty coupled model is not a compile error
+ */
+#include <cadmium/concept/coupled_model_assert.hpp>
+#include "pdevs_empty_coupled_model.hpp"
 int main(){
-    cadmium::engine::coordinator<empty_coupled_model::type, float, cadmium::logger::not_logger>();
+    cadmium::concept::coupled_model_assert<pdevs_empty_coupled_model::type>();
     return 0;
 }
