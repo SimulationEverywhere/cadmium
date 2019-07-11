@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2013-2015, Damian Vicino
+ * Copyright (c) 2013-2019, Damian Vicino
  * Carleton University, Universite de Nice-Sophia Antipolis
  * All rights reserved.
  *
@@ -31,6 +31,13 @@
 #include <tuple>
 #include <typeindex>
 #include <map>
+
+/**
+ * Here we declare the tools to manage messages in the context of PDEVS models.
+ * A message bag is a set of messages that can be received in a port, and multiple ports
+ * can receive messages at the same time.
+ */
+
 
 namespace cadmium {
 
