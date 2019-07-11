@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.6.1)
+set(CMAKE_OSX_DEPLOYMENT_TARGET "10.14" CACHE STRING "Minimum OS X deployment version")
 project(Cadmium)
 # The version number.
 set (Cadmium_VERSION_MAJOR 0)
