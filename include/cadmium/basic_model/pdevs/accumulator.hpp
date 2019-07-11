@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2013-2016, Damian Vicino
+ * Copyright (c) 2013-2019, Damian Vicino
  * Carleton University, Universite de Nice-Sophia Antipolis
  * All rights reserved.
  *
@@ -28,9 +28,10 @@
 #ifndef CADMIUM_PDEVS_ACCUMULATOR_HPP
 #define CADMIUM_PDEVS_ACCUMULATOR_HPP
 
+#include<limits>
+
 #include<cadmium/modeling/ports.hpp>
 #include<cadmium/modeling/message_bag.hpp>
-#include<limits>
 #include<cadmium/logger/tuple_to_ostream.hpp> // included to allow the accumulator state to use the << operator
 
 
@@ -40,8 +41,6 @@ namespace cadmium::basic_models::pdevs {
  * @brief Accumulator PDEVS Model.
  *
  * Accumulator PDEVS Model:
- * - X = Numeric
- * - Y = Numeric
  * - In_Ports: add<Numeric>, reset
  * - Out_Ports: outport
  * - S = {Numeric:total, bool:reseted}
@@ -54,7 +53,6 @@ namespace cadmium::basic_models::pdevs {
 */
 
     //definitions used for defining the accumulator that need to be accessed by externals resources before instantiate the models
-    //This includes Ports referenced by couplings, and
     template<typename VALUE>
     struct accumulator_defs {
         //custom messages
