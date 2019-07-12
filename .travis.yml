@@ -41,8 +41,10 @@ matrix:
           # Uploading report to CodeCov
           - bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage reports"
 
+    - os: windows
+
   allow_failures:
-          - os: osx
+          - os: windows
 
 script:
   - cmake -DCMAKE_BUILD_TYPE=Debug -G "Unix Makefiles" . && make && make test  
