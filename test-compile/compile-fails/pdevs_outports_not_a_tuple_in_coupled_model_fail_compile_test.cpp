@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2013-2016, Damian Vicino
+ * Copyright (c) 2013-2019, Damian Vicino
  * Carleton University, Universite de Nice-Sophia Antipolis
  * All rights reserved.
  *
@@ -24,19 +24,26 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <tuple>
+#include <vector>
+#include <cadmium/modeling/coupled_model.hpp>
+#include <cadmium/concept/coupled_model_assert.hpp>
+
 /**
- * Test that when output ports of acoupled model are not defined as a tuple, coupling fails compilation
+ * Test that when output ports of a coupled model are not defined as a tuple, coupling fails compilation
  */
+
+using input_ports=std::tuple<>;
+using output_ports=std::vector<int>;
+
+using submodels = cadmium::modeling::models_tuple<>;
+using EICs = std::tuple<>;
+using EOCs = std::tuple<>;
+using ICs = std::tuple<>;
+template<typename TIME>
+using C1=cadmium::modeling::coupled_model<TIME, input_ports, output_ports, submodels, EICs, EOCs, ICs>;
+
 int main(){
-    using input_ports=std::tuple<>;
-    using output_ports=std::vector<>;
-
-    using submodels = cadmium::modeling::models_tuple<>;
-    using EICs = std::tuple<>;
-    using EOCs = std::tuple<>;
-    using ICs = std::tuple<>;
-    using C1=cadmium::modeling::coupled_model<input_ports, output_ports, submodels, EICs, EOCs, ICs>;
-
     cadmium::concept::coupled_model_assert<C1>();
     return 0;
 }
