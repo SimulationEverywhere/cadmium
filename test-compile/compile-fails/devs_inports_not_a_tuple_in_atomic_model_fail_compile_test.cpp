@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2013-2016, Damian Vicino
+ * Copyright (c) 2013-2019, Damian Vicino
  * Carleton University, Universite de Nice-Sophia Antipolis
  * All rights reserved.
  *
@@ -25,18 +25,41 @@
  */
 
 /**
- * Test that when input ports of a coupled model are not defined as a tuple the coupling fails compilation
+ * Test that when input ports of an atomic model are not defined as a tuple, atomic_model_assert fails compilation
  */
-int main(){
-    using input_ports=std::vector<>;
-    using output_ports=std::tuple<>;
 
-    using submodels = cadmium::modeling::models_tuple<>;
-    using EICs = std::tuple<>;
-    using EOCs = std::tuple<>;
-    using ICs = std::tuple<>;
-    using C1=cadmium::modeling::coupled_model<input_ports, output_ports, submodels, EICs, EOCs, ICs>;
+#include<cadmium/modeling/ports.hpp>
+#include<cadmium/concept/atomic_model_assert.hpp>
+#include<tuple>
+#include<cadmium/modeling/message_box.hpp>
+#include <vector>
 
-    cadmium::concept::coupled_model_assert<C1>();
-    return 0;
+/**
+ * This model has no logic, only used for structural validation tests
+ */
+template<typename TIME>
+struct devs_atomic_model_with_inputs_as_vector {
+    struct in : public cadmium::in_port<int> {
+    };
+    struct out : public cadmium::out_port<int> {
+    };
+
+    constexpr devs_atomic_model_with_inputs_as_vector() noexcept {}
+
+    using state_type=int;
+    state_type state = 0;
+    using input_ports=std::vector<in>;
+    using output_ports=std::tuple<out>;
+
+    void internal_transition() {}
+
+    void external_transition(TIME e, typename cadmium::make_message_box<input_ports>::type mbs) {}
+
+    typename cadmium::make_message_box<output_ports>::type output() const {}
+
+    TIME time_advance() const {}
+};
+
+int main() {
+    cadmium::concept::devs_atomic_model_assert<devs_atomic_model_with_inputs_as_vector>();
 }

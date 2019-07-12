@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2013-2016, Damian Vicino
+ * Copyright (c) 2013-2019, Damian Vicino
  * Carleton University, Universite de Nice-Sophia Antipolis
  * All rights reserved.
  *
@@ -40,22 +40,27 @@
  * For external and confluence transition fuctions defined input as empty tuple of ports
  */
 template<typename TIME>
-struct atomic_model_with_no_output_ports
-{
-    struct in : public cadmium::in_port<int>{};
+struct devs_atomic_model_with_no_output_ports {
+    struct in : public cadmium::in_port<int> {
+    };
 
-    constexpr atomic_model_with_no_output_ports() noexcept {}
+    constexpr devs_atomic_model_with_no_output_ports() noexcept {}
+
     using state_type=int;
-    state_type state=0;
+    state_type state = 0;
     using input_ports=std::tuple<in>;
 
-    void internal_transition(){}
-    void external_transition(TIME e, typename cadmium::make_message_bags<input_ports>::type mbs){}
-    void confluence_transition(TIME e, typename cadmium::make_message_bags<input_ports>::type mbs){}
-    typename cadmium::make_message_bags<std::tuple<>>::type output() const{}
-    TIME time_advance() const{}
+    void internal_transition() {}
+
+    void external_transition(TIME e, typename cadmium::make_message_bags<input_ports>::type mbs) {}
+
+    void confluence_transition(TIME e, typename cadmium::make_message_bags<input_ports>::type mbs) {}
+
+    typename cadmium::make_message_bags<std::tuple<>>::type output() const {}
+
+    TIME time_advance() const {}
 };
 
-int main(){
-    cadmium::concept::pdevs_atomic_model_assert<atomic_model_with_no_output_ports>();
+int main() {
+    cadmium::concept::pdevs_atomic_model_assert<devs_atomic_model_with_no_output_ports>();
 }

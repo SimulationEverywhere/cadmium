@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2013-2016, Damian Vicino
+ * Copyright (c) 2013-2019, Damian Vicino
  * Carleton University, Universite de Nice-Sophia Antipolis
  * All rights reserved.
  *
@@ -25,7 +25,8 @@
  */
 
 /**
- * Test that generator, when used as expected create valid atomic models not failing compilation on atomic_model_assert.
+ * Test that generator, when used as expected create valid atomic models that are not failing
+ * compilation on pdevs_atomic_model_assert.
  */
 
 #include<cadmium/concept/atomic_model_assert.hpp>
@@ -40,12 +41,13 @@ struct floating_generator : public floating_generator_base<TIME> {
     float period() const override {
         return 1.0f;
     }
+
     float output_message() const override {
         return 1.0f;
     }
 };
 
 
-int main(){
+int main() {
     cadmium::concept::pdevs_atomic_model_assert<floating_generator>();
 }

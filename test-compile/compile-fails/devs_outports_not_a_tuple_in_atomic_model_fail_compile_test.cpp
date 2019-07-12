@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2013-2016, Damian Vicino
+ * Copyright (c) 2013-2019, Damian Vicino
  * Carleton University, Universite de Nice-Sophia Antipolis
  * All rights reserved.
  *
@@ -25,36 +25,41 @@
  */
 
 /**
- * Test that simulator validates models at compile time
+ * Test that when output ports of an atomic model are not defined as a tuple, atomic_model_assert fails compilation
  */
 
 #include<cadmium/modeling/ports.hpp>
-#include<cadmium/engine/pdevs_simulator.hpp>
+#include<cadmium/concept/atomic_model_assert.hpp>
 #include<tuple>
-#include<cadmium/modeling/message_bag.hpp>
+#include<cadmium/modeling/message_box.hpp>
+#include<vector>
 
 /**
  * This model has no logic, only used for structural validation tests
  */
 template<typename TIME>
-struct atomic_model_missing_time_advance_function
-{
-    struct in : public cadmium::in_port<int>{};
-    struct out : public cadmium::out_port<int>{};
+struct devs_atomic_model_with_outputs_as_vector {
+    struct in : public cadmium::in_port<int> {
+    };
+    struct out : public cadmium::out_port<int> {
+    };
 
-    constexpr atomic_model_missing_time_advance_function() noexcept {}
+    constexpr devs_atomic_model_with_outputs_as_vector() noexcept {}
+
     using state_type=int;
-    state_type state=0;
+    state_type state = 0;
     using input_ports=std::tuple<in>;
-    using output_ports=std::tuple<out>;
+    using output_ports=std::vector<out>;
 
-    void internal_transition(){}
-    void external_transition(TIME e, typename cadmium::make_message_bags<input_ports>::type mbs){}
-    void confluence_transition(TIME e, typename cadmium::make_message_bags<input_ports>::type mbs){}
-    typename cadmium::make_message_bags<output_ports>::type output() const{}
+    void internal_transition() {}
 
+    void external_transition(TIME e, typename cadmium::make_message_box<input_ports>::type mbs) {}
+
+    typename cadmium::make_message_box<output_ports>::type output() const {}
+
+    TIME time_advance() const {}
 };
 
-int main(){
-    cadmium::engine::simulator<atomic_model_missing_time_advance_function>();
+int main() {
+    cadmium::concept::devs_atomic_model_assert<devs_atomic_model_with_outputs_as_vector>();
 }

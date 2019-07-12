@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2013-2016, Damian Vicino
+ * Copyright (c) 2013-2019, Damian Vicino
  * Carleton University, Universite de Nice-Sophia Antipolis
  * All rights reserved.
  *
@@ -24,13 +24,41 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <cadmium/engine/pdevs_coordinator.hpp>
-template<typename TIME>
-struct fail_model{
+/**
+ * Test that an atomic model with no state fails compilation on atomic_model_assert
+ */
 
+#include<cadmium/modeling/ports.hpp>
+#include<cadmium/concept/atomic_model_assert.hpp>
+#include<tuple>
+#include<cadmium/modeling/message_box.hpp>
+
+/**
+ * This model has no logic, only used for structural validation tests
+ */
+template<typename TIME>
+struct devs_atomic_model_missing_state_variable {
+    struct in : public cadmium::in_port<int> {
+    };
+    struct out : public cadmium::out_port<int> {
+    };
+
+    constexpr devs_atomic_model_missing_state_variable() noexcept {}
+
+    using state_type=int;
+
+    using input_ports=std::tuple<in>;
+    using output_ports=std::tuple<out>;
+
+    void internal_transition() {}
+
+    void external_transition(TIME e, typename cadmium::make_message_box<input_ports>::type mbs) {}
+
+    typename cadmium::make_message_bags<output_ports>::type output() const {}
+
+    TIME time_advance() const {}
 };
 
-int main(){
-    cadmium::engine::coordinator<fail_model::type, float>();
-    return 0;
+int main() {
+    cadmium::concept::devs_atomic_model_assert<devs_atomic_model_missing_state_variable>();
 }
