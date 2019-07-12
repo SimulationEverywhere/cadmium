@@ -47,4 +47,4 @@ matrix:
           - os: windows
 
 script:
-  - cmake -DCMAKE_BUILD_TYPE=Debug -G "Unix Makefiles" . && make && make test  
+  - cmake -DCMAKE_BUILD_TYPE=Debug && cmake --build . && ctest -C Debug --output-on-failure
