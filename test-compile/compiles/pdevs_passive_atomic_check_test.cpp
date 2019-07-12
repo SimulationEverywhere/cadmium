@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2013-2016, Damian Vicino
+ * Copyright (c) 2013-2019, Damian Vicino
  * Carleton University, Universite de Nice-Sophia Antipolis
  * All rights reserved.
  *
@@ -25,7 +25,8 @@
  */
 
 /**
- * Test that passive, when used as expected create valid atomic models not failing compilation on atomic_model_assert.
+ * Test that pdevs passive, when used as expected create valid atomic models
+ * that is not failing compilation on atomic_model_assert.
  */
 
 #include<cadmium/concept/atomic_model_assert.hpp>
@@ -35,6 +36,6 @@
 template<typename TIME>
 using floating_passive=cadmium::basic_models::pdevs::passive<float, TIME>;
 
-int main(){
+int main() {
     cadmium::concept::pdevs_atomic_model_assert<floating_passive>();
 }

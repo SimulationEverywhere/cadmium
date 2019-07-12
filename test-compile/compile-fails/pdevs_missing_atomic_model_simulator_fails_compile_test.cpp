@@ -37,12 +37,12 @@
  * This model has no logic, only used for structural validation tests
  */
 template<typename TIME>
-struct atomic_model_missing_time_advance_function
+struct devs_atomic_model_missing_time_advance_function
 {
     struct in : public cadmium::in_port<int>{};
     struct out : public cadmium::out_port<int>{};
 
-    constexpr atomic_model_missing_time_advance_function() noexcept {}
+    constexpr devs_atomic_model_missing_time_advance_function() noexcept {}
     using state_type=int;
     state_type state=0;
     using input_ports=std::tuple<in>;
@@ -56,5 +56,5 @@ struct atomic_model_missing_time_advance_function
 };
 
 int main(){
-    cadmium::engine::simulator<atomic_model_missing_time_advance_function>();
+    cadmium::engine::simulator<devs_atomic_model_missing_time_advance_function>();
 }

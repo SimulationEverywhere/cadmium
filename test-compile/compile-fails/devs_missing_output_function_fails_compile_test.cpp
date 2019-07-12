@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2013-2016, Damian Vicino
+ * Copyright (c) 2013-2019, Damian Vicino
  * Carleton University, Universite de Nice-Sophia Antipolis
  * All rights reserved.
  *
@@ -25,18 +25,38 @@
  */
 
 /**
- * Test that when output ports of acoupled model are not defined as a tuple, coupling fails compilation
+ * Test that an atomic model with no output function fails compilation on atomic_model_assert
  */
-int main(){
-    using input_ports=std::tuple<>;
-    using output_ports=std::vector<>;
 
-    using submodels = cadmium::modeling::models_tuple<>;
-    using EICs = std::tuple<>;
-    using EOCs = std::tuple<>;
-    using ICs = std::tuple<>;
-    using C1=cadmium::modeling::coupled_model<input_ports, output_ports, submodels, EICs, EOCs, ICs>;
+#include<cadmium/modeling/ports.hpp>
+#include<cadmium/concept/atomic_model_assert.hpp>
+#include<tuple>
+#include<cadmium/modeling/message_box.hpp>
 
-    cadmium::concept::coupled_model_assert<C1>();
-    return 0;
+/**
+ * This model has no logic, only used for structural validation tests
+ */
+template<typename TIME>
+struct devs_atomic_model_missing_output_function {
+    struct in : public cadmium::in_port<int> {
+    };
+    struct out : public cadmium::out_port<int> {
+    };
+
+    constexpr devs_atomic_model_missing_output_function() noexcept {}
+
+    using state_type=int;
+    state_type state = 0;
+    using input_ports=std::tuple<in>;
+    using output_ports=std::tuple<out>;
+
+    void internal_transition() {}
+
+    void external_transition(TIME e, typename cadmium::make_message_box<input_ports>::type mbs) {}
+
+    TIME time_advance() const {}
+};
+
+int main() {
+    cadmium::concept::devs_atomic_model_assert<devs_atomic_model_missing_output_function>();
 }

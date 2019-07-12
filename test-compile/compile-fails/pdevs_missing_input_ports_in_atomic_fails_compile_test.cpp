@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2013-2016, Damian Vicino
+ * Copyright (c) 2013-2019, Damian Vicino
  * Carleton University, Universite de Nice-Sophia Antipolis
  * All rights reserved.
  *
@@ -25,32 +25,42 @@
  */
 
 /**
- * Test that failing to declare valid submodels in a coupled model fails compilation
+ * Test that an atomic model with no input_ports transition fails compilation on atomic_model_assert
+ * This is different to say that it has an empty tuple of ports, which is a valid model definition
  */
-#include<cadmium/modeling/coupled_model.hpp>
-#include<cadmium/concept/coupled_model_assert.hpp>
 
-int main(){
+#include<cadmium/modeling/ports.hpp>
+#include<cadmium/concept/atomic_model_assert.hpp>
+#include<tuple>
+#include<cadmium/modeling/message_bag.hpp>
 
-    using input_ports_c1=std::tuple<>;
-    using output_ports_c1=std::tuple<>;
-    using submodels_c1 = cadmium::modeling::models_tuple<>;
-    using EICs_c1 = std::tuple<>;
-    using EOCs_c1 = std::tuple<>;
-    using ICs_c1 = std::tuple<int>; //C1 is not a valid coupled model
-    using C1=cadmium::modeling::coupled_model<input_ports_c1, output_ports_c1, submodels_c1, EICs_c1, EOCs_c1, ICs_c1>;
+/**
+ * This model has no logic, only used for structural validation tests.
+ * In this case it is missing the declaration of input_ports type
+ * For external and confluence transition fuctions defined input as empty tuple of ports
+ */
+template<typename TIME>
+struct pdevs_atomic_model_with_no_input_ports {
+    struct out : public cadmium::out_port<int> {
+    };
 
-    //C2 has C1 as submodel
-    using input_ports=std::tuple<>;
-    using output_ports=std::tuple<>;
+    constexpr pdevs_atomic_model_with_no_input_ports() noexcept {}
 
-    using submodels = cadmium::modeling::models_tuple<C1>;
-    using EICs = std::tuple<>;
-    using EOCs = std::tuple<>;
-    using ICs = std::tuple<>;
-    using C2=cadmium::modeling::coupled_model<input_ports, output_ports, submodels, EICs, EOCs, ICs>;
+    using state_type=int;
+    state_type state = 0;
+    using output_ports=std::tuple<out>;
 
-    cadmium::concept::coupled_model_assert<C2>();
+    void internal_transition() {}
 
-    return 0;
+    void external_transition(TIME e, typename cadmium::make_message_bags<std::tuple<>>::type mbs) {}
+
+    void confluence_transition(TIME e, typename cadmium::make_message_bags<std::tuple<>>::type mbs) {}
+
+    typename cadmium::make_message_bags<output_ports>::type output() const {}
+
+    TIME time_advance() const {}
+};
+
+int main() {
+    cadmium::concept::pdevs_atomic_model_assert<pdevs_atomic_model_with_no_input_ports>();
 }

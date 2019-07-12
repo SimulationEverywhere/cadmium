@@ -52,14 +52,12 @@ struct devs_atomic_model_missing_time_advance_function {
 
     void internal_transition() {}
 
-    void external_transition(TIME e, typename cadmium::make_message_bags<input_ports>::type mbs) {}
+    void external_transition(TIME e, typename cadmium::make_message_box<input_ports>::type mbs) {}
 
-    void confluence_transition(TIME e, typename cadmium::make_message_bags<input_ports>::type mbs) {}
-
-    typename cadmium::make_message_bags<output_ports>::type output() const {}
+    typename cadmium::make_message_box<output_ports>::type output() const {}
 
 };
 
 int main() {
-    cadmium::concept::pdevs_atomic_model_assert<devs_atomic_model_missing_time_advance_function>();
+    cadmium::concept::devs_atomic_model_assert<devs_atomic_model_missing_time_advance_function>();
 }
