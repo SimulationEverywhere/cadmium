@@ -33,7 +33,7 @@
 #include<cadmium/modeling/ports.hpp>
 #include<type_traits>
 
-namespace cadmium{
+namespace cadmium {
     namespace concept {
         //forward declaration
         template<typename MODEL>
@@ -41,28 +41,32 @@ namespace cadmium{
 
         //static assert over the EIC descriptions
         template<typename IN, typename EICs, int S>
-        struct assert_each_eic{
+        struct assert_each_eic {
             static constexpr bool value() {
-                using EP=typename std::tuple_element<S-1, EICs>::type::external_input_port;
-                using SUBMODEL=typename std::tuple_element<S-1,EICs>::type::template submodel<float>; //using float time, ports should not depend on time
-                using IP=typename std::tuple_element<S-1, EICs>::type::submodel_input_port;
+                using EP=typename std::tuple_element<S - 1, EICs>::type::external_input_port;
+                using SUBMODEL=typename std::tuple_element<S -
+                                                           1, EICs>::type::template submodel<float>; //using float time, ports should not depend on time
+                using IP=typename std::tuple_element<S - 1, EICs>::type::submodel_input_port;
                 //ports are input ports
                 static_assert(EP::kind == port_kind::in, "The external port in a EIC is not an input port");
                 static_assert(IP::kind == port_kind::in, "The internal port in a EIC is not an input port");
                 //check internal port is defined in submodel
-                static_assert(has_port_in_tuple<IP, typename SUBMODEL::input_ports>::value(), "External port in EIC is not defined as external port in the model");
+                static_assert(has_port_in_tuple<IP, typename SUBMODEL::input_ports>::value(),
+                              "External port in EIC is not defined as external port in the model");
                 //check external port is defined in the model
-                static_assert(has_port_in_tuple<EP, IN>::value(), "External port in EIC is not defined as external port in the model");
+                static_assert(has_port_in_tuple<EP, IN>::value(),
+                              "External port in EIC is not defined as external port in the model");
                 //check the internal port matches message type with the external port
-                static_assert(std::is_same<typename EP::message_type, typename IP::message_type>(), "The message type does not match in EIC description");
+                static_assert(std::is_same<typename EP::message_type, typename IP::message_type>(),
+                              "The message type does not match in EIC description");
 
                 //recursive step
-                return assert_each_eic<IN, EICs, S-1>::value();
+                return assert_each_eic<IN, EICs, S - 1>::value();
             }
         };
 
         template<typename IN, typename EICs>
-        struct assert_each_eic<IN, EICs, 0>{
+        struct assert_each_eic<IN, EICs, 0> {
             static constexpr bool value() {
                 return true;
             }
@@ -77,28 +81,32 @@ namespace cadmium{
 
         //static assert over the EOC descriptions
         template<typename OUT, typename EOCs, int S>
-        struct assert_each_eoc{
+        struct assert_each_eoc {
             static constexpr bool value() {
-                using EP=typename std::tuple_element<S-1, EOCs>::type::external_output_port;
-                using SUBMODEL=typename std::tuple_element<S-1,EOCs>::type::template submodel<float>; //using float time, ports should not depend on time
-                using IP=typename std::tuple_element<S-1, EOCs>::type::submodel_output_port;
+                using EP=typename std::tuple_element<S - 1, EOCs>::type::external_output_port;
+                using SUBMODEL=typename std::tuple_element<S -
+                                                           1, EOCs>::type::template submodel<float>; //using float time, ports should not depend on time
+                using IP=typename std::tuple_element<S - 1, EOCs>::type::submodel_output_port;
                 //ports are output ports
                 static_assert(EP::kind == port_kind::out, "The external port in a EOC is not an output port");
                 static_assert(IP::kind == port_kind::out, "The internal port in a EOC is not an output port");
                 //check internal port is defined in submodel
-                static_assert(has_port_in_tuple<IP, typename SUBMODEL::output_ports>::value(), "Internal port in EOC is not defined as external port in the submodel");
+                static_assert(has_port_in_tuple<IP, typename SUBMODEL::output_ports>::value(),
+                              "Internal port in EOC is not defined as external port in the submodel");
                 //check external port is defined in the model
-                static_assert(has_port_in_tuple<EP, OUT>::value(), "External port in EIC is not defined as external port in the model");
+                static_assert(has_port_in_tuple<EP, OUT>::value(),
+                              "External port in EIC is not defined as external port in the model");
                 //check the internal port matches message type with the external port
-                static_assert(std::is_same<typename EP::message_type, typename IP::message_type>(), "The message type does not match in EOC description");
+                static_assert(std::is_same<typename EP::message_type, typename IP::message_type>(),
+                              "The message type does not match in EOC description");
 
                 //recursive step
-                return assert_each_eoc<OUT, EOCs, S-1>::value();
+                return assert_each_eoc<OUT, EOCs, S - 1>::value();
             }
         };
 
         template<typename OUT, typename EOCs>
-        struct assert_each_eoc<OUT, EOCs, 0>{
+        struct assert_each_eoc<OUT, EOCs, 0> {
             static constexpr bool value() {
                 return true;
             }
@@ -113,33 +121,39 @@ namespace cadmium{
 
         //static assert over the IC descriptions
         template<typename ICs, int S>
-        struct assert_each_ic{
+        struct assert_each_ic {
             static constexpr bool value() {
-                using FROM_MODEL=typename std::tuple_element<S-1, ICs>::type::template from_model<float>;//using float time, ports should not depend on time
-                using FROM_PORT=typename std::tuple_element<S-1, ICs>::type::from_model_output_port;
-                using TO_MODEL=typename std::tuple_element<S-1,ICs>::type::template to_model<float>; //using float time, ports should not depend on time
-                using TO_PORT=typename std::tuple_element<S-1, ICs>::type::to_model_input_port;
+                using FROM_MODEL=typename std::tuple_element<S -
+                                                             1, ICs>::type::template from_model<float>;//using float time, ports should not depend on time
+                using FROM_PORT=typename std::tuple_element<S - 1, ICs>::type::from_model_output_port;
+                using TO_MODEL=typename std::tuple_element<
+                        S - 1, ICs>::type::template to_model<float>; //using float time, ports should not depend on time
+                using TO_PORT=typename std::tuple_element<S - 1, ICs>::type::to_model_input_port;
 
                 //ports are proper kind
-                static_assert(FROM_PORT::kind == port_kind::out, "The port in from_model in a IC is not an output port");
+                static_assert(FROM_PORT::kind == port_kind::out,
+                              "The port in from_model in a IC is not an output port");
                 static_assert(TO_PORT::kind == port_kind::in, "The port in a to_model in a IC is not an input port");
 
                 //check ports are defined in submodels
-                static_assert(has_port_in_tuple<FROM_PORT, typename FROM_MODEL::output_ports>::value(), "Output port used in IC is not defined in the submodel");
-                static_assert(has_port_in_tuple<TO_PORT, typename TO_MODEL::input_ports>::value(), "Input port in IC is not defined in the submodel");
+                static_assert(has_port_in_tuple<FROM_PORT, typename FROM_MODEL::output_ports>::value(),
+                              "Output port used in IC is not defined in the submodel");
+                static_assert(has_port_in_tuple<TO_PORT, typename TO_MODEL::input_ports>::value(),
+                              "Input port in IC is not defined in the submodel");
                 //check the internal port matches message type with the external port
-                static_assert(std::is_same<typename TO_PORT::message_type, typename FROM_PORT::message_type>(), "The message type does not match in IC description");
+                static_assert(std::is_same<typename TO_PORT::message_type, typename FROM_PORT::message_type>(),
+                              "The message type does not match in IC description");
 
                 //not loop in IC
                 static_assert(!std::is_same<FROM_MODEL, TO_MODEL>(), "The IC detected a coupling-to-self loop");
 
                 //recursive step
-                return assert_each_ic<ICs, S-1>::value();
+                return assert_each_ic<ICs, S - 1>::value();
             }
         };
 
         template<typename ICs>
-        struct assert_each_ic<ICs, 0>{
+        struct assert_each_ic<ICs, 0> {
             static constexpr bool value() {
                 return true;
             }
@@ -155,28 +169,31 @@ namespace cadmium{
 
         //asserting the submodels are proper coupled or atomic modes.
         template<typename MODELs, int S>
-        struct assert_each_model{
-            using MODEL=typename std::tuple_element<S-1, MODELs>::type;
+        struct assert_each_model {
+            using MODEL=typename std::tuple_element<S - 1, MODELs>::type;
             //testing if model has to be checked as atomic or coupled
             using atomic_detected=char;
             using coupled_detected=long;
 
-            template <typename M> static atomic_detected test( decltype(&M::time_advance)) ;
-            template <typename M> static coupled_detected test(...);
+            template<typename M>
+            static atomic_detected test(decltype(&M::time_advance));
 
-            static constexpr bool value(){
-                if(sizeof(test<MODEL>)==sizeof(atomic_detected)){
+            template<typename M>
+            static coupled_detected test(...);
+
+            static constexpr bool value() {
+                if (sizeof(test<MODEL>) == sizeof(atomic_detected)) {
                     pdevs_atomic_model_float_time_assert<MODEL>();
                 } else {
                     coupled_model_float_time_assert<MODEL>();
                 }
-                return assert_each_model<MODELs, S-1>();
+                return assert_each_model<MODELs, S - 1>();
             }
         };
 
         template<typename MODELs>
-        struct assert_each_model<MODELs, 0>{
-            static constexpr bool value(){
+        struct assert_each_model<MODELs, 0> {
+            static constexpr bool value() {
                 return true;//TODO
             }
         };
@@ -191,7 +208,7 @@ namespace cadmium{
 
         //coupled model full assert check
         template<typename FLOATING_MODEL>
-        constexpr void coupled_model_float_time_assert(){
+        constexpr void coupled_model_float_time_assert() {
             using IP=typename FLOATING_MODEL::input_ports;
             using OP=typename FLOATING_MODEL::output_ports;
             using EICs=typename FLOATING_MODEL::external_input_couplings;
@@ -211,7 +228,8 @@ namespace cadmium{
             static_assert(std::is_constructible<floating_submodels>::value, "coupled model cannot be constructed");
         }
 
-        template<template<typename TIME> class MODEL> //check a template argument is required (for time)
+        template<template<typename TIME> class MODEL>
+        //check a template argument is required (for time)
         constexpr void coupled_model_assert() {
             using floating_model=MODEL<float>;
             coupled_model_float_time_assert<floating_model>();

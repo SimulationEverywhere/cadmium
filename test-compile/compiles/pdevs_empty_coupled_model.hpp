@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2013-2016, Damian Vicino
+ * Copyright (c) 2013-2019, Damian Vicino
  * Carleton University, Universite de Nice-Sophia Antipolis
  * All rights reserved.
  *
@@ -32,11 +32,10 @@
 #define EMPTY_COUPLED_MODEL_HPP
 
 #include <cadmium/modeling/ports.hpp>
-#include <cadmium/modeling/coupled_model.hpp>
+#include <cadmium/modeling/coupling.hpp>
 #include <tuple>
 
-
-struct pdevs_empty_coupled_model{
+struct pdevs_empty_coupled_model {
     using input_ports=std::tuple<>;
     using output_ports=std::tuple<>;
     using submodels = cadmium::modeling::models_tuple<>;
@@ -44,7 +43,7 @@ struct pdevs_empty_coupled_model{
     using EOCs = std::tuple<>;
     using ICs = std::tuple<>;
     template<typename TIME>
-    using type=cadmium::modeling::coupled_model<TIME, input_ports, output_ports, submodels, EICs, EOCs, ICs>;
+    using type=cadmium::modeling::pdevs::coupled_model<TIME, input_ports, output_ports, submodels, EICs, EOCs, ICs>;
 };
 
 #endif // EMPTY_COUPLED_MODEL_HPP

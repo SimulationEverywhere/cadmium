@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2013-2016, Damian Vicino
+ * Copyright (c) 2013-2019, Damian Vicino
  * Carleton University, Universite de Nice-Sophia Antipolis
  * All rights reserved.
  *
@@ -30,7 +30,7 @@
 
 #include<cadmium/basic_model/pdevs/generator.hpp>
 #include<cadmium/basic_model/pdevs/passive.hpp>
-#include<cadmium/modeling/coupled_model.hpp>
+#include<cadmium/modeling/coupling.hpp>
 #include<cadmium/concept/coupled_model_assert.hpp>
 
 // a generator using floating point messages
@@ -39,11 +39,13 @@ const float init_output_message = 1.0f;
 template<typename TIME>
 using floating_generator_base=cadmium::basic_models::pdevs::generator<float, TIME>;
 using floating_generator_defs=cadmium::basic_models::pdevs::generator_defs<float>;
+
 template<typename TIME>
 struct floating_generator : public floating_generator_base<TIME> {
     float period() const override {
         return init_period;
     }
+
     float output_message() const override {
         return init_output_message;
     }
@@ -54,16 +56,17 @@ template<typename TIME>
 using passive = cadmium::basic_models::pdevs::passive<int, TIME>;
 using passive_in = cadmium::basic_models::pdevs::passive_defs<int>::in;
 
-int main(){
-    using input_ports=std::tuple<>;
-    using output_ports=std::tuple<>;
+using input_ports=std::tuple<>;
+using output_ports=std::tuple<>;
 
-    using submodels = cadmium::modeling::models_tuple<passive, floating_generator>;
-    using EICs = std::tuple<>;
-    using EOCs = std::tuple<>;
-    using ICs = std::tuple<cadmium::modeling::IC<floating_generator, floating_generator_defs::out, passive, passive_in>>;
-    using C1=cadmium::modeling::coupled_model<input_ports, output_ports, submodels, EICs, EOCs, ICs>;
+using submodels = cadmium::modeling::models_tuple<passive, floating_generator>;
+using EICs = std::tuple<>;
+using EOCs = std::tuple<>;
+using ICs = std::tuple<cadmium::modeling::IC<floating_generator, floating_generator_defs::out, passive, passive_in>>;
+template<typename TIME>
+using C1=cadmium::modeling::pdevs::coupled_model<TIME, input_ports, output_ports, submodels, EICs, EOCs, ICs>;
 
+int main() {
     cadmium::concept::coupled_model_assert<C1>();
     return 0;
 }

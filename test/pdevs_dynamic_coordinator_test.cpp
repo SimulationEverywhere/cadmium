@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2018, Laouen M. L. Belloli
+ * Copyright (c) 2018-2019, Laouen M. L. Belloli, Damian Vicino
  * Carleton University, Universidad de Buenos Aires
  * All rights reserved.
  *
@@ -25,37 +25,39 @@
  */
 
 #define BOOST_TEST_DYN_LINK
+
 #include <boost/test/unit_test.hpp>
 #include <cadmium/modeling/dynamic_coupled.hpp>
 #include <cadmium/engine/pdevs_dynamic_coordinator.hpp>
 #include <cadmium/logger/common_loggers.hpp>
 #include <cadmium/modeling/ports.hpp>
 #include <cadmium/basic_model/pdevs/generator.hpp>
-#include <cadmium/modeling/coupled_model.hpp>
+#include <cadmium/modeling/coupling.hpp>
 #include <cadmium/modeling/dynamic_atomic.hpp>
 #include <cadmium/modeling/dynamic_model_translator.hpp>
 
-BOOST_AUTO_TEST_SUITE( pdevs_dynamic_coordinator_test_suite )
+BOOST_AUTO_TEST_SUITE(pdevs_dynamic_coordinator_test_suite)
 
-    template <typename TIME>
+    template<typename TIME>
     class custom_id_coupled : public cadmium::dynamic::modeling::coupled<TIME> {
     public:
         custom_id_coupled() : cadmium::dynamic::modeling::coupled<TIME>("custom_id_coupled") {};
     };
 
-    BOOST_AUTO_TEST_CASE( empty_coupled_model_coordinator ) {
+    BOOST_AUTO_TEST_CASE(empty_coupled_model_coordinator) {
         std::shared_ptr<cadmium::dynamic::modeling::coupled<float>> coupled = std::make_shared<custom_id_coupled<float>>();
         cadmium::dynamic::engine::coordinator<float, cadmium::logger::not_logger> c(coupled);
         BOOST_CHECK(coupled->get_id() == "custom_id_coupled");
         BOOST_CHECK(coupled->get_id() == c.get_model_id());
     }
 
-    struct test_tick {};
+    struct test_tick {
+    };
 
     //generator for tick messages
     using out_port = cadmium::basic_models::pdevs::generator_defs<test_tick>::out;
 
-    template <typename TIME>
+    template<typename TIME>
     using test_tick_generator_base=cadmium::basic_models::pdevs::generator<test_tick, float>;
 
     template<typename TIME>
@@ -72,7 +74,8 @@ BOOST_AUTO_TEST_SUITE( pdevs_dynamic_coordinator_test_suite )
     template<typename TIME>
     using dynamic_test_generator = cadmium::dynamic::modeling::atomic<test_generator, TIME>;
 
-    struct coupled_out_port : public cadmium::out_port<test_tick>{};
+    struct coupled_out_port : public cadmium::out_port<test_tick> {
+    };
 
     using iports = std::tuple<>;
     using oports = std::tuple<coupled_out_port>;
@@ -83,18 +86,21 @@ BOOST_AUTO_TEST_SUITE( pdevs_dynamic_coordinator_test_suite )
     using eics=std::tuple<>;
     using ics=std::tuple<>;
 
-    BOOST_AUTO_TEST_CASE( coordinator_of_tic_coupled_model ) {
+    BOOST_AUTO_TEST_CASE(coordinator_of_tic_coupled_model) {
 
         std::shared_ptr<cadmium::dynamic::modeling::model> sp_test_generator = cadmium::dynamic::translate::make_dynamic_atomic_model<test_generator, float>();
 
         cadmium::dynamic::translate::models_by_type models_by_type;
-        models_by_type.emplace(typeid(dynamic_test_generator<float>) ,sp_test_generator);
+        models_by_type.emplace(typeid(dynamic_test_generator<float>), sp_test_generator);
         cadmium::dynamic::modeling::Ports input_ports = cadmium::dynamic::translate::make_ports<iports>();
         cadmium::dynamic::modeling::Ports output_ports = cadmium::dynamic::translate::make_ports<oports>();
         cadmium::dynamic::modeling::Models submodels = {sp_test_generator};
-        cadmium::dynamic::modeling::EOCs dynamic_eocs = cadmium::dynamic::translate::make_dynamic_eoc<float, eocs>(models_by_type);
-        cadmium::dynamic::modeling::EICs dynamic_eics = cadmium::dynamic::translate::make_dynamic_eic<float, eics>(models_by_type);
-        cadmium::dynamic::modeling::ICs dynamic_ics = cadmium::dynamic::translate::make_dynamic_ic<float, ics>(models_by_type);
+        cadmium::dynamic::modeling::EOCs dynamic_eocs = cadmium::dynamic::translate::make_dynamic_eoc<float, eocs>(
+                models_by_type);
+        cadmium::dynamic::modeling::EICs dynamic_eics = cadmium::dynamic::translate::make_dynamic_eic<float, eics>(
+                models_by_type);
+        cadmium::dynamic::modeling::ICs dynamic_ics = cadmium::dynamic::translate::make_dynamic_ic<float, ics>(
+                models_by_type);
 
         std::shared_ptr<cadmium::dynamic::modeling::coupled<float>> coupled = std::make_shared<cadmium::dynamic::modeling::coupled<float>>(
                 "dynamic_coupled_test_generator",
@@ -121,7 +127,8 @@ BOOST_AUTO_TEST_SUITE( pdevs_dynamic_coordinator_test_suite )
         BOOST_REQUIRE(!output_bags.empty());
         BOOST_CHECK_EQUAL(output_bags.size(), 1);
         BOOST_REQUIRE(output_bags.find(typeid(coupled_out_port)) != output_bags.end());
-        BOOST_CHECK_EQUAL(boost::any_cast<cadmium::message_bag<coupled_out_port>>(output_bags.at(typeid(coupled_out_port))).messages.size(), 1); //only a tick happened.
+        BOOST_CHECK_EQUAL(boost::any_cast<cadmium::message_bag<coupled_out_port>>(
+                output_bags.at(typeid(coupled_out_port))).messages.size(), 1); //only a tick happened.
 
         //second cycle, all same checks one second later produce same results
         cg.advance_simulation(1.0f);
@@ -137,7 +144,8 @@ BOOST_AUTO_TEST_SUITE( pdevs_dynamic_coordinator_test_suite )
         BOOST_REQUIRE(!output_bags.empty());
         BOOST_CHECK_EQUAL(output_bags.size(), 1);
         BOOST_REQUIRE(output_bags.find(typeid(coupled_out_port)) != output_bags.end());
-        BOOST_CHECK_EQUAL(boost::any_cast<cadmium::message_bag<coupled_out_port>>(output_bags.at(typeid(coupled_out_port))).messages.size(), 1); //only a tick happened.
+        BOOST_CHECK_EQUAL(boost::any_cast<cadmium::message_bag<coupled_out_port>>(
+                output_bags.at(typeid(coupled_out_port))).messages.size(), 1); //only a tick happened.
     }
 
 BOOST_AUTO_TEST_SUITE_END()
