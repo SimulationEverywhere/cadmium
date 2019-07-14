@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2018, Laouen M. L. Belloli, Damian Vicino
+ * Copyright (c) 2018-2019, Laouen M. L. Belloli, Damian Vicino
  * Carleton University, Universite de Nice-Sophia Antipolis, Universidad de Buenos Aires
  * All rights reserved.
  *
@@ -25,6 +25,7 @@
  */
 
 #define BOOST_TEST_DYN_LINK
+
 #include <boost/test/unit_test.hpp>
 
 #include <cadmium/basic_model/pdevs/generator.hpp>
@@ -34,17 +35,18 @@
 #include <cadmium/modeling/dynamic_model_translator.hpp>
 
 #include <cadmium/engine/pdevs_dynamic_runner.hpp>
-#include <cadmium/modeling/coupled_model.hpp>
+#include <cadmium/modeling/coupling.hpp>
 
-BOOST_AUTO_TEST_SUITE( pdevs_dynamic_runner_test_suite )
+BOOST_AUTO_TEST_SUITE(pdevs_dynamic_runner_test_suite)
 
     //generator in a coupled model definition pieces
     //message representing ticks
-    struct test_tick{};
+    struct test_tick {
+    };
 
     //generator for tick messages
     using out_port = cadmium::basic_models::pdevs::generator_defs<test_tick>::out;
-    template <typename TIME>
+    template<typename TIME>
     using test_tick_generator_base=cadmium::basic_models::pdevs::generator<test_tick, TIME>;
 
     template<typename TIME>
@@ -52,6 +54,7 @@ BOOST_AUTO_TEST_SUITE( pdevs_dynamic_runner_test_suite )
         float period() const override {
             return 1.0f; //using float for time in this test, ticking every second
         }
+
         test_tick output_message() const override {
             return test_tick();
         }
@@ -59,7 +62,8 @@ BOOST_AUTO_TEST_SUITE( pdevs_dynamic_runner_test_suite )
 
     //generator of ticks coupled model definition
     using iports = std::tuple<>;
-    struct coupled_out_port : public cadmium::out_port<test_tick>{};
+    struct coupled_out_port : public cadmium::out_port<test_tick> {
+    };
     using oports = std::tuple<coupled_out_port>;
     using submodels=cadmium::modeling::models_tuple<test_generator>;
     using eics=std::tuple<>;
@@ -69,7 +73,7 @@ BOOST_AUTO_TEST_SUITE( pdevs_dynamic_runner_test_suite )
     using ics=std::tuple<>;
 
     template<typename TIME>
-    using coupled_generator=cadmium::modeling::coupled_model<TIME, iports, oports, submodels, eics, eocs, ics>;
+    using coupled_generator=cadmium::modeling::pdevs::coupled_model<TIME, iports, oports, submodels, eics, eocs, ics>;
 
     // std::shared_ptr<cadmium::dynamic::modeling::coupled<float>>
     auto coupled = cadmium::dynamic::translate::make_dynamic_coupled_model<float, coupled_generator>();
@@ -77,9 +81,9 @@ BOOST_AUTO_TEST_SUITE( pdevs_dynamic_runner_test_suite )
     // used to get the model id
     std::shared_ptr<cadmium::dynamic::modeling::model> sp_test_generator = cadmium::dynamic::translate::make_dynamic_atomic_model<test_generator, float>();
 
-    BOOST_AUTO_TEST_SUITE( pdevs_silent_dynamic_runner_test_suite )
+    BOOST_AUTO_TEST_SUITE(pdevs_silent_dynamic_runner_test_suite)
 
-        BOOST_AUTO_TEST_CASE( pdevs_dynamic_runner_of_a_generator_in_a_coupled_for_a_minute_test){
+        BOOST_AUTO_TEST_CASE(pdevs_dynamic_runner_of_a_generator_in_a_coupled_for_a_minute_test) {
             cadmium::dynamic::engine::runner<float, cadmium::logger::not_logger> r(coupled, 0.0);
             float next_to_end_time = r.run_until(60.0);
             BOOST_CHECK_EQUAL(60.0, next_to_end_time);
@@ -87,21 +91,20 @@ BOOST_AUTO_TEST_SUITE( pdevs_dynamic_runner_test_suite )
 
     BOOST_AUTO_TEST_SUITE_END()
 
-    BOOST_AUTO_TEST_SUITE( loggers_sources_dynamic_runner_test_suite )
+    BOOST_AUTO_TEST_SUITE(loggers_sources_dynamic_runner_test_suite)
 
         namespace {
             std::ostringstream oss;
 
-            struct oss_test_sink_provider{
-                static std::ostream& sink(){
+            struct oss_test_sink_provider {
+                static std::ostream &sink() {
                     return oss;
                 }
             };
         }
 
 
-        BOOST_AUTO_TEST_CASE( dynamic_runner_logs_global_time_advances_test )
-        {
+        BOOST_AUTO_TEST_CASE(dynamic_runner_logs_global_time_advances_test) {
             oss.str("");
             //logger definition
             using log_gt_to_oss=cadmium::logger::logger<cadmium::logger::logger_global_time, cadmium::dynamic::logger::formatter<float>, oss_test_sink_provider>;
@@ -112,13 +115,12 @@ BOOST_AUTO_TEST_SUITE( pdevs_dynamic_runner_test_suite )
 
             //check the string
             auto expected = "0\n"  //runnner init time
-                    "1\n"  //runner first advance
-                    "2\n"; //runner last advance
+                            "1\n"  //runner first advance
+                            "2\n"; //runner last advance
             BOOST_CHECK_EQUAL(oss.str(), expected);
         }
 
-        BOOST_AUTO_TEST_CASE( dynamic_simulation_logs_info_on_setup_and_start_loops_and_end_of_run_test )
-        {
+        BOOST_AUTO_TEST_CASE(dynamic_simulation_logs_info_on_setup_and_start_loops_and_end_of_run_test) {
             //This test integrates log output from runner, coordinator and simulator.
             oss.str("");
             //logger definition
@@ -169,8 +171,7 @@ BOOST_AUTO_TEST_SUITE( pdevs_dynamic_runner_test_suite )
             BOOST_CHECK_EQUAL(oss.str(), expected_oss.str());
         }
 
-        BOOST_AUTO_TEST_CASE( dynamic_simulation_logs_state_only_show_state_changes_and_initial_state_test )
-        {
+        BOOST_AUTO_TEST_CASE(dynamic_simulation_logs_state_only_show_state_changes_and_initial_state_test) {
             //This test integrates log output from runner, coordinator and simulator.
             oss.str("");
             //logger definition
@@ -182,7 +183,7 @@ BOOST_AUTO_TEST_SUITE( pdevs_dynamic_runner_test_suite )
 
             //check the string
             std::ostringstream expected_oss;
-            for (int i=0; i < 3; i++){// initial state and 2 more states
+            for (int i = 0; i < 3; i++) {// initial state and 2 more states
                 expected_oss << "State for model ";
                 expected_oss << sp_test_generator->get_id();
                 expected_oss << " is 0\n";
@@ -191,8 +192,7 @@ BOOST_AUTO_TEST_SUITE( pdevs_dynamic_runner_test_suite )
             BOOST_CHECK_EQUAL(oss.str(), expected_oss.str());
         }
 
-        BOOST_AUTO_TEST_CASE( dynamic_simulation_logs_messages_generated_in_atomic_models_test )
-        {
+        BOOST_AUTO_TEST_CASE(dynamic_simulation_logs_messages_generated_in_atomic_models_test) {
             //This test integrates log output from runner, coordinator and simulator.
             oss.str("");
             //logger definition
@@ -215,8 +215,7 @@ BOOST_AUTO_TEST_SUITE( pdevs_dynamic_runner_test_suite )
             BOOST_CHECK_EQUAL(oss.str(), expected_oss.str());
         }
 
-        BOOST_AUTO_TEST_CASE( dynamic_simulation_logs_local_time_in_simulators_test )
-        {
+        BOOST_AUTO_TEST_CASE(dynamic_simulation_logs_local_time_in_simulators_test) {
             //This test integrates log output from runner, coordinator and simulator.
             oss.str("");
             //logger definition
@@ -234,8 +233,7 @@ BOOST_AUTO_TEST_SUITE( pdevs_dynamic_runner_test_suite )
             BOOST_CHECK_EQUAL(oss.str(), expected_oss.str());
         }
 
-        BOOST_AUTO_TEST_CASE( dynamic_simulation_logs_routing_of_eoc_in_coordinator_test )
-        {
+        BOOST_AUTO_TEST_CASE(dynamic_simulation_logs_routing_of_eoc_in_coordinator_test) {
             //This test integrates log output from runner, coordinator and simulator.
             oss.str("");
             //logger definition

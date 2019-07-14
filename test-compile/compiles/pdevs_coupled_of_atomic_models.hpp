@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2013-2016, Damian Vicino
+ * Copyright (c) 2013-2019, Damian Vicino
  * Carleton University, Universite de Nice-Sophia Antipolis
  * All rights reserved.
  *
@@ -25,8 +25,8 @@
  */
 
 
-#ifndef COUPLED_OF_ATOMIC_MODESL_HPP
-#define COUPLED_OF_ATOMIC_MODESL_HPP
+#ifndef COUPLED_OF_ATOMIC_MODELS_HPP
+#define COUPLED_OF_ATOMIC_MODELS_HPP
 
 /**
  * The code below defines a coupled model where all submodels are atomic models
@@ -34,7 +34,7 @@
  */
 
 #include <cadmium/modeling/ports.hpp>
-#include <cadmium/modeling/coupled_model.hpp>
+#include <cadmium/modeling/coupling.hpp>
 #include <cadmium/concept/coupled_model_assert.hpp>
 #include <tuple>
 
@@ -44,11 +44,14 @@
 
 using namespace cadmium;
 //ports
-struct coupled_ports{
+struct coupled_ports {
     //custom ports
-    struct in_1 : public in_port<float> {};
-    struct in_2 : public in_port<float> {};
-    struct out : public out_port<float> {};
+    struct in_1 : public in_port<float> {
+    };
+    struct in_2 : public in_port<float> {
+    };
+    struct out : public out_port<float> {
+    };
 };
 
 //submodels
@@ -62,11 +65,13 @@ const float init_output_message = 1.0f;
 template<typename TIME>
 using floating_generator_base=cadmium::basic_models::pdevs::generator<float, TIME>;
 using floating_generator_defs=cadmium::basic_models::pdevs::generator_defs<float>;
+
 template<typename TIME>
-struct floating_generator : public floating_generator_base<TIME>{
+struct floating_generator : public floating_generator_base<TIME> {
     float period() const override {
         return init_period;
     }
+
     float output_message() const override {
         return init_output_message;
     }
@@ -83,19 +88,19 @@ using output_ports=std::tuple<coupled_ports::out>;
 
 using submodels = models_tuple<floating_generator, floating_accumulator, floating_passive>;
 using EICs = std::tuple<
-                        EIC<coupled_ports::in_1, floating_passive, floating_passive_defs::in>,
-                        EIC<coupled_ports::in_2, floating_passive, floating_passive_defs::in>
-                       >;
+        EIC<coupled_ports::in_1, floating_passive, floating_passive_defs::in>,
+        EIC<coupled_ports::in_2, floating_passive, floating_passive_defs::in>
+>;
 using EOCs = std::tuple<
-                        EOC<floating_accumulator, floating_accumulator_defs::sum, coupled_ports::out>,
-                        EOC<floating_generator, floating_generator_defs::out, coupled_ports::out>
-                       >;
+        EOC<floating_accumulator, floating_accumulator_defs::sum, coupled_ports::out>,
+        EOC<floating_generator, floating_generator_defs::out, coupled_ports::out>
+>;
 using ICs = std::tuple<
-                        IC<floating_generator, floating_generator_defs::out, floating_accumulator, floating_accumulator_defs::add>,
-                        IC<floating_accumulator, floating_accumulator_defs::sum, floating_passive, floating_passive_defs::in>
-                      >;
+        IC<floating_generator, floating_generator_defs::out, floating_accumulator, floating_accumulator_defs::add>,
+        IC<floating_accumulator, floating_accumulator_defs::sum, floating_passive, floating_passive_defs::in>
+>;
 
 template<typename TIME>
-using coupled_of_atomics=cadmium::modeling::coupled_model<TIME, input_ports, output_ports, submodels, EICs, EOCs, ICs>;
+using coupled_of_atomics=cadmium::modeling::pdevs::coupled_model<TIME, input_ports, output_ports, submodels, EICs, EOCs, ICs>;
 
-#endif // COUPLED_OF_ATOMIC_MODESL_HPP
+#endif // COUPLED_OF_ATOMIC_MODELS_HPP

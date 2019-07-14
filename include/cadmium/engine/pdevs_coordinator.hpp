@@ -31,7 +31,7 @@
 #include <boost/type_index.hpp>
 
 #include <cadmium/engine/pdevs_engine_helpers.hpp>
-#include <cadmium/modeling/coupled_model.hpp>
+#include <cadmium/modeling/coupling.hpp>
 #include <cadmium/modeling/message_bag.hpp>
 #include <cadmium/concept/coupled_model_assert.hpp>
 #include <cadmium/engine/pdevs_simulator.hpp>

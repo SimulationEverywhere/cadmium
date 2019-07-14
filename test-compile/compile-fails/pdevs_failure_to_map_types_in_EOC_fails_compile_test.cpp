@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2013-2016, Damian Vicino
+ * Copyright (c) 2013-2019, Damian Vicino
  * Carleton University, Universite de Nice-Sophia Antipolis
  * All rights reserved.
  *
@@ -29,7 +29,7 @@
  */
 
 #include <cadmium/basic_model/pdevs/generator.hpp>
-#include <cadmium/modeling/coupled_model.hpp>
+#include <cadmium/modeling/coupling.hpp>
 #include <cadmium/modeling/ports.hpp>
 #include <cadmium/concept/coupled_model_assert.hpp>
 
@@ -39,28 +39,31 @@ const float init_output_message = 1.0f;
 template<typename TIME>
 using floating_generator_base=cadmium::basic_models::pdevs::generator<float, TIME>;
 using floating_generator_defs=cadmium::basic_models::pdevs::generator_defs<float>;
+
 template<typename TIME>
 struct floating_generator : public floating_generator_base<TIME> {
     float period() const override {
         return init_period;
     }
+
     float output_message() const override {
         return init_output_message;
     }
 };
 
+struct out : public cadmium::out_port<int> {
+};
+using input_ports=std::tuple<>;
+using output_ports=std::tuple<out>;
 
-int main(){
-    struct out : public cadmium::out_port<int>{};
-    using input_ports=std::tuple<>;
-    using output_ports=std::tuple<out>;
+using submodels = cadmium::modeling::models_tuple<floating_generator>;
+using EICs = std::tuple<>;
+using EOCs = std::tuple<cadmium::modeling::EOC<floating_generator, floating_generator_defs::out, out>>;
+using ICs = std::tuple<>;
+template<typename TIME>
+using C1=cadmium::modeling::pdevs::coupled_model<TIME, input_ports, output_ports, submodels, EICs, EOCs, ICs>;
 
-    using submodels = cadmium::modeling::models_tuple<floating_generator>;
-    using EICs = std::tuple<>;
-    using EOCs = std::tuple<cadmium::modeling::EOC<floating_generator, floating_generator_defs::out, out>>;
-    using ICs = std::tuple<>;
-    using C1=cadmium::modeling::coupled_model<input_ports, output_ports, submodels, EICs, EOCs, ICs>;
-
+int main() {
     cadmium::concept::coupled_model_assert<C1>();
     return 0;
 }

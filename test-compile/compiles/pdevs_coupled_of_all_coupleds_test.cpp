@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2013-2016, Damian Vicino
+ * Copyright (c) 2013-2019, Damian Vicino
  * Carleton University, Universite de Nice-Sophia Antipolis
  * All rights reserved.
  *
@@ -29,7 +29,7 @@
  */
 
 #include <cadmium/modeling/ports.hpp>
-#include <cadmium/modeling/coupled_model.hpp>
+#include <cadmium/modeling/coupling.hpp>
 #include <cadmium/concept/coupled_model_assert.hpp>
 #include <tuple>
 
@@ -37,11 +37,14 @@
 
 using namespace cadmium;
 //ports
-struct coupled_ports{
+struct coupled_ports {
     //custom ports
-    struct in_1 : public in_port<float> {};
-    struct in_2 : public in_port<float> {};
-    struct out : public out_port<float> {};
+    struct in_1 : public in_port<float> {
+    };
+    struct in_2 : public in_port<float> {
+    };
+    struct out : public out_port<float> {
+    };
 };
 
 //submodels
@@ -58,11 +61,17 @@ using EICs = std::tuple<cadmium::modeling::EIC<coupled_ports::in_1, floating_pas
 using EOCs = std::tuple<>;
 using ICs = std::tuple<>;
 template<typename TIME>
-struct C1 :public cadmium::modeling::coupled_model<TIME, input_ports, output_ports, submodels, EICs, EOCs, ICs>{};
+struct C1
+        : public cadmium::modeling::pdevs::coupled_model<TIME, input_ports, output_ports, submodels, EICs, EOCs, ICs> {
+};
 template<typename TIME>
-struct C2 :public cadmium::modeling::coupled_model<TIME, input_ports, output_ports, submodels, EICs, EOCs, ICs>{};
+struct C2
+        : public cadmium::modeling::pdevs::coupled_model<TIME, input_ports, output_ports, submodels, EICs, EOCs, ICs> {
+};
 template<typename TIME>
-struct C3 :public cadmium::modeling::coupled_model<TIME, input_ports, output_ports, submodels, EICs, EOCs, ICs>{};
+struct C3
+        : public cadmium::modeling::pdevs::coupled_model<TIME, input_ports, output_ports, submodels, EICs, EOCs, ICs> {
+};
 
 //top model
 using namespace cadmium::modeling;
@@ -71,16 +80,16 @@ using output_ports_top=std::tuple<coupled_ports::out>;
 
 using submodels_top = models_tuple<C1, C2, C3>;
 using EICs_top = std::tuple<
-                        EIC<coupled_ports::in_1, C1, coupled_ports::in_1>,
-                        EIC<coupled_ports::in_2, C2, coupled_ports::in_1>
-                       >;
+        EIC<coupled_ports::in_1, C1, coupled_ports::in_1>,
+        EIC<coupled_ports::in_2, C2, coupled_ports::in_1>
+>;
 using EOCs_top = std::tuple<>;
 using ICs_top = std::tuple<>;
 template<typename TIME>
-using C_top=cadmium::modeling::coupled_model<TIME, input_ports_top, output_ports_top, submodels_top, EICs_top, EOCs_top, ICs_top>;
+using C_top=cadmium::modeling::pdevs::coupled_model<TIME, input_ports_top, output_ports_top, submodels_top, EICs_top, EOCs_top, ICs_top>;
 
 
-int main(){
+int main() {
     cadmium::concept::coupled_model_assert<C_top>();
     return 0;
 }

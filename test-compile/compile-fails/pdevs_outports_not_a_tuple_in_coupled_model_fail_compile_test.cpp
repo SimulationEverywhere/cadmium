@@ -26,8 +26,9 @@
 
 #include <tuple>
 #include <vector>
-#include <cadmium/modeling/coupled_model.hpp>
+#include <cadmium/modeling/coupling.hpp>
 #include <cadmium/concept/coupled_model_assert.hpp>
+#include "coupled_model.hpp"
 
 /**
  * Test that when output ports of a coupled model are not defined as a tuple, coupling fails compilation
@@ -41,7 +42,7 @@ using EICs = std::tuple<>;
 using EOCs = std::tuple<>;
 using ICs = std::tuple<>;
 template<typename TIME>
-using C1=cadmium::modeling::coupled_model<TIME, input_ports, output_ports, submodels, EICs, EOCs, ICs>;
+using C1=cadmium::modeling::pdevs::coupled_model<TIME, input_ports, output_ports, submodels, EICs, EOCs, ICs>;
 
 int main(){
     cadmium::concept::coupled_model_assert<C1>();
