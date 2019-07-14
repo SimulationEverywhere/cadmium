@@ -42,6 +42,8 @@ matrix:
           - bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage reports"
 
     - os: windows
+      before_install:
+          - chocolatey search boost
 
   allow_failures:
           - os: windows
