@@ -90,8 +90,6 @@ namespace cadmium::modeling {
          * EICs is a tuple of EIC coupling input ports of the coupled model to input ports in submodels
          * EOCs is a tuple of EOC coupling output ports in submodels to output ports of the coupled model
          * ICs is a tuple IC coupling output ports in submodels to input ports in submodels
-         * SELECT is an optional template class with an imminent function that, given a list of imminent candidate
-         * models returns the imminent, SELECT is only required for DEVS models, else it defaults to false_type.
          */
         template<typename TIME, typename IP, typename OP, class Ms, typename EICs, typename EOCs, typename ICs>
         struct coupled_model {
@@ -117,8 +115,8 @@ namespace cadmium::modeling {
          * EICs is a tuple of EIC coupling input ports of the coupled model to input ports in submodels
          * EOCs is a tuple of EOC coupling output ports in submodels to output ports of the coupled model
          * ICs is a tuple IC coupling output ports in submodels to input ports in submodels
-         * SELECT is an optional template class with an imminent function that, given a list of imminent candidate
-         * models returns the imminent, SELECT is only required for DEVS models, else it defaults to false_type.
+         * SELECT is a template class with an imminent function that, given a list of imminent candidate
+         * models returns the imminent.
          */
         template<typename TIME,
                 typename IP,
@@ -127,7 +125,7 @@ namespace cadmium::modeling {
                 typename EICs,
                 typename EOCs,
                 typename ICs,
-                typename SELECT=std::false_type>
+                typename SELECT>
         struct coupling {
             using input_ports=IP;
             using output_ports=OP;
