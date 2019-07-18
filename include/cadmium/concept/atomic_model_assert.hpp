@@ -31,12 +31,12 @@
 #include<cadmium/modeling/message_bag.hpp>
 #include<cadmium/modeling/message_box.hpp>
 
-namespace cadmium {
-    namespace concept {
+namespace cadmium::concept {
+    namespace pdevs {
         //PDEVS
         template<typename FLOATING_MODEL>
         //check a template argument is required (for time)
-        constexpr void pdevs_atomic_model_float_time_assert() {
+        constexpr void atomic_model_float_time_assert() {
             //check portset types are defined
             using ip=typename FLOATING_MODEL::input_ports;
             using op=typename FLOATING_MODEL::output_ports;
@@ -77,16 +77,18 @@ namespace cadmium {
 
         template<template<typename> class MODEL>
         //check a template argument is required (for time)
-        constexpr void pdevs_atomic_model_assert() {
+        constexpr void atomic_model_assert() {
             //setting float as time to use by model
             using floating_model=MODEL<float>;
-            pdevs_atomic_model_float_time_assert<floating_model>();
+            atomic_model_float_time_assert<floating_model>();
         }
+    }
 
-        //DEVS
+    //DEVS
+    namespace devs {
         template<typename FLOATING_MODEL>
         //check a template argument is required (for time)
-        constexpr void devs_atomic_model_float_time_assert() {
+        constexpr void atomic_model_float_time_assert() {
             //check portset types are defined
             using ip=typename FLOATING_MODEL::input_ports;
             using op=typename FLOATING_MODEL::output_ports;
@@ -122,12 +124,12 @@ namespace cadmium {
 
         template<template<typename> class MODEL>
         //check a template argument is required (for time)
-        constexpr void devs_atomic_model_assert() {
+        constexpr void atomic_model_assert() {
             //setting float as time to use by model
             using floating_model=MODEL<float>;
-            devs_atomic_model_float_time_assert<floating_model>();
+            atomic_model_float_time_assert<floating_model>();
         }
-
     }
 }
+
 #endif // CADMIUM_ATOMIC_MODEL_ASSERT_HPP

@@ -28,11 +28,11 @@
  * Test that asserting coupled model with all submodels atomic does not fail compilation
  */
 
+#include <tuple>
+
 #include <cadmium/modeling/ports.hpp>
 #include <cadmium/modeling/coupling.hpp>
 #include <cadmium/concept/coupled_model_assert.hpp>
-#include <tuple>
-
 #include <cadmium/basic_model/pdevs/passive.hpp>
 
 using namespace cadmium;
@@ -90,6 +90,6 @@ using C_top=cadmium::modeling::pdevs::coupled_model<TIME, input_ports_top, outpu
 
 
 int main() {
-    cadmium::concept::coupled_model_assert<C_top>();
+    cadmium::concept::pdevs::coupled_model_assert<C_top>();
     return 0;
 }

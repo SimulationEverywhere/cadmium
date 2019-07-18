@@ -32,6 +32,7 @@
 #include<cadmium/concept/atomic_model_assert.hpp>
 #include<cadmium/basic_model/pdevs/generator.hpp>
 
+
 //preparing the generator to be used as atomic model
 template<typename TIME>
 using floating_generator_base=cadmium::basic_models::pdevs::generator<float, TIME>;
@@ -49,5 +50,5 @@ struct floating_generator : public floating_generator_base<TIME> {
 
 
 int main() {
-    cadmium::concept::pdevs_atomic_model_assert<floating_generator>();
+    cadmium::concept::pdevs::atomic_model_assert<floating_generator>();
 }
