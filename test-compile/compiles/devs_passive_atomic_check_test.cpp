@@ -37,5 +37,5 @@ template<typename TIME>
 using floating_passive=cadmium::basic_models::devs::passive<float, TIME>;
 
 int main(){
-    cadmium::concept::devs_atomic_model_assert<floating_passive>();
+    cadmium::concept::devs::atomic_model_assert<floating_passive>();
 }

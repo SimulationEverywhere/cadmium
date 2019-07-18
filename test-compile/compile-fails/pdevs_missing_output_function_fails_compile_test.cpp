@@ -33,6 +33,7 @@
 #include<tuple>
 #include<cadmium/modeling/message_bag.hpp>
 
+
 /**
  * This model has no logic, only used for structural validation tests
  */
@@ -60,5 +61,5 @@ struct devs_atomic_model_missing_output_function {
 };
 
 int main() {
-    cadmium::concept::pdevs_atomic_model_assert<devs_atomic_model_missing_output_function>();
+    cadmium::concept::pdevs::atomic_model_assert<devs_atomic_model_missing_output_function>();
 }

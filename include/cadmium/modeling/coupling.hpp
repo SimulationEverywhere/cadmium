@@ -134,7 +134,7 @@ namespace cadmium::modeling {
             using external_input_couplings=EICs;
             using external_output_couplings=EOCs;
             using internal_couplings=ICs;
-            using select=SELECT; //This is false if PDEVS
+            using select=SELECT;
         };
 
     }

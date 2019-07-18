@@ -33,6 +33,7 @@
 #include<tuple>
 #include<cadmium/modeling/message_bag.hpp>
 
+
 /**
  * Test that when an atomic model has duplicated input ports, atomic_model_assert fails compilation
  */
@@ -65,5 +66,5 @@ struct devs_atomic_model_with_repeated_input_ports {
 };
 
 int main() {
-    cadmium::concept::pdevs_atomic_model_assert<devs_atomic_model_with_repeated_input_ports>();
+    cadmium::concept::pdevs::atomic_model_assert<devs_atomic_model_with_repeated_input_ports>();
 }
