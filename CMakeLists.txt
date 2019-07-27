@@ -13,8 +13,8 @@ IF (CMAKE_BUILD_TYPE MATCHES Debug)
     message("debug mode")
     IF (NOT WIN32)
         include(CodeCoverage)
+        set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -ftest-coverage -fprofile-arcs")
     ENDIF ()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS_DEBUG} -Wall -g -O0 -fprofile-arcs -ftest-coverage")
 ENDIF (CMAKE_BUILD_TYPE MATCHES Debug)
 
 set(Boost_USE_MULTITHREADED ON)
@@ -24,7 +24,7 @@ add_library(Cadmium INTERFACE)
 
 include_directories(include ${Boost_INCLUDE_DIRS})
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic -Wall")
 
 # Check for standard to use
 check_cxx_compiler_flag(-std=c++17 HAVE_FLAG_STD_CXX17)
@@ -34,6 +34,16 @@ if (HAVE_FLAG_STD_CXX17)
 else ()
     message(STATUS "Using C++1z flag")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++1z")
+endif ()
+
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -O0")
+
+
+#Enabling instrumentation for profiling if required
+option(PROFILER_ENABLED "Profiler-enabled" OFF)
+if (PROFILER_ENABLED)
+    message(STATUS "Intrumenting profiling")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-instr-generate")
 endif ()
 
 enable_testing()
