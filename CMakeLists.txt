@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.6.1)
+set(CMAKE_OSX_DEPLOYMENT_TARGET "10.14" CACHE STRING "Minimum OS X deployment version")
 project(Cadmium)
 # The version number.
 set (Cadmium_VERSION_MAJOR 0)
@@ -10,7 +11,9 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake-modules")
 include(CheckCXXCompilerFlag)
 IF(CMAKE_BUILD_TYPE MATCHES Debug)
     message("debug mode")
-    include(CodeCoverage)
+    IF(NOT WIN32)
+        include(CodeCoverage)
+    ENDIF()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS_DEBUG} -Wall -g -O0 -fprofile-arcs -ftest-coverage")
 ENDIF(CMAKE_BUILD_TYPE MATCHES Debug)
 

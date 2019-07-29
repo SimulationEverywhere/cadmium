@@ -29,7 +29,7 @@
 #include<boost/test/unit_test.hpp>
 
 #include<cmath>
-#include<cadmium/basic_model/passive.hpp>
+#include<cadmium/basic_model/pdevs/passive.hpp>
 #include<cadmium/concept/concept_helpers.hpp>
 
 
@@ -37,8 +37,8 @@ BOOST_AUTO_TEST_SUITE( pdevs_basic_models_suite )
 BOOST_AUTO_TEST_SUITE( pdevs_passive_suite )
 
 template<typename TIME>
-using floating_passive=cadmium::basic_models::passive<float, TIME>;
-using floating_passive_defs=cadmium::basic_models::passive_defs<float>;
+using floating_passive=cadmium::basic_models::pdevs::passive<float, TIME>;
+using floating_passive_defs=cadmium::basic_models::pdevs::passive_defs<float>;
 
 BOOST_AUTO_TEST_CASE( it_is_atomic_test ){
     BOOST_CHECK(cadmium::concept::is_atomic<floating_passive>::value());

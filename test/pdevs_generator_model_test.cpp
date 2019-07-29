@@ -29,7 +29,7 @@
 #include<boost/test/unit_test.hpp>
 
 #include<cadmium/modeling/message_bag.hpp>
-#include<cadmium/basic_model/generator.hpp>
+#include<cadmium/basic_model/pdevs/generator.hpp>
 #include<cadmium/concept/concept_helpers.hpp>
 
 BOOST_AUTO_TEST_SUITE( pdevs_basic_models_suite )
@@ -38,8 +38,8 @@ BOOST_AUTO_TEST_SUITE( pdevs_basic_models_suite )
         const float init_period = 0.1f;
         const float init_output_message = 1.0f;
         template<typename TIME>
-        using floating_generator_base=cadmium::basic_models::generator<float, TIME>;
-        using floating_generator_defs=cadmium::basic_models::generator_defs<float>;
+        using floating_generator_base=cadmium::basic_models::pdevs::generator<float, TIME>;
+        using floating_generator_defs=cadmium::basic_models::pdevs::generator_defs<float>;
         template<typename TIME>
         struct floating_generator : public floating_generator_base<TIME> {
             float period() const override {

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2013-2015, Damian Vicino
+ * Copyright (c) 2013-2019, Damian Vicino
  * Carleton University, Universite de Nice-Sophia Antipolis
  * All rights reserved.
  *
@@ -29,10 +29,13 @@
 
 #include<cadmium/concept/concept_helpers.hpp>
 #include<cadmium/modeling/message_bag.hpp>
+#include<cadmium/modeling/message_box.hpp>
 
-namespace cadmium{
-    namespace concept {
-        template<typename FLOATING_MODEL> //check a template argument is required (for time)
+namespace cadmium::concept {
+    namespace pdevs {
+        //PDEVS
+        template<typename FLOATING_MODEL>
+        //check a template argument is required (for time)
         constexpr void atomic_model_float_time_assert() {
             //check portset types are defined
             using ip=typename FLOATING_MODEL::input_ports;
@@ -72,7 +75,55 @@ namespace cadmium{
                           "Time advance function does not exist or does not return the right type of time");
         }
 
-        template<template<typename> class MODEL> //check a template argument is required (for time)
+        template<template<typename> class MODEL>
+        //check a template argument is required (for time)
+        constexpr void atomic_model_assert() {
+            //setting float as time to use by model
+            using floating_model=MODEL<float>;
+            atomic_model_float_time_assert<floating_model>();
+        }
+    }
+
+    //DEVS
+    namespace devs {
+        template<typename FLOATING_MODEL>
+        //check a template argument is required (for time)
+        constexpr void atomic_model_float_time_assert() {
+            //check portset types are defined
+            using ip=typename FLOATING_MODEL::input_ports;
+            using op=typename FLOATING_MODEL::output_ports;
+            using ip_box=typename make_message_box<ip>::type;
+            using op_box=typename make_message_box<op>::type;
+            //check port types are unique for in the portset tuples
+            static_assert(check_unique_elem_types<ip>::value(), "ambiguous port name in input ports");
+            static_assert(check_unique_elem_types<op>::value(), "ambiguous port name in output ports");
+            //check state is declared
+            static_assert(std::is_same<typename FLOATING_MODEL::state_type,
+                                  decltype(FLOATING_MODEL{}.state)>::value,
+                          "state is undefined or has the wrong type");
+
+            //check functions are declared
+            static_assert(std::is_same<decltype(std::declval<FLOATING_MODEL>().output()),
+                                  op_box>(),
+                          "Output function does not exist or does not return the right message bags");
+
+            static_assert(std::is_same<
+                                  decltype(std::declval<FLOATING_MODEL>().external_transition(0.0, ip_box{})),
+                                  void>(),
+                          "External transition function undefined");
+
+            static_assert(std::is_same<
+                                  decltype(std::declval<FLOATING_MODEL>().internal_transition()),
+                                  void>(),
+                          "Internal transition function undefined");
+
+            static_assert(std::is_same<decltype(std::declval<FLOATING_MODEL>().time_advance()),
+                                  float>(),
+                          "Time advance function does not exist or does not return the right type of time");
+        }
+
+        template<template<typename> class MODEL>
+        //check a template argument is required (for time)
         constexpr void atomic_model_assert() {
             //setting float as time to use by model
             using floating_model=MODEL<float>;
@@ -80,4 +131,5 @@ namespace cadmium{
         }
     }
 }
+
 #endif // CADMIUM_ATOMIC_MODEL_ASSERT_HPP

@@ -29,8 +29,8 @@
 #include <boost/test/unit_test.hpp>
 #include <cadmium/logger/tuple_to_ostream.hpp>
 
-#include <cadmium/basic_model/accumulator.hpp>
-#include <cadmium/basic_model/generator.hpp>
+#include <cadmium/basic_model/pdevs/accumulator.hpp>
+#include <cadmium/basic_model/pdevs/generator.hpp>
 #include <cadmium/modeling/dynamic_message_bag.hpp>
 #include <cadmium/modeling/dynamic_atomic.hpp>
 #include <cadmium/engine/pdevs_dynamic_simulator.hpp>
@@ -38,8 +38,8 @@
 
 
 template<typename TIME>
-using int_accumulator=cadmium::basic_models::accumulator<int, TIME>;
-using int_accumulator_defs=cadmium::basic_models::accumulator_defs<int>;
+using int_accumulator=cadmium::basic_models::pdevs::accumulator<int, TIME>;
+using int_accumulator_defs=cadmium::basic_models::pdevs::accumulator_defs<int>;
 
 BOOST_AUTO_TEST_SUITE( pdevs_dynamic_simulator_suite )
 
