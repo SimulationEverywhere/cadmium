@@ -72,7 +72,7 @@ namespace cadmium {
                 atomic() {
                     #ifndef RT_ARM_MBED
                       static_assert(cadmium::concept::is_atomic<ATOMIC>::value, "This is not an atomic model");
-                      cadmium::concept::atomic_model_assert<ATOMIC>();
+                      cadmium::concept::pdevs::atomic_model_assert<ATOMIC>();
                     #endif
                     _id = boost::typeindex::type_id<model_type>().pretty_name();
                     _input_ports = cadmium::dynamic::modeling::create_dynamic_ports<input_ports>();
@@ -82,7 +82,7 @@ namespace cadmium {
                 atomic(const std::string& model_id, Args&&... args) : ATOMIC<TIME>(std::forward<Args>(args)...) {
                     #ifndef RT_ARM_MBED
                       static_assert(cadmium::concept::is_atomic<ATOMIC>::value, "This is not an atomic model");
-                      cadmium::concept::atomic_model_assert<ATOMIC>();
+                      cadmium::concept::pdevs::atomic_model_assert<ATOMIC>();
                     #endif
                     _id = model_id;
                     _input_ports = cadmium::dynamic::modeling::create_dynamic_ports<input_ports>();

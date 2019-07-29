@@ -4,7 +4,7 @@
     #define RT_DEVS
 #endif
 
-#include <cadmium/modeling/coupled_model.hpp>
+#include <cadmium/modeling/coupling.hpp>
 #include <cadmium/modeling/ports.hpp>
 #include <cadmium/modeling/dynamic_model_translator.hpp>
 #include <cadmium/concept/coupled_model_assert.hpp>
