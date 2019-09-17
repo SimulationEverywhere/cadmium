@@ -64,14 +64,14 @@ class Parser {
         void open_file(const char* file_path) {
             file.open(file_path);
         }
-    std::pair<TIME,INPUT> next_timed_input() {
-        INPUT result;
-        TIME next_time;
-        if (file.eof()) throw std::exception();
-        file >> next_time;
-        file >> result;
-        return std::make_pair(next_time,result);
-    }
+        std::pair<TIME,INPUT> next_timed_input() {
+                INPUT result;
+                TIME next_time;
+                if (file.eof()) throw std::exception();
+                file >> next_time;
+                file >> result;
+                return std::make_pair(next_time,result);
+        }
 };
 
 template<typename MSG> struct iestream_input_defs{
