@@ -54,7 +54,6 @@ namespace cadmium::basic_models::pdevs {
 
 template<class TIME, class INPUT>
 class Parser {
-    private:
         std::ifstream file;
     public:
         // Constructors
@@ -107,7 +106,6 @@ class iestream_input {
 
     // internal transition
     void internal_transition() {
-        //out << "INTERNAL. IESTREAM " << endl;
         state._simulation_time += state._next_time;
         state._next_input.clear();
         if(state._initialization){
