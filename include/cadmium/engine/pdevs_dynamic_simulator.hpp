@@ -88,7 +88,7 @@ namespace cadmium {
                 }
 
                 void collect_outputs(const TIME &t) override {
-                LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::sim_info_collect>(t, _model->get_id());
+                    LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::sim_info_collect>(t, _model->get_id());
 
                     // Cleaning the inbox and producing outbox
                     _inbox = cadmium::dynamic::message_bags();
@@ -97,12 +97,12 @@ namespace cadmium {
                         throw std::domain_error("Trying to obtain output in a higher time than the next scheduled internal event");
                     } else if (_next == t) {
                         _outbox = _model->output();
+                        std::string messages_by_port = _model->messages_by_port_as_string(_outbox);
+                        LOGGER::template log<cadmium::logger::logger_messages, cadmium::logger::sim_messages_collect>(t, _model->get_id(), messages_by_port);
                     } else {
                         _outbox = cadmium::dynamic::message_bags();
                     }
 
-                    std::string messages_by_port = _model->messages_by_port_as_string(_outbox);
-                    LOGGER::template log<cadmium::logger::logger_messages, cadmium::logger::sim_messages_collect>(t, _model->get_id(), messages_by_port);
                 }
 
                 /**
