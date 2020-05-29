@@ -3,8 +3,8 @@ set(CMAKE_OSX_DEPLOYMENT_TARGET "10.14" CACHE STRING "Minimum OS X deployment ve
 project(Cadmium)
 # The version number.
 set(Cadmium_VERSION_MAJOR 0)
-set(Cadmium_VERSION_MINOR 2)
-set(Cadmium_VERSION_PATCH 4)
+set(Cadmium_VERSION_MINOR 3)
+set(Cadmium_VERSION_PATCH 0)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake-modules")
 
@@ -103,6 +103,14 @@ endforeach (exec_type)
 
 # Examples
 FILE(GLOB Examples RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} example/main-*.cpp)
+foreach (exampleSrc ${Examples})
+    get_filename_component(exampleName ${exampleSrc} NAME_WE)
+    add_executable(${exampleName} ${exampleSrc})
+    target_link_libraries(${exampleName} PUBLIC ${Boost_LIBRARIES})
+endforeach (exampleSrc)
+
+# Cell-DEVS Examples
+FILE(GLOB Examples RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} example/celldevs/*/*_coupled.cpp)
 foreach (exampleSrc ${Examples})
     get_filename_component(exampleName ${exampleSrc} NAME_WE)
     add_executable(${exampleName} ${exampleSrc})
