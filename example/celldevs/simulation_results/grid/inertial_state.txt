@@ -1,0 +1,70 @@
+0
+State for model test_(0,0) is 0
+State for model test_(2,0) is 2
+State for model test_(0,1) is 1
+State for model test_(1,1) is 2
+State for model test_(1,0) is 1
+State for model test_(2,1) is 3
+State for model test_(0,2) is 2
+State for model test_(1,2) is 3
+State for model test_(2,2) is 4
+0
+State for model test_(0,0) is 2
+State for model test_(2,0) is 4
+State for model test_(0,1) is 3
+State for model test_(1,1) is 3
+State for model test_(1,0) is 3
+State for model test_(2,1) is 4
+State for model test_(0,2) is 4
+State for model test_(1,2) is 4
+State for model test_(2,2) is 4
+1
+State for model test_(0,0) is 2
+State for model test_(2,0) is 4
+State for model test_(0,1) is 4
+State for model test_(1,1) is 4
+State for model test_(1,0) is 4
+State for model test_(2,1) is 4
+State for model test_(0,2) is 4
+State for model test_(1,2) is 4
+State for model test_(2,2) is 4
+2
+State for model test_(0,0) is 4
+State for model test_(2,0) is 4
+State for model test_(0,1) is 4
+State for model test_(1,1) is 4
+State for model test_(1,0) is 4
+State for model test_(2,1) is 4
+State for model test_(0,2) is 4
+State for model test_(1,2) is 4
+State for model test_(2,2) is 4
+3
+State for model test_(0,0) is 4
+State for model test_(2,0) is 4
+State for model test_(0,1) is 4
+State for model test_(1,1) is 4
+State for model test_(1,0) is 4
+State for model test_(2,1) is 4
+State for model test_(0,2) is 4
+State for model test_(1,2) is 4
+State for model test_(2,2) is 4
+4
+State for model test_(0,0) is 4
+State for model test_(2,0) is 4
+State for model test_(0,1) is 4
+State for model test_(1,1) is 4
+State for model test_(1,0) is 4
+State for model test_(2,1) is 4
+State for model test_(0,2) is 4
+State for model test_(1,2) is 4
+State for model test_(2,2) is 4
+6
+State for model test_(0,0) is 4
+State for model test_(2,0) is 4
+State for model test_(0,1) is 4
+State for model test_(1,1) is 4
+State for model test_(1,0) is 4
+State for model test_(2,1) is 4
+State for model test_(0,2) is 4
+State for model test_(1,2) is 4
+State for model test_(2,2) is 4

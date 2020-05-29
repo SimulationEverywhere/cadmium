@@ -1,0 +1,25 @@
+0
+State for model test_0 is 0
+State for model test_1 is 1
+State for model test_2 is 2
+State for model test_3 is 3
+0
+State for model test_0 is 1
+State for model test_1 is 2
+State for model test_2 is 3
+State for model test_3 is 3
+1
+State for model test_0 is 1
+State for model test_1 is 3
+State for model test_2 is 3
+State for model test_3 is 3
+3
+State for model test_0 is 3
+State for model test_1 is 3
+State for model test_2 is 3
+State for model test_3 is 3
+6
+State for model test_0 is 3
+State for model test_1 is 3
+State for model test_2 is 3
+State for model test_3 is 3

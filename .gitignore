@@ -58,3 +58,6 @@ test_executable*
 Testing
 Cadmium.build
 coverage.info
+
+# MacOS
+.DS_Store
