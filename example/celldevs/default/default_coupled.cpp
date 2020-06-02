@@ -38,7 +38,7 @@ using namespace cadmium;
 using namespace cadmium::celldevs;
 
 using TIME = float;
-std::string delayer_id = "inertial";
+std::string delayer_id = "transport";
 /*************** Loggers *******************/
 static ofstream out_messages("../simulation_results/default/" + delayer_id + "_output_messages.txt");
 struct oss_sink_messages{

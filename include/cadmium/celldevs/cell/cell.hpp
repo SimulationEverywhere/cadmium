@@ -102,20 +102,19 @@ namespace cadmium::celldevs {
         using input_ports = std::tuple<typename cell_ports_def<C, S>::cell_in>;
         using output_ports = std::tuple<typename cell_ports_def<C, S>::cell_out>;
 
-        using NV = std::unordered_map<C, V, C_HASH>;
-        using NS = std::unordered_map<C, S, C_HASH>;
+        template <typename X>
+        using cell_unordered = std::unordered_map<C, X, C_HASH>;  // alias for unordered maps with cell IDs as key
 
-
-        C cell_id;                          /// Cell ID
-        std::vector<C> neighbors;           /// Neighboring cells' IDs
-        T clock;                            /// simulation clock
-        T next_internal;                    /// Time remaining until next internal state transition
-        delayer<T, S> *buffer;              /// output message buffer
+        C cell_id;                                  /// Cell ID
+        std::vector<C> neighbors;                   /// Neighboring cells' IDs
+        T simulation_clock;                         /// Simulation clock (i.e., current time during a simulation)
+        T next_internal;                            /// Time remaining until next internal state transition
+        delayer<T, S> *buffer;                      /// output message buffer
 
         struct state_type {
-            S current_state;                /// Cell's internal state
-            NV neighbors_vicinity;          /// Neighboring cell' vicinity type
-            NS neighbors_state;             /// neighboring cell' public state
+            S current_state;                        /// Cell's internal state
+            cell_unordered<V> neighbors_vicinity;   /// Neighboring cell' vicinity type
+            cell_unordered<S> neighbors_state;      /// neighboring cell' public state
         };
         state_type state;
 
@@ -133,7 +132,7 @@ namespace cadmium::celldevs {
          */
         template <typename... Args>
         cell(C const &cell_id, S initial_state, std::vector<C> const &neighbors_in, std::string const &delayer_id, Args&&... args) {
-            NV vicinity = NV();
+            cell_unordered<V> vicinity = cell_unordered<V>();
             for (auto const &neighbor: neighbors_in) {
                 vicinity.insert({neighbor, V()});
             }
@@ -150,10 +149,10 @@ namespace cadmium::celldevs {
          * @param args output delayer buffer additional initialization parameters.
          */
         template <typename... Args>
-        cell(C const &cell_id_in, S initial_state, NV const &vicinity, std::string const &delayer_id, Args&&... args) {
+        cell(C const &cell_id_in, S initial_state, cell_unordered<V> const &vicinity, std::string const &delayer_id, Args&&... args) {
             assert(std::numeric_limits<T>::has_infinity && "This time base does not define infinity");
             cell_id = cell_id_in;
-            clock = T();
+            simulation_clock = T();
             next_internal = T();
             state.current_state = initial_state;
             for (auto const &entry: vicinity) {
@@ -175,8 +174,8 @@ namespace cadmium::celldevs {
         /// @brief the internal transition function clears output delayer buffer and updates clock and next time advance.
         void internal_transition() {
             buffer->pop_buffer();
-            clock += time_advance();
-            next_internal = buffer->next_timeout() - clock;
+            simulation_clock += time_advance();
+            next_internal = buffer->next_timeout() - simulation_clock;
         }
 
         /**
@@ -188,7 +187,7 @@ namespace cadmium::celldevs {
          */
         void external_transition(T e, typename cadmium::make_message_bags<input_ports>::type mbs) {
             // Update clock and next internal event
-            clock += e;
+            simulation_clock += e;
             next_internal -= e;
             // Refresh the neighbors' current state
             std::vector<cell_state_message<C, S>> bagPortIn = cadmium::get_messages<typename cell_ports_def<C, S>::cell_in>(mbs);
@@ -202,8 +201,8 @@ namespace cadmium::celldevs {
             S next = local_computation();
             // If next state is not the current state, then I change my state and schedule my next internal transition
             if (next != state.current_state) {
-                buffer->add_to_buffer(next, clock + output_delay(next));
-                next_internal = buffer->next_timeout() - clock;
+                buffer->add_to_buffer(next, simulation_clock + output_delay(next));
+                next_internal = buffer->next_timeout() - simulation_clock;
             }
             state.current_state = next;
         }
