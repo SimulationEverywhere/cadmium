@@ -53,10 +53,10 @@ namespace cadmium::celldevs {
     class cells_coupled: public cadmium::dynamic::modeling::coupled<T> {
     public:
 
-        using CV = std::unordered_map<C, V, C_HASH>;
-        using CNV = std::unordered_map<C, CV, C_HASH>;
+        template <typename X>
+        using cell_unordered = std::unordered_map<C, X, C_HASH>;  // alias for unordered maps with cell IDs as key
 
-        CNV vicinities;  /// Nested unordered map: {cell ID to: {cell ID from: Vicinity between cells}}
+        cell_unordered<cell_unordered<V>> vicinities;  /// Nested unordered map: {cell ID to: {cell ID from: Vicinity between cells}}
 
         /**
          * @brief constructor method
@@ -75,7 +75,7 @@ namespace cadmium::celldevs {
          * @param args any additional parameter required for initializing the cell model
          */
         template <template <typename> typename CELL_MODEL, typename... Args>
-        void add_cell(C const &cell_id, S const &initial_state, CV const &vicinities_in,
+        void add_cell(C const &cell_id, S const &initial_state, cell_unordered<V> const &vicinities_in,
                       std::string const &delayer_id, Args&&... args) {
             add_cell_vicinity(cell_id, vicinities_in);
             cadmium::dynamic::modeling::coupled<T>::_models.push_back(
@@ -98,7 +98,7 @@ namespace cadmium::celldevs {
         template <template <typename> typename CELL_MODEL, typename... Args>
         void add_cell(C const &cell_id, S const &initial_state, std::vector<C> const &neighbors,
                       std::string const &delayer_id, Args&&... args) {
-            CV vicinity = CV();
+            cell_unordered<V> vicinity = cell_unordered<V>();
             for (auto const &neighbor: neighbors) {
                 vicinity.insert({neighbor, V()});
             }
@@ -109,7 +109,7 @@ namespace cadmium::celldevs {
         void couple_cells() {
             for (auto const &neighborhood: vicinities) {
                 C cell_to = neighborhood.first;
-                CV neighbors = neighborhood.second;
+                cell_unordered<V> neighbors = neighborhood.second;
                 for (auto const &neighbor: neighbors) {
                     C cell_from = neighbor.first;
                     V vicinity = neighbor.second;
@@ -128,7 +128,7 @@ namespace cadmium::celldevs {
          * @param cell_id ID of the cell. It must not be already defined in the coupled model
          * @param vicinities unordered map {neighboring cell ID: vicinity kind}
          */
-        void add_cell_vicinity(C const &cell_id, CV const &vicinities_in) {
+        void add_cell_vicinity(C const &cell_id, cell_unordered<V> const &vicinities_in) {
             auto it = vicinities.find(cell_id);
             if (it != vicinities.end()) {
                 throw std::bad_typeid();
