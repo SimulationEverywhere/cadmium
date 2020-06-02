@@ -1,11 +1,29 @@
 /**
-* Copyright (c) 2020, Román Cárdenas Rodríguez
-* ARSLab - Carleton University
-* GreenLSI - Polytechnic University of Madrid
-* All rights reserved.
-*
-* Standard coupled Cell-DEVS model
-*/
+ * Copyright (c) 2020, Román Cárdenas Rodríguez
+ * ARSLab - Carleton University
+ * GreenLSI - Polytechnic University of Madrid
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * 1. Redistributions of source code must retain the above copyright notice,
+ * this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
 
 #ifndef CADMIUM_CELLDEVS_CELLS_COUPLED_HPP
 #define CADMIUM_CELLDEVS_CELLS_COUPLED_HPP
@@ -25,7 +43,7 @@ namespace cadmium::celldevs {
     /**
      * standard coupled Cell-DEVS model
      * @tparam T the type used for representing time in a simulation.
-     * @tparam C the used for representing a cell ID.
+     * @tparam C the type used for representing a cell ID.
      * @tparam S the type used for representing a cell state.
      * @tparam V the type used for representing a neighboring cell's vicinity. By default, it is set to integer.
      * @tparam C_HASH the hash function used for creating unordered maps with cell IDs as keys.
@@ -38,13 +56,13 @@ namespace cadmium::celldevs {
         using CV = std::unordered_map<C, V, C_HASH>;
         using CNV = std::unordered_map<C, CV, C_HASH>;
 
-        CNV vicinities_;  /// Nested unordered map: {cell ID to: {cell ID from: Vicinity between cells}}
+        CNV vicinities;  /// Nested unordered map: {cell ID to: {cell ID from: Vicinity between cells}}
 
         /**
          * @brief constructor method
          * @param id ID of the Coupled DEVS model that contains the Cell-DEVS scenario
          */
-        explicit cells_coupled(std::string const &id) : cadmium::dynamic::modeling::coupled<T>(id), vicinities_() {}
+        explicit cells_coupled(std::string const &id) : cadmium::dynamic::modeling::coupled<T>(id), vicinities() {}
 
         /**
          * @brief adds a single Cell-DEVS cell to the coupled model
@@ -52,18 +70,18 @@ namespace cadmium::celldevs {
          * @tparam Args any additional parameter required for initializing the cell model
          * @param cell_id ID of the cell. It must not be already defined in the coupled model
          * @param initial_state Initial state of the cell
-         * @param vicinities unordered map {neighboring cell ID: vicinity kind}
+         * @param vicinities_in unordered map {neighboring cell ID: vicinity kind}
          * @param delayer_id ID identifying the type of output delayer buffer used by the cell.
          * @param args any additional parameter required for initializing the cell model
          */
         template <template <typename> typename CELL_MODEL, typename... Args>
-        void add_cell(C const &cell_id, S const &initial_state, CV const &vicinities,
+        void add_cell(C const &cell_id, S const &initial_state, CV const &vicinities_in,
                       std::string const &delayer_id, Args&&... args) {
-            add_cell_vicinity(cell_id, vicinities);
+            add_cell_vicinity(cell_id, vicinities_in);
             cadmium::dynamic::modeling::coupled<T>::_models.push_back(
                     cadmium::dynamic::translate::make_dynamic_atomic_model<CELL_MODEL, T>(get_cell_name(cell_id),
                                                                                           cell_id, initial_state,
-                                                                                          vicinities, delayer_id,
+                                                                                          vicinities_in, delayer_id,
                                                                                           std::forward<Args>(args)...));
         }
 
@@ -89,7 +107,7 @@ namespace cadmium::celldevs {
 
         /// The user must call this method right after having included all the cells of the scenario
         void couple_cells() {
-            for (auto const &neighborhood: vicinities_) {
+            for (auto const &neighborhood: vicinities) {
                 C cell_to = neighborhood.first;
                 CV neighbors = neighborhood.second;
                 for (auto const &neighbor: neighbors) {
@@ -110,12 +128,12 @@ namespace cadmium::celldevs {
          * @param cell_id ID of the cell. It must not be already defined in the coupled model
          * @param vicinities unordered map {neighboring cell ID: vicinity kind}
          */
-        void add_cell_vicinity(C const &cell_id, CV const &vicinities) {
-            auto it = vicinities_.find(cell_id);
-            if (it != vicinities_.end()) {
+        void add_cell_vicinity(C const &cell_id, CV const &vicinities_in) {
+            auto it = vicinities.find(cell_id);
+            if (it != vicinities.end()) {
                 throw std::bad_typeid();
             }
-            vicinities_.insert({cell_id, vicinities});
+            vicinities.insert({cell_id, vicinities_in});
         }
 
         /**

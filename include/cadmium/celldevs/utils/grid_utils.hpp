@@ -1,11 +1,29 @@
 /**
-* Copyright (c) 2020, Román Cárdenas Rodríguez
-* ARSLab - Carleton University
-* GreenLSI - Polytechnic University of Madrid
-* All rights reserved.
-*
-* Cell-DEVS grid utils: bunch of useful definitions for implementing grid-based Cell-DEVS in Cadmium
-**/
+ * Copyright (c) 2020, Román Cárdenas Rodríguez
+ * ARSLab - Carleton University
+ * GreenLSI - Polytechnic University of Madrid
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * 1. Redistributions of source code must retain the above copyright notice,
+ * this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
 
 #ifndef CADMIUM_CELLDEVS_GRID_UTILS_HPP
 #define CADMIUM_CELLDEVS_GRID_UTILS_HPP
@@ -20,7 +38,7 @@
 #include <boost/functional/hash.hpp>
 
 
-// Hash function for enabling sequences to be  keys of unordered maps
+/// Hash function for enabling sequences to be keys of unordered maps
 template <typename SEQ>
 struct seq_hash {
     std::size_t operator() (SEQ const &seq) const {
@@ -28,7 +46,7 @@ struct seq_hash {
     }
 };
 
-// For printing vectors (i.e., cell position)
+/// For printing vectors (i.e., cell position)
 template <typename X>
 std::ostream &operator <<(std::ostream &os, std::vector<X> const &v) {
     os << "(";

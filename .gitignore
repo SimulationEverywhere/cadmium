@@ -61,3 +61,6 @@ coverage.info
 
 # MacOS
 .DS_Store
+
+# Cell-DEVS examples log files
+example/celldevs/simulation_results/
