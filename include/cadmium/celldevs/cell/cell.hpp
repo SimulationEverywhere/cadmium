@@ -1,11 +1,29 @@
 /**
-* Copyright (c) 2020, Román Cárdenas Rodríguez
-* ARSLab - Carleton University
-* GreenLSI - Polytechnic University of Madrid
-* All rights reserved.
-*
-* Abstract DEVS atomic model for defining cells in Cell-DEVS scenarios
-*/
+ * Copyright (c) 2020, Román Cárdenas Rodríguez
+ * ARSLab - Carleton University
+ * GreenLSI - Polytechnic University of Madrid
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * 1. Redistributions of source code must retain the above copyright notice,
+ * this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
 
 #ifndef CADMIUM_CELLDEVS_ABSTRACT_CELL_HPP
 #define CADMIUM_CELLDEVS_ABSTRACT_CELL_HPP
@@ -27,7 +45,7 @@
 namespace cadmium::celldevs {
     /**
      * Structure that defines cell messages.
-     * @tparam C the used for representing a cell ID.
+     * @tparam C the type used for representing a cell ID.
      * @tparam S the type used for representing a cell state.
      */
     template <typename C, typename S>
@@ -40,11 +58,11 @@ namespace cadmium::celldevs {
          * @param cell_id_in ID of the cell that generates the message
          * @param state_in State to be transmitted by the cell
          */
-        explicit cell_state_message(C cell_id_in, S state_in): cell_id(cell_id_in), state(state_in) {}
+        cell_state_message(C cell_id_in, S state_in): cell_id(cell_id_in), state(state_in) {}
 
         /**
          * Operator overloading function for printing cell state messages
-         * @tparam C the used for representing a cell ID.
+         * @tparam C the type used for representing a cell ID.
          * @tparam S the type used for representing a cell state.
          * @param os Operating System's string stream
          * @param msg cell state message
@@ -59,7 +77,7 @@ namespace cadmium::celldevs {
 
     /**
      * @brief input/output port structure for cells.
-     * @tparam C the used for representing a cell ID.
+     * @tparam C the type used for representing a cell ID.
      * @tparam S the type used for representing a cell state.
      */
     template <typename C, typename S>
@@ -71,7 +89,7 @@ namespace cadmium::celldevs {
     /**
      * @brief Abstract DEVS atomic model for defining cells in Cell-DEVS scenarios.
      * @tparam T the type used for representing time in a simulation.
-     * @tparam C the used for representing a cell ID.
+     * @tparam C the type used for representing a cell ID.
      * @tparam S the type used for representing a cell state.
      * @tparam V the type used for representing a neighboring cell's vicinity. By default, it is set to integer.
      * @tparam C_HASH the hash function used for creating unordered maps with cell IDs as keys.
@@ -149,9 +167,9 @@ namespace cadmium::celldevs {
 
         /************** USER-DEFINED METHODS **************/
         /// @return cell's next state.
-        virtual S local_computation() const { return state.current_state; }
+        virtual S local_computation() const {}
         /// @return delay to be applied before communicating to neighbors a new state.
-        virtual T output_delay(S const &cell_state) const { return std::numeric_limits<T>::infinity(); }
+        virtual T output_delay(S const &cell_state) const {}
 
         /****************** DEVS METHODS ******************/
         /// @brief the internal transition function clears output delayer buffer and updates clock and next time advance.

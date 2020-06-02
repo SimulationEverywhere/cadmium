@@ -101,8 +101,8 @@ foreach (exec_type ${EXEC_TYPES})
     endforeach (testCmpFailSrc)
 endforeach (exec_type)
 
-# Examples
-FILE(GLOB Examples RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} example/main-*.cpp)
+# PDEVS Examples
+FILE(GLOB Examples RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} example/pdevs/main-*.cpp)
 foreach (exampleSrc ${Examples})
     get_filename_component(exampleName ${exampleSrc} NAME_WE)
     add_executable(${exampleName} ${exampleSrc})
