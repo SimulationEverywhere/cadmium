@@ -25,7 +25,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 #define BOOST_TEST_DYN_LINK
-#define BOOST_TEST_MODULE "ScenarioShape"
 
 #include <boost/test/unit_test.hpp>
 #include <cadmium/celldevs/utils/grid_utils.hpp>

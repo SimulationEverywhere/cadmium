@@ -45,6 +45,8 @@ namespace cadmium::celldevs {
          * @param state state to be transmitted by the cell.
          * @param scheduled_time clock time when this state must be transmitted.
          */
+        virtual ~delayer() = default;
+
         virtual void add_to_buffer(S state, T scheduled_time) {};
 
         ///@return clock time for the next scheduled output (i.e., clock + time advance).

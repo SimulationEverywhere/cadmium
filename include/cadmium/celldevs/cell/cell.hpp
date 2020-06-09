@@ -121,6 +121,8 @@ namespace cadmium::celldevs {
         /// A default constructor is required for compiling issues. However, it is not valid and always throws exception
         cell(){ throw std::exception(); }
 
+        virtual ~cell() = default;
+
         /**
          * @brief Creates a new cell with neighbors which vicinity is set to the default.
          * @tparam Args type of any additional parameter required for creating the output delayer.
@@ -166,9 +168,9 @@ namespace cadmium::celldevs {
 
         /************** USER-DEFINED METHODS **************/
         /// @return cell's next state.
-        virtual S local_computation() const {}
+        virtual S local_computation() const { return state.current_state; }
         /// @return delay to be applied before communicating to neighbors a new state.
-        virtual T output_delay(S const &cell_state) const {}
+        virtual T output_delay(S const &cell_state) const { return std::numeric_limits<T>::infinity(); }
 
         /****************** DEVS METHODS ******************/
         /// @brief the internal transition function clears output delayer buffer and updates clock and next time advance.
