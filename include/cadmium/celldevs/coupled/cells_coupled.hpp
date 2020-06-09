@@ -112,7 +112,6 @@ namespace cadmium::celldevs {
                 cell_unordered<V> neighbors = neighborhood.second;
                 for (auto const &neighbor: neighbors) {
                     C cell_from = neighbor.first;
-                    V vicinity = neighbor.second;
                     cadmium::dynamic::modeling::coupled<T>::_ic.push_back(
                             cadmium::dynamic::translate::make_IC<
                                     typename std::tuple_element<0, typename cell<T, C, S, V, C_HASH>::output_ports>::type,
