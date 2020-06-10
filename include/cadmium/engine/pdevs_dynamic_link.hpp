@@ -50,6 +50,8 @@ namespace cadmium {
 
                 virtual cadmium::dynamic::logger::routed_messages
                 route_messages(const cadmium::dynamic::message_bags& bags_from, cadmium::dynamic::message_bags& bags_to) const = 0;
+
+                virtual ~link_abstract() {}
             };
 
             template<typename PORT_FROM, typename PORT_TO>

@@ -102,6 +102,8 @@ namespace cadmium::basic_models::pdevs {
             //we assume default constructor of TIME is 0 and infinity is defined in numeric_limits
             return period();
         }
+
+        virtual ~generator() {}
     };
 }
 
