@@ -58,7 +58,7 @@ foreach (exec_type ${EXEC_TYPES})
         set(testName "${testName}_${exec_type}")
         add_executable(${testName} test/main-test.cpp ${testSrc})
         if (exec_type STREQUAL "par")
-            target_compile_definitions(${testName} PUBLIC CADMIUM_EXECUTE_CONCURRENT)
+            target_compile_definitions(${testName} PUBLIC CADMIUM_EXECUTE_CONCURRENT BOOST_THREAD_PROVIDES_FUTURE_CONTINUATION BOOST_THREAD_PROVIDES_EXECUTORS BOOST_THREAD_USES_MOVE)
         endif ()
         target_link_libraries(${testName} PUBLIC ${Boost_LIBRARIES})
         add_test(${testName} ${testName})
@@ -74,7 +74,7 @@ foreach (exec_type ${EXEC_TYPES})
                 EXCLUDE_FROM_ALL TRUE
                 EXCLUDE_FROM_DEFAULT_BUILD TRUE)
         if (exec_type STREQUAL "par")
-            target_compile_definitions(${testCompName} PUBLIC CADMIUM_EXECUTE_CONCURRENT)
+            target_compile_definitions(${testCompName} PUBLIC CADMIUM_EXECUTE_CONCURRENT BOOST_THREAD_PROVIDES_FUTURE_CONTINUATION BOOST_THREAD_PROVIDES_EXECUTORS BOOST_THREAD_USES_MOVE)
         endif ()
         target_include_directories(${testCompName} PUBLIC test-compile/compiles)
         add_test(NAME ${testCompName}
@@ -92,7 +92,7 @@ foreach (exec_type ${EXEC_TYPES})
                 EXCLUDE_FROM_ALL TRUE
                 EXCLUDE_FROM_DEFAULT_BUILD TRUE)
         if (exec_type STREQUAL "par")
-            target_compile_definitions(${testCmpFailName} PUBLIC CADMIUM_EXECUTE_CONCURRENT)
+            target_compile_definitions(${testCmpFailName} PUBLIC CADMIUM_EXECUTE_CONCURRENT BOOST_THREAD_PROVIDES_FUTURE_CONTINUATION BOOST_THREAD_PROVIDES_EXECUTORS BOOST_THREAD_USES_MOVE)
         endif ()
         add_test(NAME ${testCmpFailName}
                 COMMAND ${CMAKE_COMMAND} --build . --target ${testCmpFailName}

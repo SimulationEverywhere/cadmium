@@ -28,12 +28,9 @@
  * Test that a simulator of a valid atomic model provides the model type
  */
 
-#include<cadmium/modeling/ports.hpp>
-#include<cadmium/concept/atomic_model_assert.hpp>
 #include<tuple>
-#include<cadmium/modeling/message_bag.hpp>
-#include <cadmium/basic_model/pdevs/accumulator.hpp>
-#include <cadmium/engine/pdevs_simulator.hpp>
+#include<cadmium/basic_model/pdevs/accumulator.hpp>
+#include<cadmium/engine/pdevs_simulator.hpp>
 
 template<typename TIME>
 using int_accumulator=cadmium::basic_models::pdevs::accumulator<int, TIME>;
@@ -42,4 +39,5 @@ int main(){
     using simulation_t = cadmium::engine::simulator<int_accumulator, float, cadmium::logger::not_logger>;
     using model_t=simulation_t::model_type;
     model_t model;
+    model.state = std::make_tuple(1, false);
 }
