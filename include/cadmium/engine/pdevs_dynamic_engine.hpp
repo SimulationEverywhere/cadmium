@@ -63,6 +63,8 @@ namespace cadmium {
                 virtual cadmium::dynamic::message_bags& inbox() = 0;
 
                 virtual void advance_simulation(const TIME &t) = 0;
+
+                virtual ~engine(){}
             };
         }
     }

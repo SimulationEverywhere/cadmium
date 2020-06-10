@@ -191,7 +191,7 @@ namespace cadmium {
 
                 #ifdef CADMIUM_EXECUTE_CONCURRENT
 
-                void init(TIME initial_time, boost::basic_thread_pool* threadpool) {
+                void init(TIME initial_time, boost::basic_thread_pool* threadpool) override {
                     _threadpool = threadpool;
                     this->init(initial_time);
                 }

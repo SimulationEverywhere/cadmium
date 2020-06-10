@@ -24,6 +24,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifndef CADMIUM_PDEVS_DYNAMIC_SIMULATOR_HPP
+#define CADMIUM_PDEVS_DYNAMIC_SIMULATOR_HPP
+
 #include <cadmium/modeling/dynamic_model.hpp>
 #include <cadmium/modeling/dynamic_message_bag.hpp>
 #include <cadmium/engine/pdevs_dynamic_engine.hpp>
@@ -74,7 +77,7 @@ namespace cadmium {
                 }
 
                 #ifdef CADMIUM_EXECUTE_CONCURRENT
-                void init(TIME initial_time, boost::basic_thread_pool* threadpool) {
+                void init(TIME initial_time, boost::basic_thread_pool* threadpool) override {
                     this->init(initial_time);
                 }
                 #endif //CADMIUM_EXECUTE_CONCURRENT
@@ -166,8 +169,5 @@ namespace cadmium {
         }
     }
 }
-
-#ifndef CADMIUM_PDEVS_DYNAMIC_SIMULATOR_HPP
-#define CADMIUM_PDEVS_DYNAMIC_SIMULATOR_HPP
 
 #endif //CADMIUM_PDEVS_DYNAMIC_SIMULATOR_HPP
