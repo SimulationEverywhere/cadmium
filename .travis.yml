@@ -12,7 +12,7 @@ matrix:
 
   include:
     - os: linux
-      dist: xenial
+      dist: bionic
       env: 
       compiler: gcc
       addons:
@@ -28,7 +28,7 @@ matrix:
           - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-8 90
 
     - os: osx
-      osx_image: xcode10
+      osx_image: xcode11.5
       env:
       before_install:
           - brew install lcov
