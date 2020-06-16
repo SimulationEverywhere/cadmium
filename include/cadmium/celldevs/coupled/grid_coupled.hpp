@@ -32,6 +32,7 @@
 #include <utility>
 #include <vector>
 #include <unordered_map>
+#include <nlohmann/json.hpp>
 #include <cadmium/modeling/ports.hpp>
 #include <cadmium/modeling/dynamic_model.hpp>
 #include <cadmium/modeling/dynamic_model_translator.hpp>
@@ -84,6 +85,64 @@ namespace cadmium::celldevs {
                 cell_unordered<V> vicinities = scenario.get_cell_map(cell_to).vicinity;
                 add_cell_vicinity(cell_to, vicinities);
             }
+        }
+
+        template <template <typename> typename CELL_MODEL, typename... Args>
+        void add_lattice_json(std::string const &file_in, Args&&... args) {
+            // Obtain JSON object from file
+            std::ifstream i(file_in);
+            nlohmann::json j;
+            i >> j;
+            // Read scenario configuration (default values)
+            nlohmann::json s = j["scenario"];
+            auto shape = s["shape"].get<cell_position>();
+            S default_state = S();
+            if (s.contains("default_state"))
+                default_state = s["default_state"];
+            bool wrapped = false;
+            if (s.contains("wrapped"))
+                wrapped = s["wrapped"];
+            grid_scenario<S, V> scenario = grid_scenario<S, V>(shape, default_state, wrapped);
+            std::string default_delayer = "transport";
+            if (s.contains("default_delayer"))
+                default_delayer = s["default_delayer"];
+
+            V default_vicinity = V();
+            if (s.contains("default_vicinity"))
+                default_vicinity = s["default_vicinity"];
+            for (nlohmann::json &n: s["neighborhood"]) {
+                std::string neighborhood_type = n["type"];
+                V v = default_vicinity;
+                if (n.contains("vicinity")) {
+                    v = n["vicinity"];
+                }
+                if (neighborhood_type == "custom") {
+                    cell_unordered<V> vicinities = cell_unordered<V>();
+                    for (nlohmann::json &relative: n["neighbors"]) {
+                        auto neighbor = relative["neighbor"].get<cell_position>();
+                        V neighbor_v = v;
+                        if (relative.contains("vicinity"))
+                            neighbor_v = relative["vicinity"];
+                        vicinities[neighbor] = neighbor_v;
+                    }
+                    scenario.add_neighborhood(vicinities);
+                } else {
+                    int range = 1;
+                    if (n.contains("range"))
+                        range = n["range"];
+                    if (neighborhood_type == "von_neumann") {
+                        scenario.add_neighborhood(grid_scenario<S, V>::von_neumann_neighborhood(shape.size(), range), v);
+                    } else if (neighborhood_type == "moore") {
+                        scenario.add_neighborhood(grid_scenario<S, V>::moore_neighborhood(shape.size(), range), v);
+                    }
+                }
+            }
+            for (nlohmann::json &c: j["cells"]) {
+                auto cell = c["cell_id"].get<cell_position>();
+                S initial_state = c["state"];
+                scenario.set_initial_state(cell, initial_state);
+            }
+            add_lattice<CELL_MODEL, Args...>(scenario, default_delayer, std::forward<Args>(args)...);
         }
     };
 } //namespace cadmium::celldevs

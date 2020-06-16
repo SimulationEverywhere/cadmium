@@ -1,0 +1,31 @@
+{
+  "scenario": {
+    "shape": [3, 3],
+    "wrapped": true,
+    "default_delayer": "transport",
+    "default_state": 0,
+    "default_vicinity": 0,
+    "neighborhood": [
+      {
+        "type": "von_neumann",
+        "range": 1
+      },
+      {
+        "type": "custom",
+        "vicinity": 4,
+        "neighbors": [
+          {
+            "neighbor": [0, 0],
+            "vicinity": -1
+          }
+        ]
+      }
+    ]
+  },
+  "cells": [
+    {
+      "cell_id": [2, 2],
+      "state": 4
+    }
+  ]
+}

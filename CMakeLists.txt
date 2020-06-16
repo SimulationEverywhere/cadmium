@@ -20,6 +20,8 @@ ENDIF (CMAKE_BUILD_TYPE MATCHES Debug)
 set(Boost_USE_MULTITHREADED ON)
 find_package(Boost COMPONENTS unit_test_framework system thread REQUIRED)
 
+find_package(nlohmann_json 3.2.0 REQUIRED)
+
 add_library(Cadmium INTERFACE)
 
 include_directories(include ${Boost_INCLUDE_DIRS})
