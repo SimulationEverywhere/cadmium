@@ -26,14 +26,13 @@
  */
 
 #include <fstream>
-
-#include <cadmium/concept/coupled_model_assert.hpp>
+#include <string>
 #include <cadmium/modeling/dynamic_coupled.hpp>
 #include <cadmium/engine/pdevs_dynamic_runner.hpp>
 #include <cadmium/logger/common_loggers.hpp>
-#include <cadmium/celldevs/utils/grid_utils.hpp>
-#include <cadmium/celldevs/coupled/grid_coupled.hpp>
-#include "grid_base.hpp"
+
+#include <cadmium/celldevs/coupled/cells_coupled.hpp>
+#include "country_cell.hpp"
 
 using namespace std;
 using namespace cadmium;
@@ -42,13 +41,13 @@ using namespace cadmium::celldevs;
 using TIME = float;
 std::string json_file = "./scenario.json";
 /*************** Loggers *******************/
-static ofstream out_messages("../simulation_results/grid/output_messages.txt");
+static ofstream out_messages("../simulation_results/country/output_messages.txt");
 struct oss_sink_messages{
     static ostream& sink(){
         return out_messages;
     }
 };
-static ofstream out_state("../simulation_results/grid/state.txt");
+static ofstream out_state("../simulation_results/country/state.txt");
 struct oss_sink_state{
     static ostream& sink(){
         return out_state;
@@ -63,14 +62,17 @@ using global_time_sta=logger::logger<logger::logger_global_time, dynamic::logger
 using logger_top=logger::multilogger<state, log_messages, global_time_mes, global_time_sta>;
 
 int main() {
-    grid_coupled<TIME, int> test = grid_coupled<TIME, int>("test");
-    test.add_lattice_json<grid_base>(json_file);
+
+    cells_coupled<TIME, std::string, int, int> test = cells_coupled<TIME, std::string, int, int>("test");
+    test.add_cells_json<country_cell>(json_file);
     test.couple_cells();
 
-    std::shared_ptr<cadmium::dynamic::modeling::coupled<TIME>> t = std::make_shared<grid_coupled<TIME, int>>(test);
+    std::shared_ptr<cadmium::dynamic::modeling::coupled<TIME>> t = std::make_shared<cells_coupled<TIME, std::string, int, int>>(test);
 
     cadmium::dynamic::engine::runner<TIME, logger_top> r(t, {0});
     r.run_until(300);
     return 0;
 }
+
+
 

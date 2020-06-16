@@ -28,11 +28,14 @@
 #ifndef CADMIUM_CELLDEVS_CELLS_COUPLED_HPP
 #define CADMIUM_CELLDEVS_CELLS_COUPLED_HPP
 
+#include <fstream>
+#include <iostream>
 #include <exception>
 #include <string>
 #include <utility>
 #include <vector>
 #include <unordered_map>
+#include <nlohmann/json.hpp>
 #include <cadmium/modeling/ports.hpp>
 #include <cadmium/modeling/dynamic_model.hpp>
 #include <cadmium/modeling/dynamic_model_translator.hpp>
@@ -103,6 +106,51 @@ namespace cadmium::celldevs {
                 vicinity.insert({neighbor, V()});
             }
             add_cell<CELL_MODEL, Args...>(cell_id, initial_state, vicinity, delayer_id, std::forward<Args>(args)...);
+        }
+
+        /**
+         * Creates a Cell-DEVS scenario from a JSON file
+         * @tparam CELL_MODEL model type of the cells to be included
+         * @tparam Args any additional parameter required for initializing the cell model
+         * @param file_in path to the JSON file that describes the scenario
+         * @param args any additional parameter required for initializing the cell model
+         */
+        template <template <typename> typename CELL_MODEL, typename... Args>
+        void add_cells_json(std::string const &file_in, Args&&... args) {
+            // Obtain JSON object from file
+            std::ifstream i(file_in);
+            nlohmann::json j;
+            i >> j;
+            // Read scenario configuration (default values)
+            nlohmann::json s = j["scenario"];
+            S default_state = S();
+            if (s.contains("default_state"))
+                default_state = s["default_state"];
+            V default_vicinity = V();
+            if (s.contains("default_vicinity"))
+                default_vicinity = s["default_vicinity"];
+            std::string default_delayer = "transport";
+            if (s.contains("default_delayer"))
+                default_delayer = s["default_delayer"];
+            // Read cells' particular configuration
+            for (nlohmann::json &c: j["cells"]) {
+                C cell_id = c["cell_id"];
+                S initial_state = default_state;
+                if (c.contains("state"))
+                    initial_state = c["state"];
+                std::string delayer_id = default_delayer;
+                if (c.contains("delayer"))
+                    delayer_id = c["delayer"];
+                cell_unordered<V> vicinity = cell_unordered<V>();
+                for (nlohmann::json &n: c["neighborhood"]) {
+                    C neighbor_id = n["cell_id"];
+                    V neighbor_vicinity = default_vicinity;
+                    if (n.contains("vicinity"))
+                        neighbor_vicinity = n["vicinity"];
+                    vicinity[neighbor_id] = neighbor_vicinity;
+                }
+                add_cell<CELL_MODEL, Args...>(cell_id, initial_state, vicinity, delayer_id, std::forward<Args>(args)...);
+            }
         }
 
         /// The user must call this method right after having included all the cells of the scenario
