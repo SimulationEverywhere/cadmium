@@ -13,12 +13,7 @@
       {
         "type": "custom",
         "vicinity": 4,
-        "neighbors": [
-          {
-            "neighbor": [0, 0],
-            "vicinity": -1
-          }
-        ]
+        "neighbors": [[0, 0]]
       }
     ]
   },

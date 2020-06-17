@@ -119,12 +119,12 @@ namespace cadmium::celldevs {
                     v = n["vicinity"];
                 }
                 if (neighborhood_type == "custom") {
+                    V neighbor_v = v;
+                    if (n.contains("vicinity"))
+                        neighbor_v = v;
                     cell_unordered<V> vicinities = cell_unordered<V>();
                     for (nlohmann::json &relative: n["neighbors"]) {
-                        auto neighbor = relative["neighbor"].get<cell_position>();
-                        V neighbor_v = v;
-                        if (relative.contains("vicinity"))
-                            neighbor_v = relative["vicinity"];
+                        auto neighbor = relative.get<cell_position>();
                         vicinities[neighbor] = neighbor_v;
                     }
                     scenario.add_neighborhood(vicinities);
