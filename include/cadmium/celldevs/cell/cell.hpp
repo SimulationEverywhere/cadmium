@@ -36,10 +36,9 @@
 #include <utility>
 #include <vector>
 #include <unordered_map>
-#include <cassert>
 #include <cadmium/modeling/ports.hpp>
 #include <cadmium/modeling/message_bag.hpp>
-#include <cadmium/celldevs/delayer/delayer_factory.hpp>
+#include <cadmium/celldevs/delayer/delayer.hpp>
 
 
 namespace cadmium::celldevs {
@@ -125,34 +124,27 @@ namespace cadmium::celldevs {
 
         /**
          * @brief Creates a new cell with neighbors which vicinity is set to the default.
-         * @tparam Args type of any additional parameter required for creating the output delayer.
          * @param cell_id ID of the cell to be created.
          * @param initial_state initial state of the cell.
          * @param neighbors_in vector containing the ID of the neighboring cells.
-         * @param delayer_id ID of the output delayer used by the cell.
-         * @param args output delayer buffer additional initialization parameters.
+         * @param buffer_in pointer to the output delayer object of the cell.
          */
-        template <typename... Args>
-        cell(C const &cell_id, S initial_state, std::vector<C> const &neighbors_in, std::string const &delayer_id, Args&&... args) {
+        cell(C const &cell_id, S initial_state, std::vector<C> const &neighbors_in, delayer<T, S> *buffer_in) {
             cell_unordered<V> vicinity = cell_unordered<V>();
             for (auto const &neighbor: neighbors_in) {
                 vicinity.insert({neighbor, V()});
             }
-            new (this) cell(cell_id, initial_state, vicinity, delayer_id, std::forward<Args>(args)...);
+            new (this) cell(cell_id, initial_state, vicinity, buffer_in);
         }
 
         /**
          * @brief Creates a new cell with neighbors which vicinity is explicitly specified.
-         * @tparam Args type of any additional parameter required for creating the output delayer.
          * @param cell_id ID of the cell to be created.
          * @param initial_state initial state of the cell.
          * @param vicinity unordered map which key is a neighboring cell and its value corresponds to the vicinity
-         * @param delayer_id ID of the output delayer buffer used by the cell.
-         * @param args output delayer buffer additional initialization parameters.
+         * @param buffer_in pointer to the output delayer object of the cell.
          */
-        template <typename... Args>
-        cell(C const &cell_id_in, S initial_state, cell_unordered<V> const &vicinity, std::string const &delayer_id, Args&&... args) {
-            assert(std::numeric_limits<T>::has_infinity && "This time base does not define infinity");
+        cell(C const &cell_id_in, S initial_state, cell_unordered<V> const &vicinity, delayer<T, S> *buffer_in) {
             cell_id = cell_id_in;
             simulation_clock = T();
             next_internal = T();
@@ -162,7 +154,7 @@ namespace cadmium::celldevs {
                 state.neighbors_vicinity[entry.first] = entry.second;
                 state.neighbors_state[entry.first] = S();
             }
-            buffer = delayer_factory<T, S>::create_delayer(delayer_id, std::forward<Args>(args)...);
+            buffer = buffer_in;
             buffer->add_to_buffer(initial_state, T());  // At t = 0, every cell communicates its state to its neighbors
         }
 

@@ -40,6 +40,7 @@
 #include <cadmium/modeling/dynamic_model.hpp>
 #include <cadmium/modeling/dynamic_model_translator.hpp>
 #include <cadmium/celldevs/cell/cell.hpp>
+#include <cadmium/celldevs/delayer/delayer_factory.hpp>
 
 
 namespace cadmium::celldevs {
@@ -79,12 +80,12 @@ namespace cadmium::celldevs {
          */
         template <template <typename> typename CELL_MODEL, typename... Args>
         void add_cell(C const &cell_id, S const &initial_state, cell_unordered<V> const &vicinities_in,
-                      std::string const &delayer_id, Args&&... args) {
+                delayer<T, S> *buffer, Args&&... args) {
             add_cell_vicinity(cell_id, vicinities_in);
             cadmium::dynamic::modeling::coupled<T>::_models.push_back(
                     cadmium::dynamic::translate::make_dynamic_atomic_model<CELL_MODEL, T>(get_cell_name(cell_id),
                                                                                           cell_id, initial_state,
-                                                                                          vicinities_in, delayer_id,
+                                                                                          vicinities_in, buffer,
                                                                                           std::forward<Args>(args)...));
         }
 
@@ -100,12 +101,12 @@ namespace cadmium::celldevs {
          */
         template <template <typename> typename CELL_MODEL, typename... Args>
         void add_cell(C const &cell_id, S const &initial_state, std::vector<C> const &neighbors,
-                      std::string const &delayer_id, Args&&... args) {
+                      delayer<T, S> *buffer, Args&&... args) {
             cell_unordered<V> vicinity = cell_unordered<V>();
             for (auto const &neighbor: neighbors) {
                 vicinity.insert({neighbor, V()});
             }
-            add_cell<CELL_MODEL, Args...>(cell_id, initial_state, vicinity, delayer_id, std::forward<Args>(args)...);
+            add_cell<CELL_MODEL, Args...>(cell_id, initial_state, vicinity, buffer, std::forward<Args>(args)...);
         }
 
         /**
@@ -129,27 +130,31 @@ namespace cadmium::celldevs {
             V default_vicinity = V();
             if (s.contains("default_vicinity"))
                 default_vicinity = s["default_vicinity"];
-            std::string default_delayer = "transport";
+            std::string default_delayer_id = "transport";
             if (s.contains("default_delayer"))
-                default_delayer = s["default_delayer"];
-            // Read cells' particular configuration
+                default_delayer_id = s["default_delayer"];
+            // Read each cell's particular configuration
             for (nlohmann::json &c: j["cells"]) {
                 C cell_id = c["cell_id"];
                 S initial_state = default_state;
                 if (c.contains("state"))
                     initial_state = c["state"];
-                std::string delayer_id = default_delayer;
+                std::string delayer_id = default_delayer_id;
                 if (c.contains("delayer"))
                     delayer_id = c["delayer"];
+                V v = default_vicinity;
+                if (c.contains("default_vicinity"))
+                    v = c["default_vicinity"];
                 cell_unordered<V> vicinity = cell_unordered<V>();
                 for (nlohmann::json &n: c["neighborhood"]) {
                     C neighbor_id = n["cell_id"];
-                    V neighbor_vicinity = default_vicinity;
+                    V neighbor_vicinity = v;
                     if (n.contains("vicinity"))
                         neighbor_vicinity = n["vicinity"];
                     vicinity[neighbor_id] = neighbor_vicinity;
                 }
-                add_cell<CELL_MODEL, Args...>(cell_id, initial_state, vicinity, delayer_id, std::forward<Args>(args)...);
+                delayer<T, S> *buffer = delayer_factory<T, S>::create_delayer(delayer_id);
+                add_cell<CELL_MODEL, Args...>(cell_id, initial_state, vicinity, buffer, std::forward<Args>(args)...);
             }
         }
 
