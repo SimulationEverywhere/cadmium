@@ -54,6 +54,7 @@ namespace cadmium::celldevs {
     public:
 
         using cells_coupled<T, cell_position, S, V, seq_hash<cell_position>>::get_cell_name;
+        using cells_coupled<T, cell_position, S, V, seq_hash<cell_position>>::add_cell;
         using cells_coupled<T, cell_position, S, V, seq_hash<cell_position>>::add_cell_vicinity;
 
         /**
@@ -71,20 +72,21 @@ namespace cadmium::celldevs {
          * @param args any additional parameter required for initializing the cell model
          */
         template <template <typename> typename CELL_MODEL, typename... Args>
-        void add_lattice(grid_scenario<S, V> &scenario, std::string const &delayer_id, Args&&... args) {
+        void add_lattice(std::string const &delayer_id, grid_scenario<S, V> &scenario, Args&&... args) {
             for (auto const &cell: scenario.get_states()) {
+                delayer<T, S> *buffer = delayer_factory<T, S>::create_delayer(delayer_id);
                 cell_position cell_id = cell.first;
                 cell_map<S, V> map = scenario.get_cell_map(cell_id);
-                cadmium::dynamic::modeling::coupled<T>::_models.push_back(
-                        cadmium::dynamic::translate::make_dynamic_atomic_model<CELL_MODEL, T>(get_cell_name(cell_id),
-                                                                                              map, delayer_id,
-                                                                                              std::forward<Args>(args)...));
+                add_cell<CELL_MODEL, Args...>(buffer, map, std::forward<Args>(args)...);
             }
-            for (auto const &cell: scenario.get_states()) {
-                cell_position cell_to = cell.first;
-                cell_unordered<V> vicinities = scenario.get_cell_map(cell_to).vicinity;
-                add_cell_vicinity(cell_to, vicinities);
-            }
+        }
+
+        template <template <typename> typename CELL_MODEL, typename... Args>
+        void add_cell(delayer<T, S> *buffer, cell_map<S, V> &map, Args&&... args) {
+            cell_position cell_id = map.location;
+            S initial_state = map.state;
+            cell_unordered<V> vicinity = map.vicinity;
+            add_cell<CELL_MODEL>(cell_id, initial_state, vicinity, buffer, map, std::forward<Args>(args)...);
         }
 
         template <template <typename> typename CELL_MODEL, typename... Args>
@@ -142,7 +144,20 @@ namespace cadmium::celldevs {
                 S initial_state = c["state"];
                 scenario.set_initial_state(cell, initial_state);
             }
-            add_lattice<CELL_MODEL, Args...>(scenario, default_delayer, std::forward<Args>(args)...);
+            for (auto const &cell: scenario.get_states()) {
+                cell_position cell_id = cell.first;
+                cell_map<S, V> map = scenario.get_cell_map(cell_id);
+                std::string delayer_id = default_delayer;
+                for (nlohmann::json &c: j["cells"]) {
+                    auto c_id = c["cell_id"].get<cell_position>();
+                    if (cell_id == c_id && c.contains("delayer")) {
+                        delayer_id = c["delayer"];
+                        break;
+                    }
+                }
+                delayer<T, S> *buffer = delayer_factory<T, S>::create_delayer(delayer_id);
+                add_cell<CELL_MODEL, Args...>(buffer, map, std::forward<Args>(args)...);
+            }
         }
     };
 } //namespace cadmium::celldevs

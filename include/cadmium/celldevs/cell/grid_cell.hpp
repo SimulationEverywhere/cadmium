@@ -51,18 +51,18 @@ namespace cadmium::celldevs {
         grid_cell() : cell<T, cell_position, S, V, seq_hash<cell_position>>() {}
 
         /**
-         * @brief Creates a grid-based cell
-         * @tparam Args type of any additional parameter required for creating the output delayer
-         * @param map_in auxiliary grid cell map
-         * @param delayer_id ID of the output delayer buffer used by the cell
-         * @param args output delayer buffer additional initialization parameters
+         * @brief Creates a new cell with neighbors which vicinity is set to the default.
+         * @param cell_id ID of the cell to be created.
+         * @param initial_state initial state of the cell.
+         * @param neighbors_in vector containing the ID of the neighboring cells.
+         * @param buffer_in pointer to the output delayer object of the cell.
+         * @param map_in grid map with a bunch of utilities
          * @see utils/grid_utils.hpp
-         * @see cell/cell.hpp
          */
-        template <typename ...Args>
-        grid_cell(cell_map<S, V> const &map_in, std::string const &delayer_id, Args &&... args):
-                cell<T, cell_position, S, V, seq_hash<cell_position>>(map_in.location, map_in.state,
-                        map_in.vicinity, delayer_id, std::forward<Args>(args)...), map{map_in} {}
+        grid_cell(cell_position const &location, S initial_state, cell_unordered<V> vicinity,
+                delayer<T, S> *buffer_in, cell_map<S, V> const &map_in) :
+                cell<T, cell_position, S, V, seq_hash<cell_position>>(location, initial_state, vicinity, buffer_in),
+                map{map_in} {}
     };
 } //namespace cadmium::celldevs
 #endif //CADMIUM_CELLDEVS_GRID_CELLS_HPP

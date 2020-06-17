@@ -41,9 +41,10 @@ public:
 
     grid_base() : grid_cell<T, int, int>() { }
 
-    template<typename... Args>
-    grid_base(cell_map<int, int> const &map_in, std::string const &delayer_id, Args&&... args):
-        grid_cell<T, int, int>(map_in, delayer_id, std::forward<Args>(args)...) {}
+    grid_base(cell_position const &cell_id, int initial_state, cell_unordered<int> const &vicinities,
+              delayer<T, int> *buffer, cell_map<int, int> const &map_in):
+              grid_cell<T, int, int>(cell_id, initial_state, vicinities, buffer, map_in) {}
+
 
     // user must define this function. It returns the next cell state and its corresponding timeout
     int local_computation() const override {

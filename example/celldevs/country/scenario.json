@@ -8,6 +8,7 @@
     {
       "cell_id": "Spain",
       "state": 1,
+      "default_vicinity": -2,
       "neighborhood": [
         {
           "cell_id": "Portugal",
@@ -18,8 +19,7 @@
           "vicinity": 5
         },
         {
-          "cell_id": "Andorra",
-          "vicinity": 1
+          "cell_id": "Andorra"
         }
       ]
     },
