@@ -29,6 +29,7 @@
 #define CADMIUM_CELLDEVS_INERTIAL_DELAYER_HPP
 
 #include <limits>
+#include <iostream>
 #include <cadmium/celldevs/delayer/delayer.hpp>
 
 
@@ -45,10 +46,7 @@ namespace cadmium::celldevs {
         S state_buffer;     /// Latest (and only) state to be transmitted
         T time;             /// Time when the state is to be transmitted (i.e., simulation clock + propagation delay)
     public:
-        inertial_delayer() : delayer<T, S>() {
-            state_buffer = S();
-            time = std::numeric_limits<T>::infinity();
-        }
+        inertial_delayer() : delayer<T, S>(), state_buffer(S()), time(std::numeric_limits<T>::infinity()) { }
 
         /// Changes stored buffer and scheduled time
         void add_to_buffer(S state, T scheduled_time) override {

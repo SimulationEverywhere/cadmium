@@ -1,0 +1,54 @@
+{
+  "scenario": {
+    "grid": true,
+    "shape": [50, 50],
+    "wrapped": true,
+    "default_delayer": "inertial",
+    "default_state": {
+      "population": 100,
+      "susceptible": 1,
+      "infected": 0,
+      "recovered": 0
+    },
+    "default_config": {
+      "virulence": 0.6,
+      "recovery": 0.4
+    },
+    "neighborhood": [
+      {
+        "type": "von_neumann",
+        "range": 1,
+        "vicinity": {
+          "connection": 1,
+          "movement": 0.5
+        }
+      },
+      {
+        "type": "custom",
+        "neighbors": [[0, 0]],
+        "vicinity": {
+          "connection": 1,
+          "movement": 1
+        }
+      }
+    ]
+  },
+  "cells": [
+    {
+      "cell_id": [24, 24],
+      "state": {
+        "population": 100,
+        "susceptible": 0.7,
+        "infected": 0.3,
+        "recovered": 0
+      }
+    },
+    {
+      "cell_id": [24, 23],
+      "config": {
+        "virulence": 0,
+        "recovery": 1
+      }
+    }
+  ]
+}

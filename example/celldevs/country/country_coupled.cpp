@@ -32,7 +32,7 @@
 #include <cadmium/logger/common_loggers.hpp>
 
 #include <cadmium/celldevs/coupled/cells_coupled.hpp>
-#include "country_cell.hpp"
+#include "country_cell_factory.hpp"
 
 using namespace std;
 using namespace cadmium;
@@ -60,6 +60,10 @@ using global_time_mes=logger::logger<logger::logger_global_time, dynamic::logger
 using global_time_sta=logger::logger<logger::logger_global_time, dynamic::logger::formatter<TIME>, oss_sink_state>;
 
 using logger_top=logger::multilogger<state, log_messages, global_time_mes, global_time_sta>;
+
+
+
+
 
 int main() {
 

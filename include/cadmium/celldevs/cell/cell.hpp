@@ -25,66 +25,22 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CADMIUM_CELLDEVS_ABSTRACT_CELL_HPP
-#define CADMIUM_CELLDEVS_ABSTRACT_CELL_HPP
+#ifndef CADMIUM_CELLDEVS_CELL_HPP
+#define CADMIUM_CELLDEVS_CELL_HPP
 
 #include <exception>
-#include <iostream>
 #include <string>
 #include <limits>
 #include <algorithm>
 #include <utility>
 #include <vector>
 #include <unordered_map>
-#include <cadmium/modeling/ports.hpp>
 #include <cadmium/modeling/message_bag.hpp>
+#include <cadmium/celldevs/cell/msg.hpp>
 #include <cadmium/celldevs/delayer/delayer.hpp>
 
 
 namespace cadmium::celldevs {
-    /**
-     * Structure that defines cell messages.
-     * @tparam C the type used for representing a cell ID.
-     * @tparam S the type used for representing a cell state.
-     */
-    template <typename C, typename S>
-    struct cell_state_message {
-        C cell_id;
-        S state;
-
-        /**
-         * @brief Cell state message constructor
-         * @param cell_id_in ID of the cell that generates the message
-         * @param state_in State to be transmitted by the cell
-         */
-        cell_state_message(C cell_id_in, S state_in): cell_id(cell_id_in), state(state_in) {}
-
-        /**
-         * Operator overloading function for printing cell state messages
-         * @tparam C the type used for representing a cell ID.
-         * @tparam S the type used for representing a cell state.
-         * @param os Operating System's string stream
-         * @param msg cell state message
-         * @return Operating System's string stream containing the stringified cell state
-         */
-        friend std::ostream &operator << (std::ostream &os, const cell_state_message<C, S> &msg) {
-            os << msg.cell_id << " ; " << msg.state;
-            return os;
-        }
-    };
-
-
-    /**
-     * @brief input/output port structure for cells.
-     * @tparam C the type used for representing a cell ID.
-     * @tparam S the type used for representing a cell state.
-     */
-    template <typename C, typename S>
-    struct cell_ports_def{
-        struct cell_in: public cadmium::in_port<cell_state_message<C, S>> {};
-        struct cell_out : public cadmium::out_port<cell_state_message<C, S>> {};
-    };
-
     /**
      * @brief Abstract DEVS atomic model for defining cells in Cell-DEVS scenarios.
      * @tparam T the type used for representing time in a simulation.
@@ -123,39 +79,39 @@ namespace cadmium::celldevs {
         virtual ~cell() = default;
 
         /**
-         * @brief Creates a new cell with neighbors which vicinity is set to the default.
-         * @param cell_id ID of the cell to be created.
-         * @param initial_state initial state of the cell.
-         * @param neighbors_in vector containing the ID of the neighboring cells.
-         * @param buffer_in pointer to the output delayer object of the cell.
-         */
-        cell(C const &cell_id, S initial_state, std::vector<C> const &neighbors_in, delayer<T, S> *buffer_in) {
-            cell_unordered<V> vicinity = cell_unordered<V>();
-            for (auto const &neighbor: neighbors_in) {
-                vicinity.insert({neighbor, V()});
-            }
-            new (this) cell(cell_id, initial_state, vicinity, buffer_in);
-        }
-
-        /**
          * @brief Creates a new cell with neighbors which vicinity is explicitly specified.
-         * @param cell_id ID of the cell to be created.
-         * @param initial_state initial state of the cell.
-         * @param vicinity unordered map which key is a neighboring cell and its value corresponds to the vicinity
+         * @param id ID of the cell to be created.
+         * @param neighborhood unordered map which key is a neighboring cell and its value corresponds to the vicinity
          * @param buffer_in pointer to the output delayer object of the cell.
+         * @param initial_state initial state of the cell.
          */
-        cell(C const &cell_id_in, S initial_state, cell_unordered<V> const &vicinity, delayer<T, S> *buffer_in) {
-            cell_id = cell_id_in;
+        cell(C const &id, cell_unordered<V> const &neighborhood, delayer<T, S> *buffer_in, S initial_state) {
+            cell_id = id;
             simulation_clock = T();
             next_internal = T();
             state.current_state = initial_state;
-            for (auto const &entry: vicinity) {
+            for (auto const &entry: neighborhood) {
                 neighbors.push_back(entry.first);
                 state.neighbors_vicinity[entry.first] = entry.second;
                 state.neighbors_state[entry.first] = S();
             }
             buffer = buffer_in;
             buffer->add_to_buffer(initial_state, T());  // At t = 0, every cell communicates its state to its neighbors
+        }
+
+        /**
+         * @brief Creates a new cell with neighbors which vicinity is explicitly specified.
+         * @param id ID of the cell to be created.
+         * @param neighbors vector of IDs of every cell that conforms the neighborhood
+         * @param buffer_in pointer to the output delayer object of the cell.
+         * @param initial_state initial state of the cell.
+         */
+        cell(C const &id, std::vector<C> const &neighbors, delayer<T, S> *buffer_in, S initial_state) {
+            cell_unordered<V> neighborhood = cell_unordered<V>();
+            for (auto const &neighbor: neighbors) {
+                neighborhood.insert({neighbor, V()});
+            }
+            new (this) cell(id, neighborhood, buffer_in, initial_state);
         }
 
         /************** USER-DEFINED METHODS **************/
@@ -221,9 +177,9 @@ namespace cadmium::celldevs {
 
         /**
          * Operator overloading function for printing the cell's state
-         * @param os Operating System's string stream
+         * @param os output string stream
          * @param i cell state
-         * @return Operating System's string stream containing the stringified cell state
+         * @return output string stream containing the "stringified" cell state
          */
         friend std::ostringstream& operator << (std::ostringstream& os,
                 const typename cell<T, C, S, V, C_HASH>::state_type& i) {
@@ -232,4 +188,4 @@ namespace cadmium::celldevs {
         }
     };
 } //namespace cadmium::celldevs
-#endif //CADMIUM_CELLDEVS_ABSTRACT_CELL_HPP
+#endif //CADMIUM_CELLDEVS_CELL_HPP
