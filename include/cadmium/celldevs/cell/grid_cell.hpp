@@ -25,12 +25,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CADMIUM_CELLDEVS_GRID_CELLS_HPP
-#define CADMIUM_CELLDEVS_GRID_CELLS_HPP
+#ifndef CADMIUM_CELLDEVS_GRID_CELL_HPP
+#define CADMIUM_CELLDEVS_GRID_CELL_HPP
 
-#include <exception>
-#include <cadmium/modeling/ports.hpp>
-#include <cadmium/modeling/message_bag.hpp>
 #include <cadmium/celldevs/cell/cell.hpp>
 #include <cadmium/celldevs/utils/grid_utils.hpp>
 
@@ -40,6 +37,7 @@ namespace cadmium::celldevs {
      * @brief DEVS atomic model for defining cells in Cell-DEVS scenarios that are sorted in lattices.
      * @tparam T the type used for representing time in a simulation.
      * @tparam S the type used for representing a cell state.
+     * @tparam P the type used for representing cell configuration parameters. By default, it is set to integer.
      * @tparam V the type used for representing a neighboring cell's vicinity. By default, it is set to integer.
      */
     template <typename T, typename S, typename V=int>
@@ -51,18 +49,18 @@ namespace cadmium::celldevs {
         grid_cell() : cell<T, cell_position, S, V, seq_hash<cell_position>>() {}
 
         /**
-         * @brief Creates a new cell with neighbors which vicinity is set to the default.
-         * @param cell_id ID of the cell to be created.
-         * @param initial_state initial state of the cell.
-         * @param neighbors_in vector containing the ID of the neighboring cells.
+         * @brief Creates a new cell that belongs to a lattice of cells.
+         * @param location ID of the cell to be created.
+         * @param neighborhood unordered map which key is a neighboring cell and its value corresponds to the vicinity
          * @param buffer_in pointer to the output delayer object of the cell.
+         * @param initial_state initial state of the cell.
          * @param map_in grid map with a bunch of utilities
          * @see utils/grid_utils.hpp
          */
-        grid_cell(cell_position const &location, S initial_state, cell_unordered<V> vicinity,
-                delayer<T, S> *buffer_in, cell_map<S, V> const &map_in) :
-                cell<T, cell_position, S, V, seq_hash<cell_position>>(location, initial_state, vicinity, buffer_in),
-                map{map_in} {}
+        grid_cell(cell_position const &location, cell_unordered<V> const &neighborhood, delayer<T, S> *buffer_in,
+                S initial_state, cell_map<S, V> const &map_in) :
+            cell<T, cell_position, S, V, seq_hash<cell_position>>(location, neighborhood, buffer_in, initial_state),
+        map{map_in} {}
     };
 } //namespace cadmium::celldevs
-#endif //CADMIUM_CELLDEVS_GRID_CELLS_HPP
+#endif //CADMIUM_CELLDEVS_GRID_CELL_HPP

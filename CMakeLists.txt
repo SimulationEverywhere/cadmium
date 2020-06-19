@@ -8,6 +8,8 @@ set(Cadmium_VERSION_PATCH 0)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake-modules")
 
+set(JSON_BuildTests OFF CACHE INTERNAL "")
+
 include(CheckCXXCompilerFlag)
 IF (CMAKE_BUILD_TYPE MATCHES Debug)
     message("debug mode")
@@ -20,11 +22,10 @@ ENDIF (CMAKE_BUILD_TYPE MATCHES Debug)
 set(Boost_USE_MULTITHREADED ON)
 find_package(Boost COMPONENTS unit_test_framework system thread REQUIRED)
 
-find_package(nlohmann_json 3.2.0 REQUIRED)
-
 add_library(Cadmium INTERFACE)
 
 include_directories(include ${Boost_INCLUDE_DIRS})
+add_subdirectory(json)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic -Wall")
 

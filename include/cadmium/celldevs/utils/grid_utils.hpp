@@ -46,19 +46,6 @@ struct seq_hash {
     }
 };
 
-/// For printing vectors (i.e., cell position)
-template <typename X>
-std::ostream &operator <<(std::ostream &os, std::vector<X> const &v) {
-    os << "(";
-    std::string separator;
-    for (auto x : v) {
-        os << separator << x;
-        separator = ",";
-    }
-    os << ")";
-    return os;
-}
-
 namespace cadmium::celldevs {
 /***************************************************/
 /*************** Type definitions ******************/

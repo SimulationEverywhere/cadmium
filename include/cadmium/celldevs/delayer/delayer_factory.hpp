@@ -36,6 +36,25 @@
 
 
 namespace cadmium::celldevs {
+
+    template<typename T, typename S>
+    class delayer_factory {
+    public:
+        virtual delayer<T, S>* create_delayer() = 0;
+    };
+
+    template<typename T, typename S>
+    class inertial_delayer_factory: public delayer_factory<T, S> {
+    public:
+        delayer<T, S>* create_delayer() { return new inertial_delayer<T, S>(); }
+    };
+
+    template<typename T, typename S>
+    class transport_delayer_factory: public delayer_factory<T, S> {
+    public:
+        delayer<T, S>* create_delayer() { return new transport_delayer<T, S>(); }
+    };
+
     /**
      * @brief Abstract factory for creating Cell-DEVS output delayer objects.
      * @tparam T the type used for representing time in a simulation.
@@ -43,23 +62,31 @@ namespace cadmium::celldevs {
      * @see delayer/delayer.hpp
      */
     template <typename T, typename S>
-    class delayer_factory {
+    class delayer_factory_registry {
+    private:
+        std::unordered_map<std::string, delayer_factory<T, S>*> registry;
     public:
+        delayer_factory_registry() {
+            registry = std::unordered_map<std::string, delayer_factory<T, S>*>();
+            register_delayer("inertial", new inertial_delayer_factory<T, S>());
+            register_delayer("transport", new transport_delayer_factory<T, S>());
+        }
+        void register_delayer(std::string const &id, delayer_factory<T, S>* factory) {
+            if (registry.find(id) == registry.end())
+                registry[id] = factory;
+            else throw std::bad_typeid();
+        }
         /**
-         * @brief creates a Cell-DEVS output delayer object.
+         * Creates a Cell-DEVS output delayer object.
          * @tparam Args type of any additional parameter required for creating the output delayer.
-         * @param delayer_name name or ID of the output delayer type.
+         * @param factory_id name or ID of the output delayer factory.
          * @param args initialization parameters.
          * @return pointer to the requested output delayer.
-         * @throw bad_typeid exception if output delayer type does not match with any output delayer.
+         * @throw std::out_of_range if output delayer type does not match with any registered output delayer.
          */
         template <typename... Args>
-        static delayer<T, S> *create_delayer(std::string const &delayer_name, Args&&... args) {
-            if (delayer_name == "inertial") {
-                return new inertial_delayer<T, S>(std::forward<Args>(args)...);
-            } else if (delayer_name == "transport") {
-                return new transport_delayer<T, S>(std::forward<Args>(args)...);
-            } else throw std::bad_typeid();
+        delayer<T, S>* create_delayer(const std::string& id, Args&&... args) {
+            return registry.at(id)->create_delayer(std::forward<Args>(args)...);
         }
     };
 } //namespace cadmium::celldevs

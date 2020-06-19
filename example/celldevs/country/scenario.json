@@ -2,12 +2,14 @@
   "scenario": {
     "default_delayer": "transport",
     "default_state": 0,
-    "default_vicinity": -1
+    "default_vicinity": -1,
+    "default_config": 3
   },
   "cells": [
     {
       "cell_id": "Spain",
       "state": 1,
+      "config": 4,
       "default_vicinity": -2,
       "neighborhood": [
         {

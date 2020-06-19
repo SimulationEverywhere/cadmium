@@ -35,23 +35,27 @@
 
 using namespace cadmium::celldevs;
 
+using cell_id_t = std::string; using state_t = int;
+
 template <typename TIME>
-class country_cell: public cadmium::celldevs::cell<TIME, std::string, int, int> {
+class country_cell: public cadmium::celldevs::cell<TIME, cell_id_t, state_t> {
 public:
-    using cadmium::celldevs::cell<TIME, std::string, int, int>::cell_id;
-    using cadmium::celldevs::cell<TIME, std::string, int, int>::state;
+    using cadmium::celldevs::cell<TIME, cell_id_t, state_t>::cell_id;
+    using cadmium::celldevs::cell<TIME, cell_id_t, state_t>::state;
 
-    using time_t=TIME; using cell_id_t=std::string; using state_t=int;
+    using config_type = int;  // IMPORTANT FOR THE JSON
+    config_type config;
 
-    explicit country_cell() : cadmium::celldevs::cell<time_t, cell_id_t, state_t, int>() {}
+    explicit country_cell() : cadmium::celldevs::cell<TIME, cell_id_t, state_t>() {}
 
-    country_cell(const std::string& cell_id, int initial_state, std::vector<std::string> const &neighbors,
-            delayer<TIME, state_t> *buffer):
-            cadmium::celldevs::cell<time_t, cell_id_t, state_t, int>(cell_id, initial_state, neighbors, buffer) {}
+    country_cell(const cell_id_t &cell_id, std::unordered_map<cell_id_t , state_t> const &vicinities,
+            delayer<TIME, state_t> *buffer, state_t initial_state, int config_in):
+        cadmium::celldevs::cell<TIME, cell_id_t, state_t>(cell_id, vicinities, buffer, initial_state), config(config_in) {}
 
-    country_cell(const std::string& cell_id, int initial_state, std::unordered_map<std::string, int> const &vicinities,
-                 delayer<TIME, state_t> *buffer):
-            cadmium::celldevs::cell<time_t, cell_id_t, state_t, int>(cell_id, initial_state, vicinities, buffer) {}
+    country_cell(const cell_id_t &cell_id, std::unordered_map<cell_id_t , state_t> const &vicinities,
+                 delayer<TIME, state_t> *buffer, state_t initial_state) {
+        new (this) country_cell(cell_id, vicinities, buffer, initial_state, 0);
+    }
 
     // user must define this function. It returns the next cell state and its corresponding timeout
     int local_computation() const override {

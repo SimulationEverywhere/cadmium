@@ -28,6 +28,7 @@
 #ifndef CADMIUM_CELLDEVS_TRANSPORT_HPP
 #define CADMIUM_CELLDEVS_TRANSPORT_HPP
 
+#include <iostream>
 #include <functional>
 #include <limits>
 #include <queue>
@@ -49,7 +50,7 @@ namespace cadmium::celldevs {
         /// Queue with pairs <scheduled time, state to transmit>. Messages are sorted depending on the scheduled time
         std::priority_queue<std::pair<T, S>, std::vector<std::pair<T, S>>, std::greater<std::pair<T, S>>> delayed_outputs;
     public:
-        transport_delayer() : delayer<T, S>() {}
+        transport_delayer() : delayer<T, S>() { }
 
         /// Pushes new state to the priority queue
         void add_to_buffer(S state, T scheduled_time) override {
