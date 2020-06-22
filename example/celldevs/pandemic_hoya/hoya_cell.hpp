@@ -1,6 +1,29 @@
-//
-// Created by Román Cárdenas Rodríguez on 26/05/2020.
-//
+/**
+ * Copyright (c) 2020, Román Cárdenas Rodríguez
+ * ARSLab - Carleton University
+ * GreenLSI - Polytechnic University of Madrid
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * 1. Redistributions of source code must retain the above copyright notice,
+ * this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
 
 #ifndef CADMIUM_CELLDEVS_PANDEMIC_CELL_HPP
 #define CADMIUM_CELLDEVS_PANDEMIC_CELL_HPP
@@ -81,14 +104,14 @@ public:
     using grid_cell<T, sir, mc>::neighbors;
 
     using config_type = vr;  // IMPORTANT FOR THE JSON
-
     float virulence;
     float recovery;
 
     hoya_cell() : grid_cell<T, sir, mc>() {}
 
-    hoya_cell(cell_position const &cell_id, cell_unordered<mc> const &vicinities, delayer<T, sir> *buffer,
-            sir initial_state, cell_map<sir, mc> const &map_in, vr config) : grid_cell<T, sir, mc>(cell_id, vicinities, buffer, initial_state, map_in) {
+    hoya_cell(cell_position const &cell_id, cell_unordered<mc> const &neighborhood, sir initial_state,
+              cell_map<sir, mc> const &map_in, std::string const &delay_id, vr config) :
+            grid_cell<T, sir, mc>(cell_id, neighborhood, initial_state, map_in, delay_id) {
         virulence = config.virulence;
         recovery = config.recovery;
     }

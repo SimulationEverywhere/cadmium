@@ -31,9 +31,16 @@
 #include <iostream>
 #include <cadmium/modeling/ports.hpp>
 
-/// For printing vectors (i.e., cell position)
+
+/**
+ * Auxiliary function for printing vectors
+ * @tparam X vector content type
+ * @param os output stream
+ * @param v vector
+ * @return output stream containing the printed values of the vector
+ */
 template <typename X>
-std::ostream &operator <<(std::ostream &os, std::vector<X> const &v) {
+std::ostream &operator << (std::ostream &os, std::vector<X> const &v) {
     os << "(";
     std::string separator;
     for (auto x : v) {
@@ -56,7 +63,7 @@ namespace cadmium::celldevs {
         S state;
 
         /**
-         * @brief Cell state message constructor
+         * Cell state message constructor
          * @param cell_id_in ID of the cell that generates the message
          * @param state_in State to be transmitted by the cell
          */
@@ -78,7 +85,7 @@ namespace cadmium::celldevs {
 
 
     /**
-     * @brief input/output port structure for cells.
+     * Input/output port structure for cells.
      * @tparam C the type used for representing a cell ID.
      * @tparam S the type used for representing a cell state.
      */

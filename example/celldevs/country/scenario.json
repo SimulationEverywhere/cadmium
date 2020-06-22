@@ -1,9 +1,13 @@
 {
   "scenario": {
-    "default_delayer": "transport",
+    "default_delay": "transport",
+    "default_cell_type": "country",
     "default_state": 0,
     "default_vicinity": -1,
-    "default_config": 3
+    "default_config": {
+      "country": 1,
+      "small_country": "Hola"
+    }
   },
   "cells": [
     {
@@ -27,7 +31,7 @@
     },
     {
       "cell_id": "Portugal",
-      "delayer": "inertial",
+      "delay": "inertial",
       "neighborhood": [
         {
           "cell_id": "Spain",
@@ -38,6 +42,8 @@
     {
       "cell_id": "Andorra",
       "state": 2,
+      "cell_type": "small_country",
+      "config": "Adios",
       "neighborhood": [
         {
           "cell_id": "Spain",

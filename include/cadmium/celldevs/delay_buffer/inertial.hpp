@@ -25,48 +25,43 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CADMIUM_CELLDEVS_TRANSPORT_HPP
-#define CADMIUM_CELLDEVS_TRANSPORT_HPP
+#ifndef CADMIUM_CELLDEVS_INERTIAL_DELAY_BUFFER_HPP
+#define CADMIUM_CELLDEVS_INERTIAL_DELAY_BUFFER_HPP
 
-#include <iostream>
-#include <functional>
 #include <limits>
-#include <queue>
-#include <tuple>
-#include <vector>
-#include <cadmium/celldevs/delayer/delayer.hpp>
+#include <iostream>
+#include <cadmium/celldevs//delay_buffer/delay_buffer.hpp>
 
 
 namespace cadmium::celldevs {
     /**
-     * @brief Cell-DEVS transport output delayer.
+     * @brief Cell-DEVS inertial output delay_buffer.
      * @tparam T the type used for representing time in a simulation.
      * @tparam S the type used for representing a cell state.
-     * @see delayer/delayer.hpp
+     * @see delay_buffer/delay_buffer.hpp
      */
     template <typename T, typename S>
-    class transport_delayer : public delayer<T, S> {
+    class inertial_delay_buffer : public delay_buffer<T, S> {
     private:
-        /// Queue with pairs <scheduled time, state to transmit>. Messages are sorted depending on the scheduled time
-        std::priority_queue<std::pair<T, S>, std::vector<std::pair<T, S>>, std::greater<std::pair<T, S>>> delayed_outputs;
+        S state_buffer;     /// Latest (and only) state to be transmitted
+        T time;             /// Time when the state is to be transmitted (i.e., simulation clock + propagation delay)
     public:
-        transport_delayer() : delayer<T, S>() { }
+        inertial_delay_buffer() : delay_buffer<T, S>(), state_buffer(S()), time(std::numeric_limits<T>::infinity()) {}
 
-        /// Pushes new state to the priority queue
+        /// Changes stored state and scheduled time
         void add_to_buffer(S state, T scheduled_time) override {
-            delayed_outputs.push(std::make_pair(scheduled_time, state));
+            state_buffer = state;
+            time = scheduled_time;
         }
 
-        /// If queue is empty, returns infinity. Otherwise, returns the scheduled time of the top element
-        T next_timeout() const override {
-            return (delayed_outputs.empty())? std::numeric_limits<T>::infinity() : delayed_outputs.top().first;
-        }
+        /// Returns simulation time at which the state is to be transmitted
+        T next_timeout() const override { return time; }
 
-        /// Returns next state to be scheduled. If priority queue is empty, it causes undefined behavior
-        S next_state() const override { return delayed_outputs.top().second; }
+        /// Returns state to be transmitted
+        S next_state() const override { return state_buffer; }
 
-        /// Removes top element of the priority queue
-        void pop_buffer() override { delayed_outputs.pop(); }
+        /// Sets the next scheduled time to infinity
+        void pop_buffer() override { time = std::numeric_limits<T>::infinity(); }
     };
 } //namespace cadmium::celldevs
-#endif //CADMIUM_CELLDEVS_TRANSPORT_HPP
+#endif //CADMIUM_CELLDEVS_INERTIAL_DELAY_BUFFER_HPP

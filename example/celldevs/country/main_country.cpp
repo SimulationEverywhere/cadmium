@@ -25,18 +25,15 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <fstream>
 #include <string>
 #include <cadmium/modeling/dynamic_coupled.hpp>
 #include <cadmium/engine/pdevs_dynamic_runner.hpp>
 #include <cadmium/logger/common_loggers.hpp>
 
-#include <cadmium/celldevs/coupled/cells_coupled.hpp>
-#include "country_cell_factory.hpp"
+#include "country_coupled.hpp"
 
 using namespace std;
 using namespace cadmium;
-using namespace cadmium::celldevs;
 
 using TIME = float;
 std::string json_file = "./scenario.json";
@@ -61,14 +58,10 @@ using global_time_sta=logger::logger<logger::logger_global_time, dynamic::logger
 
 using logger_top=logger::multilogger<state, log_messages, global_time_mes, global_time_sta>;
 
-
-
-
-
 int main() {
 
-    cells_coupled<TIME, std::string, int, int> test = cells_coupled<TIME, std::string, int, int>("test");
-    test.add_cells_json<country_cell>(json_file);
+    country_coupled<TIME> test = country_coupled<TIME>("test");
+    test.add_cells_json(json_file);
     test.couple_cells();
 
     std::shared_ptr<cadmium::dynamic::modeling::coupled<TIME>> t = std::make_shared<cells_coupled<TIME, std::string, int, int>>(test);
@@ -77,6 +70,3 @@ int main() {
     r.run_until(300);
     return 0;
 }
-
-
-

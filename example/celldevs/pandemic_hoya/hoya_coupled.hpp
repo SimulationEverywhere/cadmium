@@ -25,38 +25,29 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CADMIUM_CELLDEVS_DELAYER_HPP
-#define CADMIUM_CELLDEVS_DELAYER_HPP
+#ifndef CADMIUM_CELLDEVS_HOYA_COUPLED_HPP
+#define CADMIUM_CELLDEVS_HOYA_COUPLED_HPP
 
-#include <limits>
+#include <nlohmann/json.hpp>
+#include <cadmium/celldevs/coupled/grid_coupled.hpp>
+#include "hoya_cell.hpp"
 
+template <typename T>
+class hoya_coupled : public cadmium::celldevs::grid_coupled<T, sir, mc> {
+public:
 
-namespace cadmium::celldevs {
-    /**
-     * @brief interface for implementing Cell-DEVS output delayers.
-     * @tparam T the type used for representing time in a simulation.
-     * @tparam S the type used for representing a cell state.
-     */
-    template <typename T, typename S>
-    class delayer {
-    public:
-        /**
-         * @brief adds a new state to the output buffer, and schedules its propagation at a given time.
-         * @param state state to be transmitted by the cell.
-         * @param scheduled_time clock time when this state must be transmitted.
-         */
-        virtual ~delayer() = default;
+    explicit hoya_coupled(std::string const &id) : grid_coupled<T, sir, mc>(id){}
 
-        virtual void add_to_buffer(S state, T scheduled_time) {};
+    template <typename X>
+    using cell_unordered = std::unordered_map<std::string,X>;
 
-        ///@return clock time for the next scheduled output (i.e., clock + time advance).
-        virtual T next_timeout() const { return std::numeric_limits<T>::infinity(); };
+    void add_grid_cell_json(std::string const &cell_type, cell_map<sir, mc> &map, std::string const &delay_id,
+                            nlohmann::json const &config) override {
+        if (cell_type == "hoya") {
+            auto conf = config.get<typename hoya_cell<T>::config_type>();
+            this->template add_cell<hoya_cell>(map, delay_id, conf);
+        } else throw std::bad_typeid();
+    }
+};
 
-        /// @return next cell state to be transmitted.
-        virtual S next_state() const { return S(); };
-
-        /// Removes from buffer the next scheduled state transmission.
-        virtual void pop_buffer() {};
-    };
-} //namespace cadmium::celldevs
-#endif //CADMIUM_CELLDEVS_DELAYER_HPP
+#endif //CADMIUM_CELLDEVS_HOYA_COUPLED_HPP

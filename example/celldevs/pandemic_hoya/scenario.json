@@ -1,9 +1,9 @@
 {
   "scenario": {
-    "grid": true,
     "shape": [50, 50],
     "wrapped": true,
-    "default_delayer": "inertial",
+    "default_delay": "inertial",
+    "default_cell_type": "hoya",
     "default_state": {
       "population": 100,
       "susceptible": 1,
@@ -11,8 +11,10 @@
       "recovered": 0
     },
     "default_config": {
-      "virulence": 0.6,
-      "recovery": 0.4
+      "hoya": {
+        "virulence": 0.6,
+        "recovery": 0.4
+      }
     },
     "neighborhood": [
       {

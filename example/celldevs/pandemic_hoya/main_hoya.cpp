@@ -26,29 +26,25 @@
  */
 
 #include <fstream>
-
-#include <cadmium/concept/coupled_model_assert.hpp>
 #include <cadmium/modeling/dynamic_coupled.hpp>
 #include <cadmium/engine/pdevs_dynamic_runner.hpp>
 #include <cadmium/logger/common_loggers.hpp>
-#include <cadmium/celldevs/utils/grid_utils.hpp>
-#include <cadmium/celldevs/coupled/grid_coupled.hpp>
-#include "grid_base.hpp"
+#include "hoya_coupled.hpp"
 
 using namespace std;
 using namespace cadmium;
 using namespace cadmium::celldevs;
 
 using TIME = float;
-std::string json_file = "./scenario.json";
+
 /*************** Loggers *******************/
-static ofstream out_messages("../simulation_results/grid/output_messages.txt");
+static ofstream out_messages("../simulation_results/pandemic_hoya/output_messages.txt");
 struct oss_sink_messages{
     static ostream& sink(){
         return out_messages;
     }
 };
-static ofstream out_state("../simulation_results/grid/state.txt");
+static ofstream out_state("../simulation_results/pandemic_hoya/state.txt");
 struct oss_sink_state{
     static ostream& sink(){
         return out_state;
@@ -62,15 +58,23 @@ using global_time_sta=logger::logger<logger::logger_global_time, dynamic::logger
 
 using logger_top=logger::multilogger<state, log_messages, global_time_mes, global_time_sta>;
 
-int main() {
-    grid_coupled<TIME, int> test = grid_coupled<TIME, int>("test");
-    test.add_lattice_json<grid_base>(json_file);
+
+int main(int argc, char ** argv) {
+    if (argc < 2) {
+        cout << "Program used with wrong parameters. The program must be invoked as follows:";
+        cout << argv[0] << " SCENARIO_CONFIG.json [MAX_SIMULATION_TIME (default: 500)]" << endl;
+        return -1;
+    }
+
+    hoya_coupled<TIME> test = hoya_coupled<TIME>("pandemic_hoya");
+    std::string scenario_config_file_path = argv[1];
+    test.add_lattice_json(scenario_config_file_path);
     test.couple_cells();
 
-    std::shared_ptr<cadmium::dynamic::modeling::coupled<TIME>> t = std::make_shared<grid_coupled<TIME, int>>(test);
+    std::shared_ptr<cadmium::dynamic::modeling::coupled<TIME>> t = std::make_shared<hoya_coupled<TIME>>(test);
 
     cadmium::dynamic::engine::runner<TIME, logger_top> r(t, {0});
-    r.run_until(300);
+    float sim_time = (argc > 2)? atof(argv[2]) : 500;
+    r.run_until(sim_time);
     return 0;
 }
-
