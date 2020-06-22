@@ -25,43 +25,29 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CADMIUM_CELLDEVS_INERTIAL_DELAYER_HPP
-#define CADMIUM_CELLDEVS_INERTIAL_DELAYER_HPP
+#ifndef CADMIUM_CELLDEVS_DELAYER_FACTORY_HPP
+#define CADMIUM_CELLDEVS_DELAYER_FACTORY_HPP
 
-#include <limits>
-#include <iostream>
-#include <cadmium/celldevs/delayer/delayer.hpp>
+#include <string>
+#include <exception>
+#include <cadmium/celldevs/delay_buffer/delay_buffer.hpp>
+#include <cadmium/celldevs/delay_buffer/inertial.hpp>
+#include <cadmium/celldevs/delay_buffer/transport.hpp>
 
 
 namespace cadmium::celldevs {
-    /**
-     * @brief Cell-DEVS inertial output delayer.
-     * @tparam T the type used for representing time in a simulation.
-     * @tparam S the type used for representing a cell state.
-     * @see delayer/delayer.hpp
-     */
-    template <typename T, typename S>
-    class inertial_delayer : public delayer<T, S> {
-    private:
-        S state_buffer;     /// Latest (and only) state to be transmitted
-        T time;             /// Time when the state is to be transmitted (i.e., simulation clock + propagation delay)
+
+    template<typename T, typename S>
+    class delay_buffer_factory {
     public:
-        inertial_delayer() : delayer<T, S>(), state_buffer(S()), time(std::numeric_limits<T>::infinity()) { }
-
-        /// Changes stored buffer and scheduled time
-        void add_to_buffer(S state, T scheduled_time) override {
-            state_buffer = state;
-            time = scheduled_time;
+        template<typename... Args>
+        static delay_buffer<T, S>* create_delay_buffer(std::string const &delay_buffer_id, Args&&... args) {
+            if (delay_buffer_id == "inertial")
+                return new inertial_delay_buffer<T, S>(std::forward<Args>(args)...);
+            else if (delay_buffer_id == "transport")
+                return new transport_delay_buffer<T, S>(std::forward<Args>(args)...);
+            else throw std::out_of_range("Output delay buffer type not found");
         }
-
-        /// Returns simulation time at which the state is to be transmitted
-        T next_timeout() const override { return time; }
-
-        /// Returns state to be transmitted
-        S next_state() const override { return state_buffer; }
-
-        /// Sets the next scheduled time to infinity
-        void pop_buffer() override { time = std::numeric_limits<T>::infinity(); }
     };
 } //namespace cadmium::celldevs
-#endif //CADMIUM_CELLDEVS_INERTIAL_DELAYER_HPP
+#endif //CADMIUM_CELLDEVS_DELAYER_FACTORY_HPP

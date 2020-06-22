@@ -39,12 +39,11 @@
 #include <cadmium/modeling/dynamic_model.hpp>
 #include <cadmium/modeling/dynamic_model_translator.hpp>
 #include <cadmium/celldevs/cell/cell.hpp>
-#include <cadmium/celldevs/delayer/delayer_factory.hpp>
 
 
 namespace cadmium::celldevs {
     /**
-     * standard coupled Cell-DEVS model
+     * Multi-Agent coupled Cell-DEVS model
      * @tparam T the type used for representing time in a simulation.
      * @tparam C the type used for representing a cell ID.
      * @tparam S the type used for representing a cell state.
@@ -55,28 +54,53 @@ namespace cadmium::celldevs {
     template<typename T, typename C, typename S, typename V=int, typename C_HASH=std::hash<C>>
     class cells_coupled: public cadmium::dynamic::modeling::coupled<T> {
     public:
-
         template <typename X>
         using cell_unordered = std::unordered_map<C, X, C_HASH>;  // alias for unordered maps with cell IDs as key
 
         using cadmium::dynamic::modeling::coupled<T>::_models;
-
-        cell_unordered<cell_unordered<V>> neighborhoods;  /// Nested unordered map: {cell ID to: {cell ID from: Vicinity between cells}}
+    protected:
 
         /**
-         * @brief constructor method
+         * Internal method for adding vicinities to its private attribute. Users must not call to this method.
+         * @param cell_id ID of the cell. It must not be already defined in the coupled model
+         * @param vicinities unordered map {neighboring cell ID: vicinity kind}
+         */
+        void add_cell_neighborhood(C const &cell_id, cell_unordered<V> const &neighborhood) {
+            auto neighbors = std::vector<C>();
+            for (auto neighbor: neighborhood)
+                neighbors.push_back(neighbor.first);
+            add_cell_neighborhood(cell_id, neighbors);
+        }
+
+        cell_unordered<std::vector<C>> neighborhoods;  /// Unordered map: {cell ID: [Neighbor cell 1, ....]}
+
+    protected:
+/**
+ * Internal method for adding vicinities to its private attribute. Users must not call to this method.
+ * @param cell_id ID of the cell. It must not be already defined in the coupled model
+ * @param vicinities unordered map {neighboring cell ID: vicinity kind}
+ */
+void add_cell_neighborhood(C const &cell_id, std::vector<C> const &neighbors) {
+    auto it = neighborhoods.find(cell_id);
+    if (it != neighborhoods.end()) {
+        throw std::bad_typeid();
+    }
+    neighborhoods.insert({cell_id, neighbors});
+}
+
+    public:
+        /**
+         * Constructor
          * @param id ID of the Coupled DEVS model that contains the Cell-DEVS scenario
          */
         explicit cells_coupled(std::string const &id) : cadmium::dynamic::modeling::coupled<T>(id), neighborhoods() {}
 
         /**
-         * @brief adds a single Cell-DEVS cell to the coupled model
+         * Adds a single Cell-DEVS cell to the coupled model
          * @tparam CELL_MODEL model type of the cell to be included
          * @tparam Args any additional parameter required for initializing the cell model
          * @param cell_id ID of the cell. It must not be already defined in the coupled model
          * @param neighborhood unordered map {neighboring cell ID: vicinity kind}
-         * @param buffer pointer to output delayer buffer to be used by the cell.
-         * @param initial_state Initial state of the cell
          * @param args any additional parameter required for initializing the cell model
          */
         template <template <typename> typename CELL_MODEL, typename... Args>
@@ -87,23 +111,23 @@ namespace cadmium::celldevs {
         }
 
         /**
-         * adds a single Cell-DEVS cell to the coupled model. Vicinity is set to its default value
+         * Adds a single Cell-DEVS cell to the coupled model. Vicinity is set to its default value
          * @tparam CELL_MODEL model type of the cell to be included
          * @tparam Args any additional parameter required for initializing the cell model
          * @param cell_id ID of the cell. It must not be already defined in the coupled model
          * @param neighbors vector containing all the IDs of neighboring cells
-         * @param buffer pointer to output delayer buffer to be used by the cell.
-         * @param initial_state Initial state of the cell
          * @param args any additional parameter required for initializing the cell model
          */
         template <template <typename> typename CELL_MODEL, typename... Args>
         void add_cell(C const &cell_id, std::vector<C> const &neighbors, Args&&... args) {
-            cell_unordered<V> neighborhood = cell_unordered<V>();
-            for (auto const &neighbor: neighbors) {
-                neighborhood.insert({neighbor, V()});
-            }
-            add_cell<CELL_MODEL, Args...>(cell_id, neighborhood, std::forward<Args>(args)...);
+            add_cell_neighborhood(cell_id, neighbors);
+            _models.push_back(cadmium::dynamic::translate::make_dynamic_atomic_model<CELL_MODEL, T>(
+                    get_cell_name(cell_id), cell_id, neighbors, std::forward<Args>(args)...));
         }
+
+        virtual void add_cell_json(std::string const &cell_type, C const &cell_id,
+                cell_unordered<V> const &neighborhood, S initial_state, std::string const &delay_id,
+                nlohmann::json const &config) {}
 
         /**
          * Creates a Cell-DEVS scenario from a JSON file
@@ -112,52 +136,37 @@ namespace cadmium::celldevs {
          * @param file_in path to the JSON file that describes the scenario
          * @param args any additional parameter required for initializing the cell model
          */
-        template <template <typename> class CELL_MODEL>
         void add_cells_json(std::string const &file_in) {
-            delayer_factory_registry<T, S> delay_factory = delayer_factory_registry<T,S>();
             // Obtain JSON object from file
             std::ifstream i(file_in);
             nlohmann::json j;
             i >> j;
             // Read scenario configuration (default values)
             nlohmann::json s = j["scenario"];
-            S default_state = S();
-            if (s.contains("default_state"))
-                default_state = s["default_state"].get<S>();
-            V default_vicinity = V();
-            if (s.contains("default_vicinity"))
-                default_vicinity = s["default_vicinity"].get<V>();
-            auto default_delayer_id = s["default_delayer"].get<std::string>();
+            auto default_cell_type = s["default_cell_type"].get<std::string>();
+            auto default_state = (s.contains("default_state"))? s["default_state"].get<S>() : S();
+            auto default_vicinity = (s.contains("default_vicinity"))? s["default_vicinity"].get<V>() : V();
+            auto default_delay = s["default_delay"].get<std::string>();
             // Read each cell's particular configuration
             for (nlohmann::json &c: j["cells"]) {
-                C cell_id = c["cell_id"];
-                S initial_state = default_state;
-                if (c.contains("state"))
-                    initial_state = c["state"].get<S>();
-                std::string delayer_id = default_delayer_id;
-                if (c.contains("delayer"))
-                    delayer_id = c["delayer"].get<std::string>();
-                V v = default_vicinity;
-                if (c.contains("default_vicinity"))
-                    v = c["default_vicinity"].get<V>();
-                cell_unordered<V> vicinity = cell_unordered<V>();
+                auto cell_id = c["cell_id"].get<C>();
+                auto initial_state = (c.contains("state"))? c["state"].get<S>() : default_state;
+                auto delay_id = (c.contains("delay")) ? c["delay"].get<std::string>() : default_delay;
+                auto v = (c.contains("default_vicinity")) ? c["default_vicinity"].get<V>() : default_vicinity;
+                cell_unordered<V> neighborhood = cell_unordered<V>();
                 for (nlohmann::json &n: c["neighborhood"]) {
-                    C neighbor_id = n["cell_id"].get<C>();
-                    V neighbor_vicinity = v;
-                    if (n.contains("vicinity"))
-                        neighbor_vicinity = n["vicinity"].get<V>();
-                    vicinity[neighbor_id] = neighbor_vicinity;
+                    auto neighbor_id = n["cell_id"].get<C>();
+                    auto neighbor_vicinity = (n.contains("vicinity")) ? n["vicinity"].get<V>() : v;
+                    neighborhood[neighbor_id] = neighbor_vicinity;
                 }
-                delayer<T, S> *buffer = delay_factory.create_delayer(delayer_id);
+                auto cell_type = (c.contains("cell_type")) ? c["cell_type"].get<std::string>() : default_cell_type;
+                auto config = nlohmann::json();
                 if (c.contains("config")) {
-                    auto config = c["config"].get<typename CELL_MODEL<T>::config_type>();
-                    add_cell<CELL_MODEL>(cell_id, vicinity, buffer, initial_state, config);
-                } else if (s.contains("default_config")) {
-                    auto config = s["default_config"].get<typename CELL_MODEL<T>::config_type>();
-                    add_cell<CELL_MODEL>(cell_id, vicinity, buffer, initial_state, config);
-                } else {
-                    add_cell<CELL_MODEL>(cell_id, vicinity, buffer, initial_state);
+                    config = c["config"];
+                } else if (s.contains("default_config") && s["default_config"].contains(cell_type)) {
+                    config = s["default_config"][cell_type];
                 }
+                add_cell_json(cell_type, cell_id, neighborhood, initial_state, delay_id, config);
             }
         }
 
@@ -165,9 +174,8 @@ namespace cadmium::celldevs {
         void couple_cells() {
             for (auto const &neighborhood: neighborhoods) {
                 C cell_to = neighborhood.first;
-                cell_unordered<V> neighbors = neighborhood.second;
-                for (auto const &neighbor: neighbors) {
-                    C cell_from = neighbor.first;
+                std::vector<C> neighbors = neighborhood.second;
+                for (auto const &cell_from: neighborhood.second) {
                     cadmium::dynamic::modeling::coupled<T>::_ic.push_back(
                             cadmium::dynamic::translate::make_IC<
                                     typename cell_ports_def<C, S>::cell_out,
@@ -176,19 +184,6 @@ namespace cadmium::celldevs {
                     );
                 }
             }
-        }
-
-        /**
-         * @brief internal method for adding vicinities to its private attribute. Users must not call to this method.
-         * @param cell_id ID of the cell. It must not be already defined in the coupled model
-         * @param vicinities unordered map {neighboring cell ID: vicinity kind}
-         */
-        void add_cell_neighborhood(C const &cell_id, cell_unordered<V> const &vicinities_in) {
-            auto it = neighborhoods.find(cell_id);
-            if (it != neighborhoods.end()) {
-                throw std::bad_typeid();
-            }
-            neighborhoods.insert({cell_id, vicinities_in});
         }
 
         /**

@@ -113,7 +113,7 @@ foreach (exampleSrc ${Examples})
 endforeach (exampleSrc)
 
 # Cell-DEVS Examples
-FILE(GLOB Examples RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} example/celldevs/*/*_coupled.cpp)
+FILE(GLOB Examples RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} example/celldevs/*/main_*.cpp)
 foreach (exampleSrc ${Examples})
     get_filename_component(exampleName ${exampleSrc} NAME_WE)
     add_executable(${exampleName} ${exampleSrc})

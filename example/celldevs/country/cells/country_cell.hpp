@@ -25,26 +25,33 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CADMIUM_CELLDEVS_GRID_BASE_HPP
-#define CADMIUM_CELLDEVS_GRID_BASE_HPP
+#ifndef CADMIUM_COUNTRY_CELL_HPP
+#define CADMIUM_COUNTRY_CELL_HPP
 
-#include <cadmium/celldevs/cell/grid_cell.hpp>
+#include <exception>
+#include <string>
+#include <nlohmann/json.hpp>
+#include <cadmium/celldevs/cell/cell.hpp>
 
 using namespace cadmium::celldevs;
 
-template <typename T>
-class grid_base : public grid_cell<T, int, int> {
+using cell_id_t = std::string; using state_t = int;
+
+template <typename TIME>
+class country_cell: public cadmium::celldevs::cell<TIME, cell_id_t, state_t> {
 public:
-    using grid_cell<T, int, int>::cell_id;
-    using grid_cell<T, int, int>::state;
-    using grid_cell<T, int, int>::map;
+    using cadmium::celldevs::cell<TIME, cell_id_t, state_t>::cell_id;
+    using cadmium::celldevs::cell<TIME, cell_id_t, state_t>::state;
 
-    grid_base() : grid_cell<T, int, int>() { }
+    int config = 0;
 
-    grid_base(cell_position const &cell_id, int initial_state, cell_unordered<int> const &vicinities,
-              delayer<T, int> *buffer, cell_map<int, int> const &map_in):
-              grid_cell<T, int, int>(cell_id, initial_state, vicinities, buffer, map_in) {}
+    country_cell() : cadmium::celldevs::cell<TIME, cell_id_t, state_t>() {}
 
+    country_cell(const cell_id_t &cell_id, std::unordered_map<cell_id_t , state_t> const &neighborhood,
+                 state_t initial_state, std::string const &delay_id, int config_in):
+            cadmium::celldevs::cell<TIME, cell_id_t, state_t>(cell_id, neighborhood, initial_state, delay_id), config(config_in) {}
+
+    using config_type = int;  // IMPORTANT FOR THE JSON
 
     // user must define this function. It returns the next cell state and its corresponding timeout
     int local_computation() const override {
@@ -55,12 +62,7 @@ public:
         return res;
     }
     // It returns the delay to communicate cell's new state.
-    T output_delay(int const &cell_state) const override {
-        int delay = 0;
-        for (int i: cell_id)
-            delay += i;
-        return 4 - delay;
-    }
+    TIME output_delay(int const &cell_state) const override { return 1; }
 };
 
-#endif //CADMIUM_CELLDEVS_GRID_BASE_HPP
+#endif //CADMIUM_COUNTRY_CELL_HPP

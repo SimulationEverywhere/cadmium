@@ -58,110 +58,104 @@ namespace cadmium::celldevs {
         using cells_coupled<T, cell_position, S, V, seq_hash<cell_position>>::add_cell_neighborhood;
 
         /**
-         * @brief constructor method
+         * Constructor method
          * @param id ID of the Coupled DEVS model that contains the Cell-DEVS scenario
          */
         explicit grid_coupled(std::string const &id) : cells_coupled<T, cell_position, S, V, seq_hash<cell_position>>(id) {}
 
         /**
-         * @brief adds a lattice of cells to the coupled model
+         * Adds a lattice of cells to the coupled model
          * @tparam CELL_MODEL model type of the cell to be included
          * @tparam Args any additional parameter required for initializing the cell model
          * @param scenario grid-based Cell-DEVS scenario containing all the information of the lattice
-         * @param delayer_id ID identifying the type of output delayer buffer used by the cell.
+         * @param delay_id ID identifying the type of output delay_buffer buffer used by the cell.
          * @param args any additional parameter required for initializing the cell model
          */
         template <template <typename> typename CELL_MODEL, typename... Args>
-        void add_lattice(std::string const &delayer_id, grid_scenario<S, V> &scenario, Args&&... args) {
+        void add_lattice(grid_scenario<S, V> &scenario, std::string const &delay_id, Args&&... args) {
             for (auto const &cell: scenario.get_states()) {
-                delayer<T, S> *buffer = delayer_factory<T, S>::create_delayer(delayer_id);
                 cell_position cell_id = cell.first;
                 cell_map<S, V> map = scenario.get_cell_map(cell_id);
-                add_cell<CELL_MODEL, Args...>(buffer, map, std::forward<Args>(args)...);
+                add_cell<CELL_MODEL, Args...>(map, delay_id, std::forward<Args>(args)...);
             }
         }
 
         template <template <typename> typename CELL_MODEL, typename... Args>
-        void add_cell(delayer<T, S> *buffer, cell_map<S, V> &map, Args&&... args) {
+        void add_cell(cell_map<S, V> &map, std::string const &delayer_id, Args&&... args) {
             cell_position cell_id = map.location;
             S initial_state = map.state;
-            cell_unordered<V> vicinity = map.vicinity;
-            add_cell<CELL_MODEL>(cell_id, initial_state, vicinity, buffer, map, std::forward<Args>(args)...);
+            cell_unordered<V> neighborhood = map.vicinity;
+            add_cell<CELL_MODEL>(cell_id, neighborhood, initial_state, map, delayer_id, std::forward<Args>(args)...);
         }
 
-        template <template <typename> typename CELL_MODEL>
+        virtual void add_grid_cell_json(std::string const &cell_type, cell_map<S, V> &map, std::string const &delay_id,
+                                   nlohmann::json const &config) {}
+
         void add_lattice_json(std::string const &file_in) {
-            delayer_factory_registry<T, S> delay_factory = delayer_factory_registry<T,S>();
             // Obtain JSON object from file
             std::ifstream i(file_in);
             nlohmann::json j;
             i >> j;
             // Read scenario configuration (default values)
             nlohmann::json s = j["scenario"];
-            auto shape = s["shape"].get<cell_position>();
-            S default_state = S();
-            if (s.contains("default_state"))
-                default_state = s["default_state"].get<S>();
-            bool wrapped = false;
-            if (s.contains("wrapped"))
-                wrapped = s["wrapped"].get<bool>();
-            grid_scenario<S, V> scenario = grid_scenario<S, V>(shape, default_state, wrapped);
-            auto default_delayer = s["default_delayer"].get<std::string>();
-            auto default_config = typename CELL_MODEL<T>::config_type();
-            if (s.contains("default_config"))
-                default_config = s["default_config"].get<decltype(default_config)>();
+            auto default_cell_type = s["default_cell_type"].get<std::string>();
+            auto default_state = (s.contains("default_state"))? s["default_state"].get<S>() : S();
+            auto default_vicinity = (s.contains("default_vicinity"))? s["default_vicinity"].get<V>() : V();
+            auto default_delay = s["default_delay"].get<std::string>();
 
-            V default_vicinity = V();
-            if (s.contains("default_vicinity"))
-                default_vicinity = s["default_vicinity"].get<V>();
+            auto shape = s["shape"].get<cell_position>();
+            auto wrapped = s["wrapped"].get<bool>();
+            grid_scenario<S, V> scenario = grid_scenario<S, V>(shape, default_state, wrapped);
+
             for (nlohmann::json &n: s["neighborhood"]) {
                 auto neighborhood_type = n["type"].get<std::string>();
-                V v = default_vicinity;
-                if (n.contains("vicinity")) {
-                    v = n["vicinity"].get<V>();
-                }
+                auto v = (n.contains("vicinity")) ? n["vicinity"].get<V>() : default_vicinity;
                 if (neighborhood_type == "custom") {
-                    cell_unordered<V> vicinities = cell_unordered<V>();
+                    cell_unordered<V> neighborhood = cell_unordered<V>();
                     for (nlohmann::json &relative: n["neighbors"]) {
                         auto neighbor = relative.get<cell_position>();
-                        vicinities[neighbor] = v;
+                        neighborhood[neighbor] = v;
                     }
-                    scenario.add_neighborhood(vicinities);
+                    scenario.add_neighborhood(neighborhood);
                 } else {
-                    int range = 1;
-                    if (n.contains("range"))
-                        range = n["range"].get<int>();
+                    auto range = (n.contains("range")) ? n["range"].get<int>() : 1;
                     if (neighborhood_type == "von_neumann") {
                         scenario.add_neighborhood(grid_scenario<S, V>::von_neumann_neighborhood(shape.size(), range), v);
                     } else if (neighborhood_type == "moore") {
                         scenario.add_neighborhood(grid_scenario<S, V>::moore_neighborhood(shape.size(), range), v);
+                    } else {
+                        throw std::bad_typeid();
                     }
-                }
-            }
-            for (nlohmann::json &c: j["cells"]) {
-                auto cell = c["cell_id"].get<cell_position>();
-                if (c.contains("state")) {
-                    S initial_state = c["state"].get<S>();
-                    scenario.set_initial_state(cell, initial_state);
                 }
             }
             for (auto const &cell: scenario.get_states()) {
                 cell_position cell_id = cell.first;
                 cell_map<S, V> map = scenario.get_cell_map(cell_id);
-                std::string delayer_id = default_delayer;
-                typename CELL_MODEL<T>::config_type cell_config = default_config;
+
+                std::string delay_id = default_delay;
+                std::string cell_type = default_cell_type;
+                auto cell_config = nlohmann::json();
+                bool special = false;
                 for (nlohmann::json &c: j["cells"]) {
                     auto c_id = c["cell_id"].get<cell_position>();
                     if (cell_id == c_id) {
-                        if (c.contains("delayer"))
-                            delayer_id = c["delayer"].get<std::string>();
+                        special = true;
+                        if (c.contains("state"))
+                            map.state = c["state"].get<S>();
+                        if (c.contains("cell_type"))
+                            cell_type = c["cell_type"].get<std::string>();
+                        if (c.contains("delay"))
+                            delay_id = c["delay"].get<std::string>();
                         if (c.contains("config"))
-                            cell_config = c["config"].get<decltype(cell_config)>();
+                            cell_config = c["config"];
+                        else if (s.contains("default_config") && s["default_config"].contains(cell_type))
+                            cell_config = s["default_config"][cell_type];
                         break;
                     }
                 }
-                delayer<T, S> *buffer = delay_factory.create_delayer(delayer_id);
-                add_cell<CELL_MODEL>(cell_id, map.vicinity, buffer, map.state, map, cell_config);
+                if (!special && s.contains("default_config") && s["default_config"].contains(cell_type))
+                    cell_config = s["default_config"][cell_type];
+                add_grid_cell_json(cell_type, map, delay_id, cell_config);
             }
         }
     };

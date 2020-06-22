@@ -37,12 +37,12 @@
 #include <unordered_map>
 #include <cadmium/modeling/message_bag.hpp>
 #include <cadmium/celldevs/cell/msg.hpp>
-#include <cadmium/celldevs/delayer/delayer.hpp>
+#include <cadmium/celldevs/delay_buffer/delay_buffer_factory.hpp>
 
 
 namespace cadmium::celldevs {
     /**
-     * @brief Abstract DEVS atomic model for defining cells in Cell-DEVS scenarios.
+     * Abstract DEVS atomic model for defining cells in Cell-DEVS scenarios.
      * @tparam T the type used for representing time in a simulation.
      * @tparam C the type used for representing a cell ID.
      * @tparam S the type used for representing a cell state.
@@ -64,7 +64,7 @@ namespace cadmium::celldevs {
         std::vector<C> neighbors;                   /// Neighboring cells' IDs
         T simulation_clock;                         /// Simulation clock (i.e., current time during a simulation)
         T next_internal;                            /// Time remaining until next internal state transition
-        delayer<T, S> *buffer;                      /// output message buffer
+        delay_buffer<T, S> *buffer;                 /// output message buffer
 
         struct state_type {
             S current_state;                        /// Cell's internal state
@@ -74,18 +74,22 @@ namespace cadmium::celldevs {
         state_type state;
 
         /// A default constructor is required for compiling issues. However, it is not valid and always throws exception
-        cell(){ throw std::exception(); }
+        cell(){ throw std::invalid_argument("Not enough arguments for initializing a cell"); }
 
         virtual ~cell() = default;
 
         /**
-         * @brief Creates a new cell with neighbors which vicinity is explicitly specified.
+         * Creates a new cell with neighbors which vicinity is explicitly specified.
+         * @tparam Args additional arguments for initializing the delay buffer
          * @param id ID of the cell to be created.
          * @param neighborhood unordered map which key is a neighboring cell and its value corresponds to the vicinity
-         * @param buffer_in pointer to the output delayer object of the cell.
          * @param initial_state initial state of the cell.
+         * @param output_delay name of the output delay buffer.
+         * @param args additional arguments for initializing the output delay buffer.
          */
-        cell(C const &id, cell_unordered<V> const &neighborhood, delayer<T, S> *buffer_in, S initial_state) {
+        template<typename ... Args>
+        cell(C const &id, cell_unordered<V> const &neighborhood, S initial_state,
+                std::string const &output_delay, Args&&... args) {
             cell_id = id;
             simulation_clock = T();
             next_internal = T();
@@ -95,23 +99,24 @@ namespace cadmium::celldevs {
                 state.neighbors_vicinity[entry.first] = entry.second;
                 state.neighbors_state[entry.first] = S();
             }
-            buffer = buffer_in;
+            buffer = delay_buffer_factory<T, S>::create_delay_buffer(output_delay, std::forward<Args>(args)...);
             buffer->add_to_buffer(initial_state, T());  // At t = 0, every cell communicates its state to its neighbors
         }
 
         /**
-         * @brief Creates a new cell with neighbors which vicinity is explicitly specified.
+         * Creates a new cell with neighbors which vicinity is explicitly specified.
          * @param id ID of the cell to be created.
-         * @param neighbors vector of IDs of every cell that conforms the neighborhood
-         * @param buffer_in pointer to the output delayer object of the cell.
-         * @param initial_state initial state of the cell.
+         * @param neighbors vector containing neighboring cells. The vicinity is set to its default value.
+         * @param output_delay name of the output delay buffer.
+         * @param args additional arguments for initializing the output delay buffer.
          */
-        cell(C const &id, std::vector<C> const &neighbors, delayer<T, S> *buffer_in, S initial_state) {
+        template<typename ... Args>
+        cell(C const &id, std::vector<C> const &neighbors, S initial_state,
+                std::string const &output_delay, Args&&... args) {
             cell_unordered<V> neighborhood = cell_unordered<V>();
-            for (auto const &neighbor: neighbors) {
-                neighborhood.insert({neighbor, V()});
-            }
-            new (this) cell(id, neighborhood, buffer_in, initial_state);
+            for (auto const &neighbor: neighborhood)
+                neighborhood[neighbor] = V();
+            new (this) cell(id, neighborhood, initial_state, output_delay, std::forward<Args>(args)...);
         }
 
         /************** USER-DEFINED METHODS **************/
@@ -121,7 +126,7 @@ namespace cadmium::celldevs {
         virtual T output_delay(S const &cell_state) const { return std::numeric_limits<T>::infinity(); }
 
         /****************** DEVS METHODS ******************/
-        /// @brief the internal transition function clears output delayer buffer and updates clock and next time advance.
+        /// internal transition function clears output delay_buffer buffer and updates clock and next time advance.
         void internal_transition() {
             buffer->pop_buffer();
             simulation_clock += time_advance();
@@ -130,8 +135,8 @@ namespace cadmium::celldevs {
 
         /**
          * External transition function.
-         * @brief It updates clock and next internal event. Then, it refreshes neighbors' state and computes next cell state.
-         *        if the new cell state is different to the current state, it adds the new state to the output delayer buffer.
+         * It updates clock and next internal event. Then, it refreshes neighbors' state and computes next cell state.
+         * if the new cell state is different to the current state, it adds the new state to the output delay buffer.
          * @param e elapsed time from the last event.
          * @param mbs message bag containing new neighbors' state messages.
          */
@@ -154,6 +159,7 @@ namespace cadmium::celldevs {
                 buffer->add_to_buffer(next, simulation_clock + output_delay(next));
                 next_internal = buffer->next_timeout() - simulation_clock;
             }
+            // State is always overwritten (it may not be different enough to send it but different after all)
             state.current_state = next;
         }
 
@@ -166,7 +172,7 @@ namespace cadmium::celldevs {
         /// Time advance function.
         T time_advance() const { return next_internal; }
 
-        /// @return the next message to be transmitted from the output delayer buffer
+        /// @return the next message to be transmitted from the output delay_buffer buffer
         typename cadmium::make_message_bags<output_ports>::type output() const {
             typename cadmium::make_message_bags<output_ports>::type bag;
             S public_state = buffer->next_state();
