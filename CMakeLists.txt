@@ -4,7 +4,7 @@ project(Cadmium)
 # The version number.
 set(Cadmium_VERSION_MAJOR 0)
 set(Cadmium_VERSION_MINOR 2)
-set(Cadmium_VERSION_PATCH 4)
+set(Cadmium_VERSION_PATCH 5)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake-modules")
 
