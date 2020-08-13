@@ -30,7 +30,7 @@
 
 #include <nlohmann/json.hpp>
 #include <cadmium/celldevs/coupled/grid_coupled.hpp>
-#include "hoya_cell.hpp"
+#include "cells/hoya_cell.hpp"
 
 template <typename T>
 class hoya_coupled : public cadmium::celldevs::grid_coupled<T, sir, mc> {
