@@ -73,17 +73,17 @@ namespace cadmium::celldevs {
         cell_map(cell_position const &shape_in, cell_position const &location_in,
                  S const &state_in, cell_unordered<V> const &vicinity_in, bool wrapped_in);
 
-        int manhattan_distance(cell_position const &a);
+        int manhattan_distance(cell_position const &a) const;
 
-        int chebyshev_distance(cell_position const &a);
+        int chebyshev_distance(cell_position const &a) const;
 
-        double n_norm_distance(cell_position const &a, unsigned int n);
+        double n_norm_distance(cell_position const &a, unsigned int n) const;
 
-        double euclidean_distance(cell_position const &a);
+        double euclidean_distance(cell_position const &a) const;
 
-        cell_position neighbor(cell_position const &relative);
+        cell_position neighbor(cell_position const &relative) const;
 
-        cell_position relative(cell_position const &neighbor);
+        cell_position relative(cell_position const &neighbor) const;
     };
 
 // Helper public class for doing operations regarding the cell space of the scenario.
@@ -436,32 +436,32 @@ namespace cadmium::celldevs {
     }
 
     template<typename S, typename V>
-    int cell_map<S, V>::manhattan_distance(cell_position const &a) {
+    int cell_map<S, V>::manhattan_distance(cell_position const &a) const {
         return grid_scenario<S, V>::manhattan_distance(location, a, shape, wrapped);
     }
 
     template<typename S, typename V>
-    int cell_map<S, V>::chebyshev_distance(cell_position const &a) {
+    int cell_map<S, V>::chebyshev_distance(cell_position const &a) const {
         return grid_scenario<S, V>::chebyshev_distance(location, a, shape, wrapped);
     }
 
     template<typename S, typename V>
-    double cell_map<S, V>::n_norm_distance(cell_position const &a, unsigned int n) {
+    double cell_map<S, V>::n_norm_distance(cell_position const &a, unsigned int n) const {
         return grid_scenario<S, V>::n_norm_distance(location, a, n, shape, wrapped);
     }
 
     template<typename S, typename V>
-    double cell_map<S, V>::euclidean_distance(cell_position const &a) {
+    double cell_map<S, V>::euclidean_distance(cell_position const &a) const {
         return n_norm_distance(a, 2);
     }
 
     template<typename S, typename V>
-    cell_position cell_map<S, V>::neighbor(const cell_position &relative) {
+    cell_position cell_map<S, V>::neighbor(const cell_position &relative) const {
         return grid_scenario<S, V>::destination_cell(location, relative, shape, wrapped);
     }
 
     template<typename S, typename V>
-    cell_position cell_map<S, V>::relative(const cell_position &neighbor) {
+    cell_position cell_map<S, V>::relative(const cell_position &neighbor) const {
         return grid_scenario<S, V>::distance_vector(location, neighbor, shape, wrapped);
     }
 
