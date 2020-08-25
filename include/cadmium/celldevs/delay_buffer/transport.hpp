@@ -34,6 +34,7 @@
 #include <queue>
 #include <tuple>
 #include <vector>
+#include <unordered_map>
 #include <cadmium/celldevs//delay_buffer/delay_buffer.hpp>
 
 
@@ -47,26 +48,41 @@ namespace cadmium::celldevs {
     template <typename T, typename S>
     class transport_delay_buffer : public delay_buffer<T, S> {
     private:
-        /// Queue with pairs <scheduled time, state to transmit>. Messages are sorted depending on the scheduled time
-        std::priority_queue<std::pair<T, S>, std::vector<std::pair<T, S>>, std::greater<std::pair<T, S>>> delayed_outputs;
+        std::priority_queue<T, std::vector<T>, std::greater<T>> timeline;  /// Queue with times with scheduled events
+        std::unordered_map<T, std::vector<S>> delayed_outputs;  /// Unordered map {scheduled time: [states to transmit]}
     public:
-        transport_delay_buffer() : delay_buffer<T, S>() {}
+        transport_delay_buffer() : delay_buffer<T, S>(), timeline(), delayed_outputs() {}
 
-        /// Pushes new state to the priority queue
+        /// Pushes new state to the queue
         void add_to_buffer(S state, T scheduled_time) override {
-            delayed_outputs.push(std::make_pair(scheduled_time, state));
+            // If no previous events are scheduled at the desired time, we add the time to the timeline
+            auto event_pointer = delayed_outputs.find(scheduled_time);
+            if (event_pointer == delayed_outputs.end()) {
+                timeline.push(scheduled_time);
+                delayed_outputs.insert({{scheduled_time, {state}}});
+            // Otherwise, we add the new state to the end of its corresponding states vector
+            } else {
+                event_pointer->second.push_back(state);
+            }
         }
 
         /// If queue is empty, returns infinity. Otherwise, returns the scheduled time of the top element
         T next_timeout() const override {
-            return (delayed_outputs.empty())? std::numeric_limits<T>::infinity() : delayed_outputs.top().first;
+            return (timeline.empty())? std::numeric_limits<T>::infinity() : timeline.top();
         }
 
         /// Returns next state to be scheduled. If priority queue is empty, it causes undefined behavior
-        S next_state() const override { return delayed_outputs.top().second; }
+        std::vector<S> next_states() const override {
+            return (timeline.empty())? std::vector<S>() : delayed_outputs.at(timeline.top());
+        }
 
         /// Removes top element of the priority queue
-        void pop_buffer() override { delayed_outputs.pop(); }
+        void pop_buffer() override {
+            if (!timeline.empty()) {
+                delayed_outputs.erase(timeline.top());
+                timeline.pop();
+            }
+        }
     };
 } //namespace cadmium::celldevs
 #endif //CADMIUM_CELLDEVS_TRANSPORT_DELAY_BUFFER_HPP

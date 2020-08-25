@@ -29,6 +29,7 @@
 #define CADMIUM_CELLDEVS_INERTIAL_DELAY_BUFFER_HPP
 
 #include <limits>
+#include <vector>
 #include <iostream>
 #include <cadmium/celldevs//delay_buffer/delay_buffer.hpp>
 
@@ -43,14 +44,14 @@ namespace cadmium::celldevs {
     template <typename T, typename S>
     class inertial_delay_buffer : public delay_buffer<T, S> {
     private:
-        S state_buffer;     /// Latest (and only) state to be transmitted
-        T time;             /// Time when the state is to be transmitted (i.e., simulation clock + propagation delay)
+        std::vector<S> state_buffer;  /// Latest (and only) state to be transmitted
+        T time;  /// Time when the state is to be transmitted (i.e., simulation clock + propagation delay)
     public:
-        inertial_delay_buffer() : delay_buffer<T, S>(), state_buffer(S()), time(std::numeric_limits<T>::infinity()) {}
+        inertial_delay_buffer() : delay_buffer<T, S>(), state_buffer(), time(std::numeric_limits<T>::infinity()) {}
 
         /// Changes stored state and scheduled time
         void add_to_buffer(S state, T scheduled_time) override {
-            state_buffer = state;
+            state_buffer = {state};
             time = scheduled_time;
         }
 
@@ -58,10 +59,13 @@ namespace cadmium::celldevs {
         T next_timeout() const override { return time; }
 
         /// Returns state to be transmitted
-        S next_state() const override { return state_buffer; }
+        std::vector<S> next_states() const override { return state_buffer; }
 
         /// Sets the next scheduled time to infinity
-        void pop_buffer() override { time = std::numeric_limits<T>::infinity(); }
+        void pop_buffer() override {
+            state_buffer.clear();
+            time = std::numeric_limits<T>::infinity();
+        }
     };
 } //namespace cadmium::celldevs
 #endif //CADMIUM_CELLDEVS_INERTIAL_DELAY_BUFFER_HPP

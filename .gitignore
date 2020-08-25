@@ -64,3 +64,6 @@ coverage.info
 
 # Cell-DEVS examples log files
 example/celldevs/simulation_results/
+
+# JSON
+json/
