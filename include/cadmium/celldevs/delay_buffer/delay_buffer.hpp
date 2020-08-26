@@ -29,8 +29,6 @@
 #define CADMIUM_CELLDEVS_DELAY_BUFFER_HPP
 
 #include <limits>
-#include <vector>
-
 
 namespace cadmium::celldevs {
     /**
@@ -53,11 +51,12 @@ namespace cadmium::celldevs {
         ///@return clock time for the next scheduled output (i.e., clock + time advance).
         virtual T next_timeout() const { return std::numeric_limits<T>::infinity(); };
 
-        /// @return next cell state(s) to be transmitted.
-        virtual std::vector<S> next_states() const { return {}; };
+        /// @return next cell state to be transmitted.
+        virtual S next_state() const { return S(); };
 
         /// Removes from buffer the next scheduled state transmission.
         virtual void pop_buffer() {};
     };
 } //namespace cadmium::celldevs
+
 #endif //CADMIUM_CELLDEVS_DELAY_BUFFER_HPP

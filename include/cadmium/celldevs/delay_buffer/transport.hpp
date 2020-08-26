@@ -48,22 +48,19 @@ namespace cadmium::celldevs {
     template <typename T, typename S>
     class transport_delay_buffer : public delay_buffer<T, S> {
     private:
+        S last_state;  /// Latest transmitted state
         std::priority_queue<T, std::vector<T>, std::greater<T>> timeline;  /// Queue with times with scheduled events
-        std::unordered_map<T, std::vector<S>> delayed_outputs;  /// Unordered map {scheduled time: [states to transmit]}
+        std::unordered_map<T, S> delayed_outputs;  /// Unordered map {scheduled time: state to transmit}
     public:
-        transport_delay_buffer() : delay_buffer<T, S>(), timeline(), delayed_outputs() {}
+        transport_delay_buffer() : delay_buffer<T, S>(), last_state(), timeline(), delayed_outputs() {}
 
         /// Pushes new state to the queue
         void add_to_buffer(S state, T scheduled_time) override {
             // If no previous events are scheduled at the desired time, we add the time to the timeline
-            auto event_pointer = delayed_outputs.find(scheduled_time);
-            if (event_pointer == delayed_outputs.end()) {
+            if (delayed_outputs.find(scheduled_time) == delayed_outputs.end())
                 timeline.push(scheduled_time);
-                delayed_outputs.insert({{scheduled_time, {state}}});
-            // Otherwise, we add the new state to the end of its corresponding states vector
-            } else {
-                event_pointer->second.push_back(state);
-            }
+            // We add the new state to the delayed outputs buffer (and override previous state if collision)
+            delayed_outputs.insert_or_assign(scheduled_time, state);
         }
 
         /// If queue is empty, returns infinity. Otherwise, returns the scheduled time of the top element
@@ -71,16 +68,17 @@ namespace cadmium::celldevs {
             return (timeline.empty())? std::numeric_limits<T>::infinity() : timeline.top();
         }
 
-        /// Returns next state to be scheduled. If priority queue is empty, it causes undefined behavior
-        std::vector<S> next_states() const override {
-            return (timeline.empty())? std::vector<S>() : delayed_outputs.at(timeline.top());
+        /// Returns next state to be scheduled. If priority queue is empty, it returns latest transmitted state
+        S next_state() const override {
+            return (timeline.empty())? last_state : delayed_outputs.at(timeline.top());
         }
 
         /// Removes top element of the priority queue
         void pop_buffer() override {
             if (!timeline.empty()) {
-                delayed_outputs.erase(timeline.top());
-                timeline.pop();
+                last_state = delayed_outputs.at(timeline.top());  // Store latest valid output in last_state
+                delayed_outputs.erase(timeline.top());  // Remove latest valid output from the output buffer...
+                timeline.pop();  // .. and from the timeline
             }
         }
     };
