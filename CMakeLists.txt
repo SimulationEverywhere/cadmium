@@ -3,8 +3,8 @@ set(CMAKE_OSX_DEPLOYMENT_TARGET "10.14" CACHE STRING "Minimum OS X deployment ve
 project(Cadmium)
 # The version number.
 set(Cadmium_VERSION_MAJOR 0)
-set(Cadmium_VERSION_MINOR 3)
-set(Cadmium_VERSION_PATCH 0)
+set(Cadmium_VERSION_MINOR 2)
+set(Cadmium_VERSION_PATCH 5)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake-modules")
 
