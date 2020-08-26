@@ -174,12 +174,10 @@ namespace cadmium::celldevs {
 
         /// @return the next message to be transmitted from the output delay_buffer buffer
         typename cadmium::make_message_bags<output_ports>::type output() const {
-            typename cadmium::make_message_bags<output_ports>::type bag;
-            std::vector<S> public_states = buffer->next_states();
             std::vector<cell_state_message<C, S>> bag_port_out = std::vector<cell_state_message<C, S>>();
-            for (S public_state: public_states)
-                bag_port_out.push_back(cell_state_message<C, S>(cell_id, public_state));
+            bag_port_out.push_back(cell_state_message<C, S>(cell_id, buffer->next_state()));
 
+            typename cadmium::make_message_bags<output_ports>::type bag;
             cadmium::get_messages<typename cell_ports_def<C, S>::cell_out>(bag) = bag_port_out;
             return bag;
         }
@@ -197,4 +195,5 @@ namespace cadmium::celldevs {
         }
     };
 } //namespace cadmium::celldevs
+
 #endif //CADMIUM_CELLDEVS_CELL_HPP

@@ -35,26 +35,25 @@ BOOST_AUTO_TEST_CASE(inertial) {
     auto buffer = delay_buffer_factory<float, int>::create_delay_buffer("inertial");
 
     // Check initial state
-    BOOST_CHECK_EQUAL(buffer->next_states().size(), 0);
+    BOOST_CHECK_EQUAL(buffer->next_state(), 0);
     BOOST_CHECK_EQUAL(buffer->next_timeout(), std::numeric_limits<float>::infinity());
 
     // Pop buffer (should not have any effect)
     buffer->pop_buffer();
-    BOOST_CHECK_EQUAL(buffer->next_states().size(), 0);
+    BOOST_CHECK_EQUAL(buffer->next_state(), 0);
     BOOST_CHECK_EQUAL(buffer->next_timeout(), std::numeric_limits<float>::infinity());
 
     // Add new elements to buffer
-    for (int i = 0; i < 10; i++) {
+    int n = 10;
+    for (int i = 1; i <= n; i++) {
         buffer->add_to_buffer(i, i * 4);
-        auto next_states = buffer->next_states();
-        BOOST_CHECK_EQUAL(next_states.size(), 1);
-        BOOST_CHECK_EQUAL(next_states[0], i);
+        BOOST_CHECK_EQUAL(buffer->next_state(), i);
         BOOST_CHECK_EQUAL(buffer->next_timeout(), i * 4);
     }
 
     // Pop buffer
     buffer->pop_buffer();
-    BOOST_CHECK_EQUAL(buffer->next_states().size(), 0);
+    BOOST_CHECK_EQUAL(buffer->next_state(), n);
     BOOST_CHECK_EQUAL(buffer->next_timeout(), std::numeric_limits<float>::infinity());
 }
 
@@ -62,55 +61,65 @@ BOOST_AUTO_TEST_CASE(transport) {
     auto buffer = delay_buffer_factory<float, int>::create_delay_buffer("transport");
 
     // Check initial state
-    BOOST_CHECK_EQUAL(buffer->next_states().size(), 0);
+    BOOST_CHECK_EQUAL(buffer->next_state(), 0);
     BOOST_CHECK_EQUAL(buffer->next_timeout(), std::numeric_limits<float>::infinity());
 
     // Pop buffer (should not have any effect)
     buffer->pop_buffer();
-    BOOST_CHECK_EQUAL(buffer->next_states().size(), 0);
+    BOOST_CHECK_EQUAL(buffer->next_state(), 0);
     BOOST_CHECK_EQUAL(buffer->next_timeout(), std::numeric_limits<float>::infinity());
 
     // Add new elements to buffer
     int n = 10;
-    for (int i = 0; i < n; i++) {
+    for (int i = 1; i <= n; i++) {
         buffer->add_to_buffer(i, i * 4);
-        auto next_states = buffer->next_states();
-        BOOST_CHECK_EQUAL(next_states.size(), 1);
-        BOOST_CHECK_EQUAL(next_states[0], 0);
-        BOOST_CHECK_EQUAL(buffer->next_timeout(), 0);
+        BOOST_CHECK_EQUAL(buffer->next_state(), 1);
+        BOOST_CHECK_EQUAL(buffer->next_timeout(), 4);
     }
 
     // Pop (gradually) all elements from buffer
-    for (int i = 0; i < n; i++) {
+    for (int i = 1; i <= n; i++) {
         // Pop buffer
-        BOOST_CHECK_EQUAL(buffer->next_states().size(), 1);
+        BOOST_CHECK_EQUAL(buffer->next_state(), i);
         BOOST_CHECK_EQUAL(buffer->next_timeout(), i * 4);
         buffer->pop_buffer();
     }
-    BOOST_CHECK_EQUAL(buffer->next_states().size(), 0);
+    BOOST_CHECK_EQUAL(buffer->next_state(), n);
     BOOST_CHECK_EQUAL(buffer->next_timeout(), std::numeric_limits<float>::infinity());
 
     // Add multiple new elements to buffer
-    for (int i = 0; i < n; i++) {
-        for (int j = 0; j <= i; j++) {
+    for (int i = 1; i <= n; i++) {
+        for (int j = 1; j <= i; j++) {
             buffer->add_to_buffer(j, i * 4);
-            auto next_states = buffer->next_states();
-            BOOST_CHECK_EQUAL(next_states.size(), 1);
-            BOOST_CHECK_EQUAL(next_states[0], 0);
-            BOOST_CHECK_EQUAL(buffer->next_timeout(), 0);
+            BOOST_CHECK_EQUAL(buffer->next_state(), 1);
+            BOOST_CHECK_EQUAL(buffer->next_timeout(), 4);
         }
     }
 
     // Pop (gradually) all elements from buffer
-    for (int i = 0; i < n; i++) {
-        auto next_states = buffer->next_states();
-        BOOST_CHECK_EQUAL(next_states.size(), i + 1);
-        for (int j = 0; j <= i; j++) {
-            BOOST_CHECK_EQUAL(next_states[j], j);
-        }
+    for (int i = 1; i <= n; i++) {
+        BOOST_CHECK_EQUAL(buffer->next_state(), i);
         BOOST_CHECK_EQUAL(buffer->next_timeout(), i * 4);
         buffer->pop_buffer();
     }
-    BOOST_CHECK_EQUAL(buffer->next_states().size(), 0);
+    BOOST_CHECK_EQUAL(buffer->next_state(), n);
+    BOOST_CHECK_EQUAL(buffer->next_timeout(), std::numeric_limits<float>::infinity());
+
+    // Add multiple new elements to buffer (in inverse time order
+    for (int i = n; i >= 1; i--) {
+        for (int j = 1; j <= i; j++) {
+            buffer->add_to_buffer(j, i * 4);
+            BOOST_CHECK_EQUAL(buffer->next_state(), j);
+            BOOST_CHECK_EQUAL(buffer->next_timeout(), i * 4);
+        }
+    }
+
+    // Pop (gradually) all elements from buffer
+    for (int i = 1; i <= n; i++) {
+        BOOST_CHECK_EQUAL(buffer->next_state(), i);
+        BOOST_CHECK_EQUAL(buffer->next_timeout(), i * 4);
+        buffer->pop_buffer();
+    }
+    BOOST_CHECK_EQUAL(buffer->next_state(), n);
     BOOST_CHECK_EQUAL(buffer->next_timeout(), std::numeric_limits<float>::infinity());
 }
