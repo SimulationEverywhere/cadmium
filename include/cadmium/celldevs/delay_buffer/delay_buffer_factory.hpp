@@ -33,6 +33,7 @@
 #include <cadmium/celldevs/delay_buffer/delay_buffer.hpp>
 #include <cadmium/celldevs/delay_buffer/inertial.hpp>
 #include <cadmium/celldevs/delay_buffer/transport.hpp>
+#include <cadmium/celldevs/delay_buffer/hybrid.hpp>
 
 
 namespace cadmium::celldevs {
@@ -46,6 +47,8 @@ namespace cadmium::celldevs {
                 return new inertial_delay_buffer<T, S>(std::forward<Args>(args)...);
             else if (delay_buffer_id == "transport")
                 return new transport_delay_buffer<T, S>(std::forward<Args>(args)...);
+            else if (delay_buffer_id == "hybrid")
+                return new hybrid_delay_buffer<T, S>(std::forward<Args>(args)...);
             else throw std::out_of_range("Output delay buffer type not found");
         }
     };

@@ -25,59 +25,56 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CADMIUM_CELLDEVS_TRANSPORT_DELAY_BUFFER_HPP
-#define CADMIUM_CELLDEVS_TRANSPORT_DELAY_BUFFER_HPP
+#ifndef CADMIUM_CELLDEVS_HYBRID_DELAY_BUFFER_HPP
+#define CADMIUM_CELLDEVS_HYBRID_DELAY_BUFFER_HPP
 
 #include <limits>
-#include <queue>
-#include <vector>
-#include <unordered_map>
+#include <utility>
+#include <deque>
 #include <cadmium/celldevs//delay_buffer/delay_buffer.hpp>
-
 
 namespace cadmium::celldevs {
     /**
-     * Cell-DEVS transport output delay buffer.
+     * Cell-DEVS hybrid output delay buffer.
      * @tparam T the type used for representing time in a simulation.
      * @tparam S the type used for representing a cell state.
      * @see delay_buffer/delay_buffer.hpp
      */
     template <typename T, typename S>
-    class transport_delay_buffer : public delay_buffer<T, S> {
+    class hybrid_delay_buffer : public delay_buffer<T, S> {
     private:
-        S last_state;  /// Latest transmitted state
-        std::priority_queue<T, std::vector<T>, std::greater<T>> timeline;  /// Queue with times with scheduled events
-        std::unordered_map<T, S> delayed_outputs;  /// Unordered map {scheduled time: state to transmit}
+        S last_state;                                 /// Latest transmitted state
+        std::deque<std::pair<T, S>> delayed_outputs;  /// Double-ended queue with pairs <time, state>
     public:
-        transport_delay_buffer() : delay_buffer<T, S>(), last_state(), timeline(), delayed_outputs() {}
+        hybrid_delay_buffer() : delay_buffer<T, S>(), last_state(), delayed_outputs() {}
 
         /// Pushes new state to the queue
         void add_to_buffer(S state, T scheduled_time) override {
-            // If no previous events are scheduled at the desired time, we add the time to the timeline
-            if (delayed_outputs.find(scheduled_time) == delayed_outputs.end())
-                timeline.push(scheduled_time);
-            // We add the new state to the delayed outputs buffer (and override previous state if collision)
-            delayed_outputs.insert_or_assign(scheduled_time, state);
+            // We remove all the events scheduled after the new state change to ensure that the new element is the last
+            while (!delayed_outputs.empty() && delayed_outputs.back().first >= scheduled_time)
+                delayed_outputs.pop_back();
+            // We add the new event at the end of the queue
+            delayed_outputs.push_back({scheduled_time, state});
         }
 
         /// If queue is empty, returns infinity. Otherwise, returns the scheduled time of the top element
         T next_timeout() const override {
-            return (timeline.empty())? std::numeric_limits<T>::infinity() : timeline.top();
+            return (delayed_outputs.empty())? std::numeric_limits<T>::infinity() : delayed_outputs.front().first;
         }
 
-        /// Returns next state to be scheduled. If priority queue is empty, it returns latest transmitted state
+        /// Returns next state to be scheduled. If queue is empty, it returns latest transmitted state
         S next_state() const override {
-            return (timeline.empty())? last_state : delayed_outputs.at(timeline.top());
+            return (delayed_outputs.empty())? last_state : delayed_outputs.front().second;
         }
 
         /// Removes top element of the priority queue
         void pop_buffer() override {
-            if (!timeline.empty()) {
-                last_state = delayed_outputs.at(timeline.top());  // Store latest valid output in last_state
-                delayed_outputs.erase(timeline.top());  // Remove latest valid output from the output buffer...
-                timeline.pop();  // .. and from the timeline
+            if (!delayed_outputs.empty()) {
+                last_state = delayed_outputs.front().second;
+                delayed_outputs.pop_front();
             }
         }
     };
 } //namespace cadmium::celldevs
-#endif //CADMIUM_CELLDEVS_TRANSPORT_DELAY_BUFFER_HPP
+
+#endif //CADMIUM_CELLDEVS_HYBRID_DELAY_BUFFER_HPP

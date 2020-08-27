@@ -29,8 +29,6 @@
 #define CADMIUM_CELLDEVS_INERTIAL_DELAY_BUFFER_HPP
 
 #include <limits>
-#include <vector>
-#include <iostream>
 #include <cadmium/celldevs//delay_buffer/delay_buffer.hpp>
 
 
