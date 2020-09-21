@@ -76,7 +76,7 @@ namespace cadmium {
                     _threadpool = nullptr;
                     #endif //CADMIUM_EXECUTE_CONCURRENT
 
-                    std::map<std::string, std::shared_ptr<engine<TIME>>> enginges_by_id;
+                    std::map<std::string, std::shared_ptr<engine<TIME>>> engines_by_id;
 
                     for(auto& m : coupled_model->_models) {
                         std::shared_ptr<cadmium::dynamic::modeling::coupled<TIME>> m_coupled = std::dynamic_pointer_cast<cadmium::dynamic::modeling::coupled<TIME>>(m);
@@ -96,76 +96,44 @@ namespace cadmium {
                             _subcoordinators.push_back(coordinator);
                         }
 
-                        enginges_by_id.insert(std::make_pair(_subcoordinators.back()->get_model_id(), _subcoordinators.back()));
+                        engines_by_id.insert(std::make_pair(_subcoordinators.back()->get_model_id(), _subcoordinators.back()));
                     }
 
                     // Generates structures for direct access to external couplings to not iterate all coordinators each time.
                     bool found;
                     for (const auto& eoc : coupled_model->_eoc) {
-                        if (enginges_by_id.find(eoc._from) == enginges_by_id.end()) {
+                        if (engines_by_id.find(eoc._from) == engines_by_id.end()) {
                             throw std::domain_error("External output coupling from invalid model");
                         }
 
-                        found = false;
-                        for (auto& coupling : _external_output_couplings) {
-                            if (coupling.first->get_model_id() == eoc._from) {
-                                coupling.second.push_back(eoc._link);
-                                found = true;
-                                break;
-                            }
-                        }
-
-                        if (!found) {
-                            cadmium::dynamic::engine::external_coupling<TIME> new_eoc;
-                            new_eoc.first = enginges_by_id.at(eoc._from);
-                            new_eoc.second.push_back(eoc._link);
-                            _external_output_couplings.push_back(new_eoc);
-                        }
+                        cadmium::dynamic::engine::external_coupling<TIME> new_eoc;
+                        new_eoc.first = engines_by_id.at(eoc._from);
+                        new_eoc.second.push_back(eoc._link);
+                        _external_output_couplings.push_back(new_eoc);
                     }
 
                     for (const auto& eic : coupled_model->_eic) {
-                        if (enginges_by_id.find(eic._to) == enginges_by_id.end()) {
+                        if (engines_by_id.find(eic._to) == engines_by_id.end()) {
                             throw std::domain_error("External input coupling to invalid model");
                         }
 
-                        found = false;
-                        for (auto& coupling : _external_input_couplings) {
-                            if (coupling.first->get_model_id() == eic._to) {
-                                coupling.second.push_back(eic._link);
-                                found = true;
-                                break;
-                            }
-                        }
+                        cadmium::dynamic::engine::external_coupling<TIME> new_eic;
+                        new_eic.first = engines_by_id.at(eic._to);
+                        new_eic.second.push_back(eic._link);
+                        _external_input_couplings.push_back(new_eic);
 
-                        if (!found) {
-                            cadmium::dynamic::engine::external_coupling<TIME> new_eic;
-                            new_eic.first = enginges_by_id.at(eic._to);
-                            new_eic.second.push_back(eic._link);
-                            _external_input_couplings.push_back(new_eic);
-                        }
                     }
 
                     for (const auto& ic : coupled_model->_ic) {
-                        if (enginges_by_id.find(ic._from) == enginges_by_id.end() || enginges_by_id.find(ic._to) == enginges_by_id.end()) {
+                        if (engines_by_id.find(ic._from) == engines_by_id.end() || engines_by_id.find(ic._to) == engines_by_id.end()) {
                             throw std::domain_error("Internal coupling to invalid model");
                         }
 
-                        found = false;
-                        for (auto& coupling : _internal_coupligns) {
-                            if (coupling.first.first->get_model_id() == ic._from && coupling.first.second->get_model_id() == ic._to) {
-                                coupling.second.push_back(ic._link);
-                                found = true;
-                                break;
-                            }
-                        }
-
-                        if(!found) {
-                            cadmium::dynamic::engine::internal_coupling<TIME> new_ic;
-                            new_ic.first.first = enginges_by_id.at(ic._from);
-                            new_ic.first.second = enginges_by_id.at(ic._to);
-                            new_ic.second.push_back(ic._link);
-                            _internal_coupligns.push_back(new_ic);
-                        }
+                        cadmium::dynamic::engine::internal_coupling<TIME> new_ic;
+                        new_ic.first.first = engines_by_id.at(ic._from);
+                        new_ic.first.second = engines_by_id.at(ic._to);
+                        new_ic.second.push_back(ic._link);
+                        _internal_coupligns.push_back(new_ic);
                     }
                 }
 
