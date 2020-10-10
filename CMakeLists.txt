@@ -1,10 +1,8 @@
 cmake_minimum_required(VERSION 3.6.1)
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.14" CACHE STRING "Minimum OS X deployment version")
-project(Cadmium)
-# The version number.
-set(Cadmium_VERSION_MAJOR 0)
-set(Cadmium_VERSION_MINOR 2)
-set(Cadmium_VERSION_PATCH 5)
+project(
+    cadmium
+    VERSION 0.2.5)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake-modules")
 
@@ -20,7 +18,7 @@ ENDIF (CMAKE_BUILD_TYPE MATCHES Debug)
 set(Boost_USE_MULTITHREADED ON)
 find_package(Boost COMPONENTS unit_test_framework system thread REQUIRED)
 
-add_library(Cadmium INTERFACE)
+add_library(cadmium INTERFACE)
 
 include_directories(include ${Boost_INCLUDE_DIRS})
 
@@ -109,9 +107,31 @@ foreach (exampleSrc ${Examples})
     target_link_libraries(${exampleName} PUBLIC ${Boost_LIBRARIES})
 endforeach (exampleSrc)
 
-#Library Headers
-add_executable(cadmium_headers include)
-set_target_properties(cadmium_headers PROPERTIES
-        EXCLUDE_FROM_ALL TRUE
-        EXCLUDE_FROM_DEFAULT_BUILD TRUE
-        LINKER_LANGUAGE CXX)
+include(GNUInstallDirs)
+
+install(
+    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/cadmium/
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/cadmium)
+
+#CMake packaging to allow other projects to include cadmium
+include(CMakePackageConfigHelpers)
+
+
+message("packaging cadmium to be consumed")
+configure_package_config_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/cadmium.cmake.in
+    ${CMAKE_BINARY_DIR}/cadmium.cmake
+    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/cadmium)
+
+write_basic_package_version_file(
+    ${CMAKE_BINARY_DIR}/cadmiumConfigVersion.cmake
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY AnyNewerVersion)
+
+install(
+    FILES
+    ${CMAKE_BINARY_DIR}/cadmium.cmake
+    ${CMAKE_BINARY_DIR}/cadmiumConfigVersion.cmake
+    DESTINATION
+    ${CMAKE_INSTALL_LIBDIR}/cmake/cadmium)
+
