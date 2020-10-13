@@ -16,7 +16,7 @@ IF (CMAKE_BUILD_TYPE MATCHES Debug)
 ENDIF (CMAKE_BUILD_TYPE MATCHES Debug)
 
 set(Boost_USE_MULTITHREADED ON)
-find_package(Boost COMPONENTS unit_test_framework system thread REQUIRED)
+find_package(Boost 1.56.0 COMPONENTS unit_test_framework system thread REQUIRED)
 
 add_library(cadmium INTERFACE)
 
