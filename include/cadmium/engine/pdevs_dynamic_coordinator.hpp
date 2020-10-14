@@ -57,6 +57,11 @@ namespace cadmium {
                 boost::basic_thread_pool* _threadpool;
                 #endif //CADMIUM_EXECUTE_CONCURRENT
 
+				#ifdef CPU_PARALLEL
+                size_t _thread_number;
+				#endif //CPU_PARALLEL
+
+
             public:
 
                 dynamic::message_bags _inbox;
@@ -147,10 +152,14 @@ namespace cadmium {
                     _last = initial_time;
                     //init all subcoordinators and find next transition time.
 
-                    #ifdef CADMIUM_EXECUTE_CONCURRENT
+					#ifdef CADMIUM_EXECUTE_CONCURRENT
                     cadmium::dynamic::engine::init_subcoordinators<TIME>(initial_time, _subcoordinators, _threadpool);
                     #else
-                    cadmium::dynamic::engine::init_subcoordinators<TIME>(initial_time, _subcoordinators);
+						#if defined CPU_PARALLEL
+                    	cadmium::dynamic::engine::init_subcoordinators<TIME>(initial_time, _subcoordinators, _thread_number);
+						#else
+                    	cadmium::dynamic::engine::init_subcoordinators<TIME>(initial_time, _subcoordinators);
+						#endif
                     #endif //CADMIUM_EXECUTE_CONCURRENT
 
                     //find the one with the lowest next time
@@ -165,6 +174,14 @@ namespace cadmium {
                 }
 
                 #endif //CADMIUM_EXECUTE_CONCURRENT
+
+				#ifdef CPU_PARALLEL
+                void init(TIME initial_time, size_t thread_number) {
+                    _thread_number = thread_number;
+                    this->init(initial_time);
+                }
+                #endif //CPU_PARALLEL
+
 
                 std::string get_model_id() const override {
                     return _model_id;
@@ -195,11 +212,15 @@ namespace cadmium {
                         LOGGER::template log<cadmium::logger::logger_message_routing, cadmium::logger::coor_routing_eoc_collect>(t, _model_id);
 
                         // Fill all outboxes and clean the inboxes in the lower levels recursively
-                        #ifdef CADMIUM_EXECUTE_CONCURRENT
+						#ifdef CADMIUM_EXECUTE_CONCURRENT
                         cadmium::dynamic::engine::collect_outputs_in_subcoordinators<TIME>(t, _subcoordinators, _threadpool);
-                        #else
-                        cadmium::dynamic::engine::collect_outputs_in_subcoordinators<TIME>(t, _subcoordinators);
-                        #endif
+						#else
+							#if defined CPU_PARALLEL
+                        	cadmium::dynamic::engine::collect_outputs_in_subcoordinators<TIME>(t, _subcoordinators, _thread_number);
+							#else
+                        	cadmium::dynamic::engine::collect_outputs_in_subcoordinators<TIME>(t, _subcoordinators);
+							#endif
+						#endif
 
                         // Use the EOC mapping to compose current level output
                         _outbox = cadmium::dynamic::engine::collect_messages_by_eoc<TIME, LOGGER>(_external_output_couplings);
@@ -242,12 +263,16 @@ namespace cadmium {
                         LOGGER::template log<cadmium::logger::logger_message_routing, cadmium::logger::coor_routing_eic_collect>(t, _model_id);
                         cadmium::dynamic::engine::route_external_input_coupled_messages_on_subcoordinators<TIME, LOGGER>(_inbox, _external_input_couplings);
 
-                        //recurse on advance_simulation
-                        #ifdef CADMIUM_EXECUTE_CONCURRENT
+						#ifdef CADMIUM_EXECUTE_CONCURRENT
                         cadmium::dynamic::engine::advance_simulation_in_subengines<TIME>(t, _subcoordinators, _threadpool);
                         #else
-                        cadmium::dynamic::engine::advance_simulation_in_subengines<TIME>(t, _subcoordinators);
+							#if defined CPU_PARALLEL
+                        		cadmium::dynamic::engine::advance_simulation_in_subengines<TIME>(t, _subcoordinators, _thread_number);
+							#else
+                        		cadmium::dynamic::engine::advance_simulation_in_subengines<TIME>(t, _subcoordinators);
+							#endif
                         #endif
+
 
                         //set _last and _next
                         _last = t;
