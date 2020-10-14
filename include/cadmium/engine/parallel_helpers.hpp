@@ -32,12 +32,16 @@
 #include <chrono>
 #include <omp.h>
 #include <thread>
+<<<<<<< HEAD
 #include <algorithm>
 #include <array>
+=======
+>>>>>>> HPC_cadmium
 
 namespace cadmium {
     namespace parallel {
 
+<<<<<<< HEAD
     	template<typename ITERATOR, typename FUNC>
     	void cpu_parallel_for_each(ITERATOR first, ITERATOR last, FUNC& f, size_t thread_number = std::thread::hardware_concurrency()){
     		/* get amount of elements to compute */
@@ -69,6 +73,28 @@ namespace cadmium {
 						f(*(i+first));
 					}
 				}
+=======
+	    template< class InputIt, class UnaryFunction >
+	    void cpu_parallel_for_each(InputIt first, InputIt last, UnaryFunction& f, unsigned int thread_number = std::thread::hardware_concurrency()) {
+
+			const size_t n = std::distance(first, last);
+
+			#pragma omp parallel firstprivate(f, first) num_threads(thread_number) proc_bind(close)
+    		{
+    				int tid = omp_get_thread_num();
+    				size_t P = thread_number;
+
+    				if(tid != P-1) {
+    					for(size_t i = (n/P) * tid; i < (n/P) * (tid+1) ; i++) {
+    						f(*(i+first));
+    					}
+    				} else {
+    					for(size_t i = (n/P) * tid; i < n ; i++) {
+    						f(*(i+first));
+    					}
+    				}
+
+>>>>>>> HPC_cadmium
     		}
     	}
 
