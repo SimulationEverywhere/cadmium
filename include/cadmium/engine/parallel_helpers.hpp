@@ -32,30 +32,43 @@
 #include <chrono>
 #include <omp.h>
 #include <thread>
+#include <algorithm>
+#include <array>
 
 namespace cadmium {
     namespace parallel {
 
-	    template< class InputIt, class UnaryFunction >
-	    void cpu_parallel_for_each(InputIt first, InputIt last, UnaryFunction& f, unsigned int thread_number = std::thread::hardware_concurrency()) {
-
-			const size_t n = std::distance(first, last);
-
-			#pragma omp parallel firstprivate(f, first) num_threads(thread_number) proc_bind(close)
+    	template<typename ITERATOR, typename FUNC>
+    	void cpu_parallel_for_each(ITERATOR first, ITERATOR last, FUNC& f, size_t thread_number = std::thread::hardware_concurrency()){
+    		/* get amount of elements to compute */
+    		size_t n = std::distance(first, last);
+    		/* if the amount of elements is less than the number of threads execute on n elements */
+    		if(n<thread_number){
+    			thread_number=n;
+    		}
+    		/* OpenMP parallel loop */
+    		/* It doesn't work -> execution time as sequential version
+    		#pragma omp parallel for num_threads(thread_number) firstprivate(f, first) proc_bind(close) schedule(static)
+    		for(int i = 0; i < n; i++){
+    			f(*(i+first));
+    		}
+    		*/
+			#pragma omp parallel firstprivate(f) num_threads(thread_number) proc_bind(close)
     		{
-    				int tid = omp_get_thread_num();
-    				size_t P = thread_number;
+    			/* get thread id */
+    			size_t tid = omp_get_thread_num();
 
-    				if(tid != P-1) {
-    					for(size_t i = (n/P) * tid; i < (n/P) * (tid+1) ; i++) {
-    						f(*(i+first));
-    					}
-    				} else {
-    					for(size_t i = (n/P) * tid; i < n ; i++) {
-    						f(*(i+first));
-    					}
+    			/* if it's not last thread compute n/thread_number elements */
+    			if(tid != thread_number-1) {
+    				for(size_t i = (n/thread_number)*tid; i < (n/thread_number)*(tid+1); i++) {
+    					f(*(i+first));
     				}
-
+    			/* if it's last thread compute till the end of the vector */
+				} else {
+					for(size_t i = (n/thread_number) * tid; i < n ; i++) {
+						f(*(i+first));
+					}
+				}
     		}
     	}
 
