@@ -49,4 +49,4 @@ matrix:
           - os: windows
 
 script:
-  - cmake -DCMAKE_BUILD_TYPE=Debug && cmake --build . && ctest -C Debug --output-on-failure
+  - cmake -DCMAKE_BUILD_TYPE=Debug && cmake --build . && ctest -C Debug --output-on-failure && mkdir ${HOME}/test-install && cmake --install . --prefix ${HOME}/test-install
