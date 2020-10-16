@@ -119,8 +119,8 @@ include(CMakePackageConfigHelpers)
 
 message("packaging cadmium to be consumed")
 configure_package_config_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/cadmium.cmake.in
-    ${CMAKE_BINARY_DIR}/cadmium.cmake
+    ${CMAKE_CURRENT_SOURCE_DIR}/cadmiumConfig.cmake.in
+    ${CMAKE_BINARY_DIR}/cadmiumConfig.cmake
     INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/cadmium)
 
 write_basic_package_version_file(
@@ -130,7 +130,7 @@ write_basic_package_version_file(
 
 install(
     FILES
-    ${CMAKE_BINARY_DIR}/cadmium.cmake
+    ${CMAKE_BINARY_DIR}/cadmiumConfig.cmake
     ${CMAKE_BINARY_DIR}/cadmiumConfigVersion.cmake
     DESTINATION
     ${CMAKE_INSTALL_LIBDIR}/cmake/cadmium)
