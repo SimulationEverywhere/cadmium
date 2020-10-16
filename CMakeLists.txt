@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.6.1)
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.14" CACHE STRING "Minimum OS X deployment version")
 project(
     cadmium
-    VERSION 0.2.6)
+    VERSION 0.2.7)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake-modules")
 
