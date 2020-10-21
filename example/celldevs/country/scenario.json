@@ -1,72 +1,42 @@
 {
-  "scenario": {
-    "default_delay": "transport",
-    "default_cell_type": "country",
-    "default_state": 0,
-    "default_vicinity": -1,
-    "default_config": {
-      "country": 1,
-      "small_country": "Hola"
-    }
-  },
-  "cells": [
-    {
-      "cell_id": "Spain",
+  "cells": {
+    "default": {
+      "delay": "transport",
+      "cell_type": "country",
+      "state": 0,
+      "config": 1,
+      "neighborhood": {}
+    },
+    "Spain": {
       "state": 1,
       "config": 4,
-      "default_vicinity": -2,
-      "neighborhood": [
-        {
-          "cell_id": "Portugal",
-          "vicinity": 7
-        },
-        {
-          "cell_id": "France",
-          "vicinity": 5
-        },
-        {
-          "cell_id": "Andorra"
-        }
-      ]
+      "neighborhood": {
+        "Portugal": 7,
+        "France":5,
+        "Andorra": -2
+      }
     },
-    {
-      "cell_id": "Portugal",
+    "Portugal":{
       "delay": "inertial",
-      "neighborhood": [
-        {
-          "cell_id": "Spain",
-          "vicinity": 7
-        }
-      ]
+      "neighborhood": {
+        "Spain": 7
+      }
     },
-    {
-      "cell_id": "Andorra",
+    "Andorra":{
       "state": 2,
       "cell_type": "small_country",
       "config": "Adios",
-      "neighborhood": [
-        {
-          "cell_id": "Spain",
-          "vicinity": 1
-        },
-        {
-          "cell_id": "France",
-          "vicinity": 1
-        }
-      ]
+      "neighborhood": {
+        "Spain": 1,
+        "France": 1
+      }
     },
-    {
-      "cell_id": "France",
+    "France": {
       "state": 3,
-      "neighborhood": [
-        {
-          "cell_id": "Spain",
-          "vicinity": 2
-        },
-        {
-          "cell_id": "Andorra"
-        }
-      ]
+      "neighborhood": {
+          "Spain": 2,
+          "Andorra": -2
+      }
     }
-  ]
+  }
 }

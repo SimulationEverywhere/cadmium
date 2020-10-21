@@ -1,43 +1,45 @@
 {
-  "scenario": {
-    "shape": [50, 50],
-    "wrapped": true,
-    "default_delay": "inertial",
-    "default_cell_type": "hoya",
-    "default_state": {
-      "population": 100,
-      "susceptible": 1,
-      "infected": 0,
-      "recovered": 0
-    },
-    "default_config": {
-      "hoya": {
+  "shape": [50, 50],
+  "wrapped": true,
+  "cells": {
+    "default": {
+      "delay": "inertial",
+      "model": "hoya",
+      "neighborhood": [
+        {
+          "type": "von_neumann",
+          "range": 1,
+          "vicinity": {
+            "connection": 1,
+            "movement": 0.5
+          }
+        },
+        {
+          "type": "custom",
+          "neighbors": [
+            [
+              0,
+              0
+            ]
+          ],
+          "vicinity": {
+            "connection": 1,
+            "movement": 1
+          }
+        }
+      ],
+      "state": {
+        "population": 100,
+        "susceptible": 1,
+        "infected": 0,
+        "recovered": 0
+      },
+      "config": {
         "virulence": 0.6,
         "recovery": 0.4
       }
     },
-    "neighborhood": [
-      {
-        "type": "von_neumann",
-        "range": 1,
-        "vicinity": {
-          "connection": 1,
-          "movement": 0.5
-        }
-      },
-      {
-        "type": "custom",
-        "neighbors": [[0, 0]],
-        "vicinity": {
-          "connection": 1,
-          "movement": 1
-        }
-      }
-    ]
-  },
-  "cells": [
-    {
-      "cell_id": [24, 24],
+    "1": {
       "state": {
         "population": 100,
         "susceptible": 0.7,
@@ -45,12 +47,15 @@
         "recovered": 0
       }
     },
-    {
-      "cell_id": [24, 23],
+    "2": {
       "config": {
         "virulence": 0,
         "recovery": 1
       }
     }
-  ]
+  },
+  "cell_map": {
+    "1": [[24, 24]],
+    "2": [[24, 23]]
+  }
 }
