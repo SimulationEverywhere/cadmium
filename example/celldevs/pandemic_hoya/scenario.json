@@ -16,12 +16,7 @@
         },
         {
           "type": "custom",
-          "neighbors": [
-            [
-              0,
-              0
-            ]
-          ],
+          "neighbors": [[0, 0]],
           "vicinity": {
             "connection": 1,
             "movement": 1

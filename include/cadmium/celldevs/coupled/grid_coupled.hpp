@@ -46,22 +46,22 @@ namespace cadmium::celldevs {
      * Coupled Cell-DEVS model for Lattice-based scenarios
      * @tparam T the type used for representing time in a simulation.
      * @tparam S the type used for representing a cell state.
-     * @tparam V the type used for representing a neighboring cell's vicinity. By default, it is set to integer.
+     * @tparam V the type used for representing a neighboring cell's vicinities. By default, it is set to integer.
      * @see coupled/cells_coupled.hpp
      */
     template <typename T, typename S, typename V=int>
-    class grid_coupled: public cells_coupled<T, cell_position, S, V, seq_hash<cell_position>> {
+    class grid_coupled: public cells_coupled<T, cell_position, S, V> {
     public:
 
-        using cells_coupled<T, cell_position, S, V, seq_hash<cell_position>>::get_cell_name;
-        using cells_coupled<T, cell_position, S, V, seq_hash<cell_position>>::add_cell;
-        using cells_coupled<T, cell_position, S, V, seq_hash<cell_position>>::add_cell_neighborhood;
+        using cells_coupled<T, cell_position, S, V>::get_cell_name;
+        using cells_coupled<T, cell_position, S, V>::add_cell;
+        using cells_coupled<T, cell_position, S, V>::add_cell_neighborhood;
 
         /**
          * Constructor method
          * @param id ID of the Coupled DEVS model that contains the Cell-DEVS scenario
          */
-        explicit grid_coupled(std::string const &id) : cells_coupled<T, cell_position, S, V, seq_hash<cell_position>>(id) {}
+        explicit grid_coupled(std::string const &id) : cells_coupled<T, cell_position, S, V>(id) {}
 
         /**
          * Adds a lattice of cells to the coupled model
@@ -72,7 +72,7 @@ namespace cadmium::celldevs {
          * @param args any additional parameter required for initializing the cell model
          */
         template <template <typename> typename CELL_MODEL, typename... Args>
-        void add_lattice(grid_scenario<S, V> &scenario, std::string const &delay_id, Args&&... args) {
+        [[maybe_unused]] void add_lattice(grid_scenario<S, V> &scenario, std::string const &delay_id, Args&&... args) {
             for (auto const &cell: scenario.get_states()) {
                 cell_position cell_id = cell.first;
                 cell_map<S, V> map = scenario.get_cell_map(cell_id);
@@ -109,7 +109,7 @@ namespace cadmium::celldevs {
 
             for (nlohmann::json &n: s["neighborhood"]) {
                 auto neighborhood_type = n["type"].get<std::string>();
-                auto v = (n.contains("vicinity")) ? n["vicinity"].get<V>() : default_vicinity;
+                auto v = (n.contains("vicinities")) ? n["vicinities"].get<V>() : default_vicinity;
                 if (neighborhood_type == "custom") {
                     cell_unordered<V> neighborhood = cell_unordered<V>();
                     for (nlohmann::json &relative: n["neighbors"]) {

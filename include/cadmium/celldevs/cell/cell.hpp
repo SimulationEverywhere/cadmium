@@ -28,48 +28,57 @@
 #ifndef CADMIUM_CELLDEVS_CELL_HPP
 #define CADMIUM_CELLDEVS_CELL_HPP
 
-#include <exception>
 #include <string>
 #include <limits>
-#include <algorithm>
 #include <utility>
 #include <vector>
+#include <exception>
+#include <algorithm>
 #include <unordered_map>
 #include <cadmium/modeling/message_bag.hpp>
+#include <cadmium/celldevs/utils/utils.hpp>
 #include <cadmium/celldevs/cell/msg.hpp>
 #include <cadmium/celldevs/delay_buffer/delay_buffer_factory.hpp>
 
 
 namespace cadmium::celldevs {
+
     /**
-     * Abstract DEVS atomic model for defining cells in Cell-DEVS scenarios.
+    * Basic input/output port structure for cells.
+    * @tparam C the type used for representing a cell ID.
+    * @tparam S the type used for representing a cell state.
+    */
+    template <typename C, typename S>
+    struct cell_ports_def{
+        struct [[maybe_unused]] cell_in: public cadmium::in_port<cell_state_message<C, S>> {};
+        struct cell_out : public cadmium::out_port<cell_state_message<C, S>> {};
+    };
+
+
+    /**
+     * Abstract DEVS atomic model for defining cells in extended Cell-DEVS scenarios.
      * @tparam T the type used for representing time in a simulation.
      * @tparam C the type used for representing a cell ID.
      * @tparam S the type used for representing a cell state.
-     * @tparam V the type used for representing a neighboring cell's vicinity. By default, it is set to integer.
-     * @tparam C_HASH the hash function used for creating unordered maps with cell IDs as keys.
-     *                By default, it uses the one defined in the standard library
+     * @tparam V the type used for representing a neighboring cell's vicinities. By default, it is set to integer.
      */
-    template <typename T, typename C, typename S, typename V=int, typename C_HASH=std::hash<C>>
+    template <typename T, typename C, typename S, typename V=int>
     class cell {
     public:
 
         using input_ports = std::tuple<typename cell_ports_def<C, S>::cell_in>;
         using output_ports = std::tuple<typename cell_ports_def<C, S>::cell_out>;
 
-        template <typename X>
-        using cell_unordered = std::unordered_map<C, X, C_HASH>;  // alias for unordered maps with cell IDs as key
-
-        C cell_id;                                  /// Cell ID
-        std::vector<C> neighbors;                   /// Neighboring cells' IDs
-        T simulation_clock;                         /// Simulation clock (i.e., current time during a simulation)
-        T next_internal;                            /// Time remaining until next internal state transition
-        delay_buffer<T, S> *buffer;                 /// output message buffer
+        C cell_id;                                          /// Cell ID
+        std::vector<C> neighbors;                           /// Neighboring cells' IDs
+        T simulation_clock;                                 /// Simulation clock (i.e. current time during a simulation)
+        T next_internal;                                    /// Time remaining until next internal state transition
+        delay_buffer<T, S> *buffer;                         /// output message buffer
 
         struct state_type {
-            S current_state;                        /// Cell's internal state
-            cell_unordered<V> neighbors_vicinity;   /// Neighboring cell' vicinity type
-            cell_unordered<S> neighbors_state;      /// neighboring cell' public state
+            S current_state;                                /// Cell's internal state
+            std::unordered_map<C, V> neighbors_vicinity;    /// Neighboring cell' vicinities type
+            std::unordered_map<C, S> neighbors_state;       /// neighboring cell' public state
         };
         state_type state;
 
@@ -79,17 +88,17 @@ namespace cadmium::celldevs {
         virtual ~cell() = default;
 
         /**
-         * Creates a new cell with neighbors which vicinity is explicitly specified.
+         * Creates a new cell with neighbors which vicinities is explicitly specified.
          * @tparam Args additional arguments for initializing the delay buffer
          * @param id ID of the cell to be created.
-         * @param neighborhood unordered map which key is a neighboring cell and its value corresponds to the vicinity
+         * @param neighborhood unordered map which key is a neighboring cell and its value corresponds to the vicinities
          * @param initial_state initial state of the cell.
          * @param output_delay name of the output delay buffer.
          * @param args additional arguments for initializing the output delay buffer.
          */
         template<typename ... Args>
-        cell(C const &id, cell_unordered<V> const &neighborhood, S initial_state,
-                std::string const &output_delay, Args&&... args) {
+        cell(C const &id, std::unordered_map<C, V> const &neighborhood,
+             S initial_state, std::string const &output_delay, Args&&... args) {
             cell_id = id;
             simulation_clock = T();
             next_internal = T();
@@ -104,16 +113,16 @@ namespace cadmium::celldevs {
         }
 
         /**
-         * Creates a new cell with neighbors which vicinity is explicitly specified.
+         * Creates a new cell with neighbors which vicinities is explicitly specified.
          * @param id ID of the cell to be created.
-         * @param neighbors vector containing neighboring cells. The vicinity is set to its default value.
+         * @param neighbors vector containing neighboring cells. The vicinities is set to its default value.
          * @param output_delay name of the output delay buffer.
          * @param args additional arguments for initializing the output delay buffer.
          */
         template<typename ... Args>
         cell(C const &id, std::vector<C> const &neighbors, S initial_state,
                 std::string const &output_delay, Args&&... args) {
-            cell_unordered<V> neighborhood = cell_unordered<V>();
+            std::unordered_map<C, V> neighborhood = std::unordered_map<C, V>();
             for (auto const &neighbor: neighborhood)
                 neighborhood[neighbor] = V();
             new (this) cell(id, neighborhood, initial_state, output_delay, std::forward<Args>(args)...);
@@ -164,7 +173,7 @@ namespace cadmium::celldevs {
         }
 
         /// Confluence transition function.
-        void confluence_transition(T e, typename cadmium::make_message_bags<input_ports>::type mbs) {
+        void confluence_transition([[maybe_unused]] T e, typename cadmium::make_message_bags<input_ports>::type mbs) {
             internal_transition();
             external_transition(T(), move(mbs));
         }
@@ -183,13 +192,12 @@ namespace cadmium::celldevs {
         }
 
         /**
-         * Operator overloading function for printing the cell's state
-         * @param os output string stream
-         * @param i cell state
-         * @return output string stream containing the "stringified" cell state
+         * Operator overloading function for printing the cell's state.
+         * @param os output string stream.
+         * @param i cell state.
+         * @return output string stream containing the cell state.
          */
-        friend std::ostringstream& operator << (std::ostringstream& os,
-                const typename cell<T, C, S, V, C_HASH>::state_type& i) {
+        friend std::ostringstream &operator << (std::ostringstream &os, const typename cell<T, C, S, V>::state_type &i) {
             os << i.current_state;
             return os;
         }

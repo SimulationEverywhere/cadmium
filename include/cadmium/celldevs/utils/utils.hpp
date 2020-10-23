@@ -25,41 +25,41 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CADMIUM_CELLDEVS_MSG_HPP
-#define CADMIUM_CELLDEVS_MSG_HPP
+#ifndef CADMIUM_CELLDEVS_UTILS_HPP
+#define CADMIUM_CELLDEVS_UTILS_HPP
 
+#include <vector>
 #include <iostream>
-#include <cadmium/modeling/ports.hpp>
+#include <functional>
+#include <boost/functional/hash.hpp>
 
+/**
+ * Auxiliary function for printing vectors.
+ * @tparam X vector content type.
+ * @param os output stream.
+ * @param v vector to be printed.
+ * @return output stream containing the printed values of the vector.
+ */
+template <typename X>
+std::ostream &operator << (std::ostream &os, std::vector<X> const &v) {
+    os << "(";
+    std::string separator;
+    for (auto x : v) {
+        os << separator << x;
+        separator = ",";
+    }
+    os << ")";
+    return os;
+}
 
-namespace cadmium::celldevs {
-    /**
-     * Structure that defines cell messages.
-     * @tparam C the type used for representing a cell ID.
-     * @tparam S the type used for representing a cell state.
-     */
-    template <typename C, typename S>
-    struct cell_state_message {
-        C cell_id;
-        S state;
+/// Hash function for enabling sequences to be keys of unordered maps
+template <typename SEQ>
+[[maybe_unused]] std::size_t hash_value(SEQ const &seq) {
+    return boost::hash_range(seq.begin(), seq.end());
+}
 
-        /**
-         * Cell state message constructor.
-         * @param cell_id_in ID of the cell that generates the message.
-         * @param state_in State to be transmitted by the cell.
-         */
-        cell_state_message(C cell_id_in, S state_in): cell_id(cell_id_in), state(state_in) {}
+/// Specialization of std::hash function for vectors
+template<typename X>
+struct [[maybe_unused]] std::hash<std::vector<X>> : boost::hash<std::vector<X>> {};
 
-        /**
-         * Operator overloading function for printing cell state messages.
-         * @param os output string stream.
-         * @param msg cell state message.
-         * @return Output string stream containing the cell state string representation.
-         */
-        friend std::ostream &operator << (std::ostream &os, const cell_state_message<C, S> &msg) {
-            os << msg.cell_id << " ; " << msg.state;
-            return os;
-        }
-    };
-} //namespace cadmium::celldevs
-#endif //CADMIUM_CELLDEVS_MSG_HPP
+#endif //CADMIUM_CELLDEVS_UTILS_HPP

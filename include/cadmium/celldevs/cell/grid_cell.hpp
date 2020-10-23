@@ -31,28 +31,26 @@
 #include <cadmium/celldevs/cell/cell.hpp>
 #include <cadmium/celldevs/utils/grid_utils.hpp>
 
-
 namespace cadmium::celldevs {
     /**
      * DEVS atomic model for defining cells in Cell-DEVS scenarios that are sorted in lattices.
      * @tparam T the type used for representing time in a simulation.
      * @tparam S the type used for representing a cell state.
-     * @tparam P the type used for representing cell configuration parameters. By default, it is set to integer.
-     * @tparam V the type used for representing a neighboring cell's vicinity. By default, it is set to integer.
+     * @tparam V the type used for representing a neighboring cell's vicinities. By default, it is set to integer.
      */
     template <typename T, typename S, typename V=int>
-    class grid_cell : public cell<T, cell_position, S, V, seq_hash<cell_position>> {
+    class grid_cell : public cell<T, cell_position, S, V> {
     public:
 
         cell_map<S, V> map;     /// Cell map
 
-        grid_cell() : cell<T, cell_position, S, V, seq_hash<cell_position>>() {}
+        grid_cell() : cell<T, cell_position, S, V>() {}
 
         /**
          * Creates a new cell that belongs to a lattice of cells.
          * @tparam Args additional arguments for initializing the delay buffer
          * @param location ID of the cell to be created.
-         * @param neighborhood unordered map which key is a neighboring cell and its value corresponds to the vicinity
+         * @param neighborhood unordered map which key is a neighboring cell and its value corresponds to the vicinities
          * @param initial_state initial state of the cell.
          * @param map_in grid map with a bunch of utilities
          * @param output_delay name of the output delay buffer.
@@ -60,10 +58,9 @@ namespace cadmium::celldevs {
          * @see utils/grid_utils.hpp
          */
         template<typename... Args>
-        grid_cell(cell_position const &location, cell_unordered<V> const &neighborhood, S initial_state,
-                cell_map<S, V> const &map_in, std::string const &output_delay, Args&&... args) :
-            cell<T, cell_position, S, V, seq_hash<cell_position>>(location, neighborhood, initial_state,
-                                                                  output_delay, std::forward<Args>(args)...),
+        grid_cell(cell_position const &location, std::unordered_map<cell_position, V> const &neighborhood,
+                  S initial_state, cell_map<S, V> const &map_in, std::string const &output_delay, Args&&... args) :
+            cell<T, cell_position, S, V>(location, neighborhood, initial_state, output_delay, std::forward<Args>(args)...),
             map{map_in} {}
     };
 } //namespace cadmium::celldevs
