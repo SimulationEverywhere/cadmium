@@ -34,7 +34,7 @@
         "recovery": 0.4
       }
     },
-    "1": {
+    "epicenter": {
       "state": {
         "population": 100,
         "susceptible": 0.7,
@@ -42,7 +42,7 @@
         "recovered": 0
       }
     },
-    "2": {
+    "immune": {
       "config": {
         "virulence": 0,
         "recovery": 1
@@ -50,7 +50,7 @@
     }
   },
   "cell_map": {
-    "1": [[24, 24]],
-    "2": [[24, 23]]
+    "epicenter": [[24, 24]],
+    "immune": [[24, 23]]
   }
 }
