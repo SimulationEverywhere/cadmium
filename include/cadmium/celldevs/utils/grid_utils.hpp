@@ -28,6 +28,7 @@
 #ifndef CADMIUM_CELLDEVS_GRID_UTILS_HPP
 #define CADMIUM_CELLDEVS_GRID_UTILS_HPP
 
+#include <utility>
 #include <vector>
 #include <unordered_map>
 #include <algorithm>
@@ -40,79 +41,88 @@
 
 
 namespace cadmium::celldevs {
-/***************************************************/
-/*************** Type definitions ******************/
-/***************************************************/
-    using cell_position = std::vector<int>;
 
+    using cell_position = std::vector<int>;  /// Alias to refer to a cell.
+
+    /**
+     * Alias to refer to an unordered map with cell positions as keys.
+     * @tparam X type of the values stored in the unordered map.
+     */
     template<typename X>
     using cell_unordered = std::unordered_map<cell_position, X>;
 
-/***************************************************/
-/******************* Grid utils ********************/
-/***************************************************/
+    /**
+     * Cell configuration structure.
+     * @tparam S type used to represent cell states.
+     * @tparam V type used to represent vicinities between cells.
+     */
+    template <typename S, typename V>
+    struct cell_config {
+        std::string delay;                  /// ID of the delay buffer of the cell.
+        std::string cell_type;              /// Cell model type.
+        S state;                            /// Initial state of the cell.
+        cell_unordered<V> neighborhood;     /// Unordered map {neighbor_cell_position: vicinity}.
+        nlohmann::json config;              /// JSON file with additional configuration parameters.
+
+        cell_config() {};
+
+        cell_config(std::string delay, std::string cell_type, const S &state, const cell_unordered<V> &neighborhood, nlohmann::json config):
+                delay(std::move(delay)), cell_type(std::move(cell_type)), state(state), neighborhood(neighborhood), config(std::move(config)) {}
+    };
+
+    /**
+     * Auxiliary class with useful functions for grid cells.
+     * @tparam S type used to represent cell states.
+     * @tparam V type used to represent vicinities between cells.
+     */
     template<typename S, typename V=int>
     class cell_map {
     public:
-        cell_position shape;                              /// Shape of the scenario
-        cell_position location;                           /// Location of the cell
-        S state;                                          /// Initial state of the cell
-        std::unordered_map<cell_position, V> vicinity;    /// Indicates the vicinities type of neighbor cells
-        bool wrapped{};                                   /// It indicates whether the scenario is wrapped or not
+        cell_position shape;                /// Shape of the scenario
+        cell_position location;             /// Location of the cell
+        S state;                            /// Initial state of the cell
+        cell_unordered<V> neighborhood;     /// Indicates the vicinities type of neighbor cells
+        bool wrapped;                       /// It indicates whether the scenario is wrapped or not
 
         cell_map() { throw std::exception(); }
 
-        cell_map(cell_position const &shape_in, cell_position const &location_in,
-                 S const &state_in, cell_unordered<V> const &vicinity_in, bool wrapped_in);
+        cell_map(cell_position shape, cell_position location, S const &state, cell_unordered<V> const &neighborhood, bool wrapped);
 
-        [[maybe_unused]][[nodiscard]] int manhattan_distance(cell_position const &a) const;
+        [[maybe_unused]] [[nodiscard]] int manhattan_distance(cell_position const &a) const;
 
-        [[maybe_unused]][[nodiscard]] int chebyshev_distance(cell_position const &a) const;
+        [[maybe_unused]] [[nodiscard]] int chebyshev_distance(cell_position const &a) const;
 
-        [[maybe_unused]][[nodiscard]] double n_norm_distance(cell_position const &a, unsigned int n) const;
+        [[maybe_unused]] [[nodiscard]] double n_norm_distance(cell_position const &a, unsigned int n) const;
 
-        [[nodiscard]][[maybe_unused]] double euclidean_distance(cell_position const &a) const;
+        [[maybe_unused]] [[nodiscard]] double euclidean_distance(cell_position const &a) const;
 
-        [[nodiscard]][[maybe_unused]] cell_position neighbor(cell_position const &relative) const;
+        [[maybe_unused]] [[nodiscard]] cell_position neighbor(cell_position const &relative) const;
 
-        [[nodiscard]][[maybe_unused]] cell_position relative(cell_position const &neighbor) const;
+        [[maybe_unused]] [[nodiscard]] cell_position relative(cell_position const &neighbor) const;
     };
 
 
     /**
-     *
-     * @tparam S
-     * @tparam V
+     * Class used by grid_coupled to set the scenario.
+     * @tparam S type used to represent cell states.
+     * @tparam V type used to represent vicinities between cells.
      */
     template<typename S, typename V>
     class grid_scenario {
-    private:
-        unsigned int dimension;                             /// Dimension of the grid of the scenario
-        cell_position shape;                                /// Shape of the scenario
-        std::unordered_map<cell_position, S> states;        /// Initial state of cells in the grid
-        std::unordered_map<cell_position, V> vicinities;    /// Identity map containing relative position of neighbors
-        bool wrapped;                                       /// It indicates whether the scenario is wrapped or not
     public:
-        /********************* GETTERS *********************/
-        [[maybe_unused]] unsigned int get_dimension() { return dimension; }
+        cell_position shape;                        /// Shape of the scenario.
+        unsigned int dimension;                     /// Dimension of the grid of the scenario.
+        cell_unordered<cell_config<S, V>> configs;  /// Configuration of cells in the grid.
+        bool wrapped;                               /// It indicates whether the scenario is wrapped or not.
 
-        [[maybe_unused]] cell_position get_shape() { return shape; }
-
-        [[maybe_unused]] std::unordered_map<cell_position, S> get_states() const { return states; }
-
-        [[maybe_unused]] std::unordered_map<cell_position, V> get_vicinities() { return vicinities; }
-
-        [[maybe_unused]] bool get_wrapped() { return wrapped; }
-
-        /********************* SETTERS *********************/
-        [[maybe_unused]] void set_initial_state(S state) {
-            states = cell_unordered<S>();
+        void set_initial_config(const cell_config<S, V> &config) {
+            configs = cell_unordered<cell_config<S, V>>();
             cell_position current = cell_position();
             for (int i = 0; i < dimension; i++)
                 current.push_back(0);
             while (true) {
                 try {
-                    set_initial_state(current, state);
+                    set_initial_config(current, config);
                     current = next_cell(current, 0);
                 } catch (std::overflow_error &e) {
                     break;
@@ -120,81 +130,30 @@ namespace cadmium::celldevs {
             }
         }
 
-        [[maybe_unused]] void set_initial_state(cell_position const &cell, S state) {
+        void set_initial_config(const cell_position &cell, const cell_config<S, V> config) {
             assert(cell_in_scenario(cell));
-            states[cell] = state;
+            configs[cell] = config;
         }
 
-        [[maybe_unused]] void set_neighborhood(cell_unordered<V> const &neighborhood_in) {
-            vicinities.clear();
-            add_neighborhood(neighborhood_in);
-        }
-
-        [[maybe_unused]] void set_moore_neighborhood(unsigned int range) { set_moore_neighborhood(range, V()); }
-
-        [[maybe_unused]] void set_von_neumann_neighborhood(unsigned int range) { set_von_neumann_neighborhood(range, V()); }
-
-        void set_moore_neighborhood(unsigned int range, V const &vicinity_in) {
-            vicinities.clear();
-            add_neighborhood(moore_neighborhood(dimension, range), vicinity_in);
-        }
-
-        void set_von_neumann_neighborhood(unsigned int range, V vicinity_in) {
-            vicinities.clear();
-            add_neighborhood(von_neumann_neighborhood(dimension, range), vicinity_in);
-        }
-
-        void add_neighborhood(std::vector<cell_position> const &neighbors, V const &vicinity_in) {
-            add_neighborhood(neighbors_to_vicinity(neighbors, vicinity_in));
-        }
-
-        void add_neighborhood(cell_unordered<V> const &vicinity_in) {
-            for (auto const &v: vicinity_in) {
-                assert(v.first.size() == dimension);
-                vicinities.insert_or_assign(v.first, v.second);
-            }
-        }
-
-        [[maybe_unused]] void set_wrapped(bool wrapped_in) {
-            wrapped = wrapped_in;
-        }
-        /***************************************************/
-        /***************** CONSTRUCTORS ********************/
-        /***************************************************/
-        [[maybe_unused]] grid_scenario(cell_position const &shape_in, S initial_state, bool wrapped_in) {
-            new(this) grid_scenario(shape_in, initial_state, cell_unordered<V>(), wrapped_in);
-        }
-
-        [[maybe_unused]] grid_scenario(cell_position const &shape_in, S initial_state,
-                      std::vector<cell_position> const &neighbors, bool wrapped_in) {
-            V v = V();
-            cell_unordered<V> vicinity_in = neighbors_to_vicinity(neighbors, v);
-            new(this) grid_scenario(shape_in, initial_state, vicinity_in, wrapped_in);
-        }
-
-        grid_scenario(cell_position const &shape_in, S initial_state,
-                      const cell_unordered<V> vicinity_in, bool wrapped_in) {
+        grid_scenario(const cell_position &shape, const cell_config<S, V> &config, bool wrapped):
+        shape(shape), dimension(shape.size()), configs(), wrapped(wrapped) {
             // Assert that the shape of the scenario is well-defined
-            for (auto const &d: shape_in)
+            set_initial_config(config);
+            for (auto const &d: shape)
                 assert(d > 0);
-            dimension = shape_in.size();
-            shape = shape_in;
-            set_initial_state(initial_state);
-            for (auto const &neighbor: vicinity_in) {
-                assert(neighbor.first.size() == dimension);
+            for (auto const &cell: configs) {
+                assert(cell.first.size() == dimension);
             }
-            vicinities = vicinity_in;
-            // Set the wrapped flag
-            wrapped = wrapped_in;
         }
+
         /***************************************************/
         /***************** STATIC METHODS ******************/
         /***************************************************/
 
         /*************** distance functions ****************/
         // Auxiliary function for obtaining the distance vector between two cell
-        static cell_position distance_vector(cell_position const &origin, cell_position const &destination,
-                                             cell_position const &shape, bool wrapped) {
+        static cell_position distance_vector(const cell_position &origin, const cell_position &destination,
+                                             const cell_position &shape, bool wrapped) {
             assert(cell_in_scenario(origin, shape) && cell_in_scenario(destination, shape));
             cell_position res = cell_position();
             for (int i = 0; i < origin.size(); i++) {
@@ -207,8 +166,8 @@ namespace cadmium::celldevs {
         }
 
         // Auxiliary function for obtaining the destination cell from the origin cell and the distance vector
-        static cell_position destination_cell(cell_position const &origin, cell_position const &distance,
-                                              cell_position const &shape, bool wrapped) {
+        static cell_position destination_cell(const cell_position &origin, const cell_position &distance,
+                                              const cell_position &shape, bool wrapped) {
             assert(cell_in_scenario(origin, shape) && distance.size() == shape.size());
             for (int i = 0; i < shape.size(); i++)
                 assert(std::abs(distance[i]) < shape[i]);
@@ -225,8 +184,8 @@ namespace cadmium::celldevs {
         }
 
         // Auxiliary function for obtaining the Manhattan distance between two cell of the grid
-        [[maybe_unused]] static int manhattan_distance(cell_position const &a, cell_position const &b,
-                                                       cell_position const &shape, bool wrapped) {
+        [[maybe_unused]] static int manhattan_distance(const cell_position &a, const cell_position &b,
+                                                       const cell_position &shape, bool wrapped) {
             int res = 0;
             for (auto const &d: distance_vector(a, b, shape, wrapped))
                 res += std::abs(d);
@@ -234,8 +193,8 @@ namespace cadmium::celldevs {
         }
 
         // Auxiliary function for obtaining the Chebyshev distance between two cell of the grid
-        [[maybe_unused]] static int chebyshev_distance(cell_position const &a, cell_position const &b,
-                                                       cell_position const &shape, bool wrapped) {
+        [[maybe_unused]] static int chebyshev_distance(const cell_position &a, const cell_position &b,
+                                                       const cell_position &shape, bool wrapped) {
             int res = 0;
             for (auto const &d: distance_vector(a, b, shape, wrapped)) {
                 auto d_abs = std::abs(d);
@@ -245,8 +204,8 @@ namespace cadmium::celldevs {
         }
 
         // Auxiliary function for obtaining the N-norm distance between two cell of the grid
-        [[maybe_unused]] static double n_norm_distance(cell_position const &a, cell_position const &b, unsigned int n,
-                                                       cell_position const &shape, bool wrapped) {
+        [[maybe_unused]] static double n_norm_distance(const cell_position &a, const cell_position &b, unsigned int n,
+                                                       const cell_position &shape, bool wrapped) {
             assert(n > 0);
             double res = 0;
             for (auto const &d: distance_vector(a, b, shape, wrapped))
@@ -255,21 +214,12 @@ namespace cadmium::celldevs {
         }
 
         // Auxiliary function for obtaining the Euclidean distance between two cell of the grid
-        [[maybe_unused]] static double euclidean_distance(cell_position const &a, cell_position const &b,
-                                                          cell_position const &shape, bool wrapped) {
+        [[maybe_unused]] static double euclidean_distance(const cell_position &a, const cell_position &b,
+                                                          const cell_position &shape, bool wrapped) {
             return n_norm_distance(a, b, 2, shape, wrapped);
         }
 
         /************* Neighborhoods functions *************/
-        static cell_unordered<V>
-        neighbors_to_vicinity(std::vector<cell_position> const &neighbors, V const &vicinity_in) {
-            cell_unordered<V> res = cell_unordered<V>();
-            for (auto const &neighbor: neighbors) {
-                res[neighbor] = vicinity_in;
-            }
-            return res;
-        }
-
         // Auxiliary function for generating biassed Moore neighborhoods (i.e., center cell is not (0,0...)
         static std::vector<cell_position> biassed_moore_neighborhood(unsigned int dimension, unsigned int range) {
             std::vector<cell_position> res = std::vector<cell_position>();
@@ -407,48 +357,43 @@ namespace cadmium::celldevs {
         // Returns unordered map {relative_neighbor: absolute_neighbor} for a given cell
         cell_map<S, V> get_cell_map(const cell_position &cell) {
             assert(cell_in_scenario(cell));
-            cell_unordered<V> v = cell_unordered<V>();
-            for (auto const &neighbor: vicinities) {
+            auto config = configs[cell];
+            cell_unordered<V> neighborhood = cell_unordered<V>();
+            for (auto const &neighbor: config.neighborhood) {
                 cell_position relative = neighbor.first;
-                V kind = neighbor.second;
+                V vicinity = neighbor.second;
                 try {
                     cell_position absolute = destination_cell(cell, relative);
-                    v.insert({absolute, kind});
+                    neighborhood.insert({absolute, vicinity});
                 } catch (std::overflow_error &e) {  // Only if neighbor is valid will it be added to the map
                     continue;
                 }
             }
-            return cell_map<S, V>(shape, cell, states[cell], v, wrapped);
+            return cell_map<S, V>(shape, cell, config.state, neighborhood, wrapped);
         }
     };
 
     template<typename S, typename V>
-    cell_map<S, V>::cell_map(cell_position const &shape_in, cell_position const &location_in,
-                             S const &state_in, cell_unordered<V> const &vicinity_in, bool wrapped_in) {
-        shape = shape_in;
-        location = location_in;
-        state = state_in;
-        vicinity = vicinity_in;
-        wrapped = wrapped_in;
-    }
+    cell_map<S, V>::cell_map(cell_position shape, cell_position location, const S &state, const cell_unordered<V> &neighborhood, bool wrapped) :
+        shape(std::move(shape)), location(std::move(location)), state(state), neighborhood(neighborhood), wrapped(wrapped) {}
 
     template<typename S, typename V>
-    int cell_map<S, V>::manhattan_distance(cell_position const &a) const {
+    int cell_map<S, V>::manhattan_distance(const cell_position &a) const {
         return grid_scenario<S, V>::manhattan_distance(location, a, shape, wrapped);
     }
 
     template<typename S, typename V>
-    int cell_map<S, V>::chebyshev_distance(cell_position const &a) const {
+    int cell_map<S, V>::chebyshev_distance(const cell_position &a) const {
         return grid_scenario<S, V>::chebyshev_distance(location, a, shape, wrapped);
     }
 
     template<typename S, typename V>
-    double cell_map<S, V>::n_norm_distance(cell_position const &a, unsigned int n) const {
+    double cell_map<S, V>::n_norm_distance(const cell_position &a, unsigned int n) const {
         return grid_scenario<S, V>::n_norm_distance(location, a, n, shape, wrapped);
     }
 
     template<typename S, typename V>
-    [[maybe_unused]] double cell_map<S, V>::euclidean_distance(cell_position const &a) const {
+    [[maybe_unused]] double cell_map<S, V>::euclidean_distance(const cell_position &a) const {
         return n_norm_distance(a, 2);
     }
 
@@ -461,6 +406,5 @@ namespace cadmium::celldevs {
     [[maybe_unused]] cell_position cell_map<S, V>::relative(const cell_position &neighbor) const {
         return grid_scenario<S, V>::distance_vector(location, neighbor, shape, wrapped);
     }
-
 } //namespace cadmium::celldevs
 #endif //CADMIUM_CELLDEVS_GRID_UTILS_HPP

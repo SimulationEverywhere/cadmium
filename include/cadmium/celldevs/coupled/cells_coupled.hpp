@@ -72,23 +72,22 @@ namespace cadmium::celldevs {
 
         std::unordered_map<C, std::vector<C>> neighborhoods;  /// Unordered map: {cell ID: [Neighbor cell 1, ....]}
 
-    protected:
-/**
- * Internal method for adding vicinities to its private attribute. Users must not call to this method.
- * @param cell_id ID of the cell. It must not be already defined in the coupled model
- * @param vicinities unordered map {neighboring cell ID: vicinities kind}
- */
-void add_cell_neighborhood(C const &cell_id, std::vector<C> const &neighbors) {
-    auto it = neighborhoods.find(cell_id);
-    if (it != neighborhoods.end()) {
-        throw std::bad_typeid();
-    }
-    neighborhoods.insert({cell_id, neighbors});
-}
+        /**
+         * Internal method for adding vicinities to its private attribute. Users must not call to this method.
+         * @param cell_id ID of the cell. It must not be already defined in the coupled model
+         * @param vicinities unordered map {neighboring cell ID: vicinities kind}
+         */
+        void add_cell_neighborhood(C const &cell_id, std::vector<C> const &neighbors) {
+            auto it = neighborhoods.find(cell_id);
+            if (it != neighborhoods.end()) {
+                throw std::bad_typeid();
+            }
+            neighborhoods.insert({cell_id, neighbors});
+        }
 
     public:
         /**
-         * Constructor
+         * Constructor of the cells_coupled class
          * @param id ID of the Coupled DEVS model that contains the Cell-DEVS scenario
          */
         explicit cells_coupled(std::string const &id) : cadmium::dynamic::modeling::coupled<T>(id), neighborhoods() {}
@@ -128,43 +127,35 @@ void add_cell_neighborhood(C const &cell_id, std::vector<C> const &neighbors) {
                                    std::string const &delay_id, nlohmann::json const &config) {}
 
         /**
-         * Creates a Cell-DEVS scenario from a JSON file
-         * @tparam CELL_MODEL model type of the cells to be included
-         * @tparam Args any additional parameter required for initializing the cell model
-         * @param file_in path to the JSON file that describes the scenario
-         * @param args any additional parameter required for initializing the cell model
+         * Creates a Cell-DEVS scenario from a JSON file.
+         * @param file_in path to the JSON file that describes the scenario.
          */
         void add_cells_json(std::string const &file_in) {
             // Obtain JSON object from file
             std::ifstream i(file_in);
             nlohmann::json j;
             i >> j;
-            // Read scenario configuration (default values)
-            nlohmann::json s = j["scenario"];
-            auto default_cell_type = s["default_cell_type"].get<std::string>();
-            auto default_state = (s.contains("default_state"))? s["default_state"].get<S>() : S();
-            auto default_vicinity = (s.contains("default_vicinity"))? s["default_vicinity"].get<V>() : V();
-            auto default_delay = s["default_delay"].get<std::string>();
+            nlohmann::json cells = j["cells"];
+            // Read default cell
+            nlohmann::json default_cell = cells["default"];  // TODO check that it exists and all parameters are defined
+            auto default_delay = default_cell["delay"].get<std::string>();
+            auto default_cell_type = default_cell["cell_type"].get<std::string>();
+            auto default_state = (default_cell.contains("state")) ? default_cell["state"].get<S>() : S();
+            auto default_config = (default_cell.contains("config")) ? default_cell["config"] : nlohmann::json();
+            auto default_neighborhood = (default_cell.contains("neighborhood")) ? default_cell["neighborhood"].get<std::unordered_map<C, V>>() : std::unordered_map<C, V>();
             // Read each cell's particular configuration
-            for (nlohmann::json &c: j["cells"]) {
-                auto cell_id = c["cell_id"].get<C>();
-                auto initial_state = (c.contains("state"))? c["state"].get<S>() : default_state;
-                auto delay_id = (c.contains("delay")) ? c["delay"].get<std::string>() : default_delay;
-                auto v = (c.contains("default_vicinity")) ? c["default_vicinity"].get<V>() : default_vicinity;
-                std::unordered_map<C, V> neighborhood = std::unordered_map<C, V>();
-                for (nlohmann::json &n: c["neighborhood"]) {
-                    auto neighbor_id = n["cell_id"].get<C>();
-                    auto neighbor_vicinity = (n.contains("vicinities")) ? n["vicinities"].get<V>() : v;
-                    neighborhood[neighbor_id] = neighbor_vicinity;
+            for (auto& el: j["cells"].items()) {
+                const auto& cell_id = el.key();
+                auto cell_conf = el.value();
+                if (cell_id == "default") {
+                    continue;
                 }
-                auto cell_type = (c.contains("cell_type")) ? c["cell_type"].get<std::string>() : default_cell_type;
-                auto config = nlohmann::json();
-                if (c.contains("config")) {
-                    config = c["config"];
-                } else if (s.contains("default_config") && s["default_config"].contains(cell_type)) {
-                    config = s["default_config"][cell_type];
-                }
-                add_cell_json(cell_type, cell_id, neighborhood, initial_state, delay_id, config);
+                auto delay = (cell_conf.contains("delay")) ? cell_conf["delay"].get<std::string>() : default_delay;
+                auto cell_type = (cell_conf.contains("cell_type")) ? cell_conf["cell_type"].get<std::string>() : default_cell_type;
+                auto state = (cell_conf.contains("state"))? cell_conf["state"].get<S>() : default_state;
+                auto config = (cell_conf.contains("config")) ? cell_conf["config"] : default_config;
+                auto neighborhood = (cell_conf.contains("neighborhood")) ? cell_conf["neighborhood"].get<std::unordered_map<C, V>>() : default_neighborhood;
+                add_cell_json(cell_type, cell_id, neighborhood, state, delay, config);
             }
         }
 

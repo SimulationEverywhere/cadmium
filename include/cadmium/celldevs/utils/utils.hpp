@@ -28,9 +28,13 @@
 #ifndef CADMIUM_CELLDEVS_UTILS_HPP
 #define CADMIUM_CELLDEVS_UTILS_HPP
 
+#include <string>
+#include <utility>
 #include <vector>
 #include <iostream>
 #include <functional>
+#include <unordered_map>
+#include <nlohmann/json.hpp>
 #include <boost/functional/hash.hpp>
 
 /**

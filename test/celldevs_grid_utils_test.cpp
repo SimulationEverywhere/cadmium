@@ -86,15 +86,15 @@ BOOST_AUTO_TEST_CASE(grid_test_2d) {
     BOOST_CHECK(space.cell_in_scenario({0, 0}));
     cell_position ref = {0, 0};
     cell_map<int, int> neighborhood = space.get_cell_map(ref);
-    BOOST_CHECK_EQUAL(neighborhood.vicinity.size(), space.get_vicinities().size());
-    for (auto &cell_mapping: neighborhood.vicinity) {
+    BOOST_CHECK_EQUAL(neighborhood.neighborhood.size(), space.get_vicinities().size());
+    for (auto &cell_mapping: neighborhood.neighborhood) {
         BOOST_CHECK_LT(space.manhattan_distance(ref, cell_mapping.first), 2);
     }
 
     space = grid_scenario(scenario_shape, 0, neighbors, false);
     neighborhood = space.get_cell_map(ref);
-    BOOST_CHECK_NE(neighborhood.vicinity.size(), space.get_vicinities().size());
-    for (auto &cell_mapping: neighborhood.vicinity) {
+    BOOST_CHECK_NE(neighborhood.neighborhood.size(), space.get_vicinities().size());
+    for (auto &cell_mapping: neighborhood.neighborhood) {
         BOOST_CHECK_LT(space.manhattan_distance(ref, cell_mapping.first), 2);
     }
     ref = {3, 3};
