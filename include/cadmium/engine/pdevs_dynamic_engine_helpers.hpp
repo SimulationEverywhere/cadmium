@@ -108,7 +108,7 @@ namespace cadmium {
                 std::for_each(subcoordinators.begin(), subcoordinators.end(), init_coordinator);
             }
             #else
-				#ifdef CPU_PARALLEL
+				#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL || defined CPU_DELTA_PARALLEL
             	template<typename TIME>
             	void init_subcoordinators(TIME t, subcoordinators_type<TIME>& subcoordinators, size_t thread_number) {
                 	auto init_coordinator = [&t, thread_number](auto & c)->void { c->init(t, thread_number); };
@@ -137,7 +137,7 @@ namespace cadmium {
                 }
             }
             #else
-				#ifdef CPU_PARALLEL
+				#if defined CPU_PARALLEL || defined CPU_DELTA_PARALLEL
             	template<typename TIME>
             	void advance_simulation_in_subengines(TIME t, subcoordinators_type<TIME>& subcoordinators, size_t thread_number) {
             		auto advance_time= [&t](auto &c)->void { c->advance_simulation(t); };
@@ -165,7 +165,7 @@ namespace cadmium {
                 }
             }
             #else
-				#ifdef CPU_PARALLEL
+				#if defined CPU_PARALLEL || defined CPU_DELTA_PARALLEL
             	template<typename TIME>
             	void collect_outputs_in_subcoordinators(TIME t, subcoordinators_type<TIME>& subcoordinators, size_t thread_number) {
             		auto collect_output = [&t](auto &c)->void { c->collect_outputs(t); };
