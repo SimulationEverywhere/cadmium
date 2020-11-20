@@ -51,7 +51,7 @@ namespace cadmium {
                 subcoordinators_type<TIME> _subcoordinators;
                 external_couplings<TIME> _external_output_couplings;
                 external_couplings<TIME> _external_input_couplings;
-                internal_couplings<TIME> _internal_coupligns;
+                internal_couplings<TIME> _internal_couplings;
 
                 #ifdef CADMIUM_EXECUTE_CONCURRENT
                 boost::basic_thread_pool* _threadpool;
@@ -101,39 +101,151 @@ namespace cadmium {
 
                     // Generates structures for direct access to external couplings to not iterate all coordinators each time.
                     bool found;
+                    // Declaring iterator to a vector
+                    //external_couplings<TIME>::iterator eoc_it;
+                    //std::vector<external_coupling<TIME>>::iterator eoc_it;// eoc_lower, eoc_upper, eic_lower, eic_upper;
+                    //std::vector<internal_coupling<TIME>>::iterator ic_it, ic_lower, ic_upper;
+
                     for (const auto& eoc : coupled_model->_eoc) {
                         if (engines_by_id.find(eoc._from) == engines_by_id.end()) {
                             throw std::domain_error("External output coupling from invalid model");
                         }
 
-                        cadmium::dynamic::engine::external_coupling<TIME> new_eoc;
-                        new_eoc.first = engines_by_id.at(eoc._from);
-                        new_eoc.second.push_back(eoc._link);
-                        _external_output_couplings.push_back(new_eoc);
+                        /*
+                        found = false;
+                        for (auto& coupling : _external_output_couplings) {
+                        	if (coupling.first->get_model_id() == eoc._from) {
+                        		coupling.second.push_back(eoc._link);
+                        		found = true;
+                        		break;
+                        	}
+                        }
+                        */
+
+                        found = false;
+                        //auto eoc_it = std::lower_bound(_external_output_couplings.begin(), _external_output_couplings.end(), eoc._from);
+
+                        //auto eoc_it = std::lower_bound(_external_output_couplings.begin(), _external_output_couplings.end(), eoc._from,
+                        //		[](external_coupling<TIME>& aux1, external_coupling<TIME>& aux2) -> bool { return aux1.first->get_model_id().compare(aux2.first->get_model_id());}
+                        //		);
+
+                        //auto cmp = [] (external_coupling<TIME>& aux1, external_coupling<TIME>& aux2) -> bool
+                        //{
+                        //	return aux1.first->get_model_id().compare(aux2.first->get_model_id());
+                        //};
+
+                        //auto eoc_it = std::upper_bound(_external_output_couplings.begin(), _external_output_couplings.end(), eoc._from,
+                        //                        		[](external_coupling<TIME>& aux1, external_coupling<TIME>& aux2){ aux1.first->get_model_id().compare(aux2.first->get_model_id());}
+                        //                        		);
+                        //auto eoc_it = std::upper_bound(_external_output_couplings.begin(), _external_output_couplings.end(), eoc._from, cmp);
+
+                        //std::lower_bound(foos.begin(), foos.end(), Foo{5},
+                        //    [](const Foo& f1, const Foo& f2) { return f1.a < f2.a; });
+
+                        /* Determines insert position */
+                        auto eoc_it = std::lower_bound(_external_output_couplings.begin(), _external_output_couplings.end(), eoc._from,
+                                      [](const external_coupling<TIME>& aux2, std::string aux1){ return aux2.first->get_model_id() < aux1; }
+                        );
+
+/*
+                        std::vector<PriceInfo> prices = { {100.0}, {101.5}, {102.5}, {102.5}, {107.3} };
+                            for(double to_find: {102.5, 110.2}) {
+                              auto prc_info = std::upper_bound(prices.begin(), prices.end(), to_find,
+                                  [](double value, const PriceInfo& info){
+                                      return value < info.price;
+                                  });
+*/
+                        /* if the element already exists gives warning */
+                        if(eoc_it != _external_output_couplings.end() && _external_output_couplings.at(eoc_it-_external_output_couplings.begin()).first->get_model_id() == eoc._from) {
+                        			_external_output_couplings.at(eoc_it-_external_output_couplings.begin()).second.push_back(eoc._link);
+                        			throw std::domain_error("Duplicated external output coupling");
+                        			found = true;
+                        			break;
+                        }
+
+
+                        //std::vector<PriceInfo> prices = { {100.0}, {101.5}, {102.5}, {102.5}, {107.3} };
+                        //for(double to_find: {102.5, 110.2}) {
+                        //      auto prc_info = std::lower_bound(prices.begin(), prices.end(), to_find,
+                        //          [](const PriceInfo& info, double value){
+                        //              return info.price < value;
+                        //          });
+
+
+                        if(!found){
+                        	cadmium::dynamic::engine::external_coupling<TIME> new_eoc;
+                        	new_eoc.first = engines_by_id.at(eoc._from);
+                        	new_eoc.second.push_back(eoc._link);
+                        	//_external_output_couplings.push_back(new_eoc);
+                        	//_external_output_couplings.insert(_external_output_couplings.begin(), new_eoc);
+                        	/* insert new eic in ordered position */
+                        	_external_output_couplings.insert(eoc_it, new_eoc);
+                        }
+
                     }
 
                     for (const auto& eic : coupled_model->_eic) {
                         if (engines_by_id.find(eic._to) == engines_by_id.end()) {
                             throw std::domain_error("External input coupling to invalid model");
                         }
+                        found = false;
 
-                        cadmium::dynamic::engine::external_coupling<TIME> new_eic;
-                        new_eic.first = engines_by_id.at(eic._to);
-                        new_eic.second.push_back(eic._link);
-                        _external_input_couplings.push_back(new_eic);
+                        /* Determines insert position in order vector*/
+                        auto eic_it = std::lower_bound(_external_input_couplings.begin(), _external_input_couplings.end(), eic._to,
+                        	[](const external_coupling<TIME>& aux2, std::string aux1){ return aux2.first->get_model_id() < aux1; }
+                        );
 
+                        /* if the element already exists gives warning */
+                        if(eic_it != _external_input_couplings.end() && _external_input_couplings.at(eic_it-_external_input_couplings.begin()).first->get_model_id() == eic._to) {
+                        	_external_input_couplings.at(eic_it-_external_input_couplings.begin()).second.push_back(eic._link);
+                        	throw std::domain_error("Duplicated external input coupling");
+                        	found = true;
+                        	break;
+                        }
+
+                        if(!found){
+                        	cadmium::dynamic::engine::external_coupling<TIME> new_eic;
+                        	new_eic.first = engines_by_id.at(eic._to);
+                        	new_eic.second.push_back(eic._link);
+                        	/* insert new eic in ordered position */
+                        	_external_output_couplings.insert(eic_it, new_eic);
+                        }
                     }
 
                     for (const auto& ic : coupled_model->_ic) {
                         if (engines_by_id.find(ic._from) == engines_by_id.end() || engines_by_id.find(ic._to) == engines_by_id.end()) {
                             throw std::domain_error("Internal coupling to invalid model");
                         }
+                        found = false;
 
-                        cadmium::dynamic::engine::internal_coupling<TIME> new_ic;
-                        new_ic.first.first = engines_by_id.at(ic._from);
-                        new_ic.first.second = engines_by_id.at(ic._to);
-                        new_ic.second.push_back(ic._link);
-                        _internal_coupligns.push_back(new_ic);
+                        /* Determines lower bound insert position in ordered vector*/
+                        auto lower_ic_it = std::lower_bound(_internal_couplings.begin(), _internal_couplings.end(), ic._from,
+                        		[](const internal_coupling<TIME>& aux1, std::string aux2){ return aux1.first.first->get_model_id() < aux2; }
+                        );
+
+                        /* Determines upper bound insert position in ordered vector*/
+                        auto upper_ic_it = std::upper_bound(_internal_couplings.begin(), _internal_couplings.end(), ic._from,
+                        		[](std::string aux1, const internal_coupling<TIME>& aux2){ return aux1 < aux2.first.first->get_model_id(); }
+                        );
+
+                        /* for all links from same component, check for duplicates */
+                        for(auto it = lower_ic_it; it < upper_ic_it; it++) {
+                        	/* if there's a coupling to the same component, then it's a duplicated */
+                        	if(lower_ic_it != _internal_couplings.end() && _internal_couplings.at(it-_internal_couplings.begin()).first.second->get_model_id() == ic._to) {
+                        		_internal_couplings.at(it-_internal_couplings.begin()).second.push_back(ic._link);
+                        		throw std::domain_error("Duplicated external input coupling");
+                        		found = true;
+                        	}
+                        }
+
+                        /* if not found insert*/
+                        if(!found){
+                        	cadmium::dynamic::engine::internal_coupling<TIME> new_ic;
+                        	new_ic.first.first = engines_by_id.at(ic._from);
+                        	new_ic.first.second = engines_by_id.at(ic._to);
+                        	new_ic.second.push_back(ic._link);
+                        	_internal_couplings.insert(lower_ic_it, new_ic);
+                        }
                     }
                 }
 
@@ -237,7 +349,7 @@ namespace cadmium {
 
                         //Route the messages standing in the outboxes to mapped inboxes following ICs and EICs
                         LOGGER::template log<cadmium::logger::logger_message_routing, cadmium::logger::coor_routing_ic_collect>(t, _model_id);
-                        cadmium::dynamic::engine::route_internal_coupled_messages_on_subcoordinators<TIME, LOGGER>(_internal_coupligns);
+                        cadmium::dynamic::engine::route_internal_coupled_messages_on_subcoordinators<TIME, LOGGER>(_internal_couplings);
 
                         LOGGER::template log<cadmium::logger::logger_message_routing, cadmium::logger::coor_routing_eic_collect>(t, _model_id);
                         cadmium::dynamic::engine::route_external_input_coupled_messages_on_subcoordinators<TIME, LOGGER>(_inbox, _external_input_couplings);
