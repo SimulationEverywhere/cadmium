@@ -33,6 +33,8 @@
 #include <boost/thread/executors/basic_thread_pool.hpp>
 #endif
 
+#include <cadmium/engine/parallel_helpers.hpp>
+
 namespace cadmium {
     namespace dynamic {
         namespace engine {
@@ -52,7 +54,7 @@ namespace cadmium {
                 virtual void init(TIME initial_time, boost::basic_thread_pool* threadpool) = 0;
                 #endif
 
-				#ifdef CPU_PARALLEL
+				#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL || defined CPU_DELTA_PARALLEL
                 virtual void init(TIME initial_time, size_t thread_number) = 0;
                 #endif
 
@@ -69,6 +71,15 @@ namespace cadmium {
                 virtual void advance_simulation(const TIME &t) = 0;
 
                 virtual ~engine(){}
+
+				#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL
+                virtual cadmium::parallel::info_for_logging<TIME> collect_outputs_without_logging(const TIME &t) = 0;
+				#endif
+
+				#if defined CPU_PARALLEL || defined CPU_DELTA_PARALLEL
+                virtual cadmium::parallel::info_for_logging<TIME> advance_simulation_without_logging(const TIME &t) = 0;
+				#endif
+
             };
         }
     }

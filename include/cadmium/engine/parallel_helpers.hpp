@@ -35,8 +35,22 @@
 #include <algorithm>
 #include <array>
 
+#include <cadmium/logger/common_loggers.hpp>
+
 namespace cadmium {
     namespace parallel {
+
+    	template<typename TIME>
+    	struct info_for_logging {
+    		std::string type;
+    		TIME time;
+    		TIME last;
+    		bool imminent;
+			std::string model_id;
+    		std:: string messages_by_port;
+    		std::string state_as_string;
+
+    	};
 
     	template<typename ITERATOR, typename FUNC>
     	void cpu_parallel_for_each(ITERATOR first, ITERATOR last, FUNC& f, size_t thread_number = std::thread::hardware_concurrency()){
@@ -69,6 +83,88 @@ namespace cadmium {
 						f(*(i+first));
 					}
 				}
+    		}
+    	}
+
+    	template<typename TIME, typename ITERATOR, typename FUNC>
+    	std::vector<info_for_logging<TIME>> cpu_parallel_for_each_with_result(TIME t, ITERATOR first, ITERATOR last, FUNC& f, size_t thread_number = std::thread::hardware_concurrency()){
+    		std::vector<info_for_logging<TIME>> logs;
+    		/* get amount of elements to compute */
+    		size_t n = std::distance(first, last);
+    		/* if the amount of elements is less than the number of threads execute on n elements */
+    	    if(n<thread_number){
+    	    	thread_number=n;
+    	    }
+    	    /* OpenMP parallel loop */
+    	    /* It doesn't work -> execution time as sequential version
+    	    #pragma omp parallel for num_threads(thread_number) firstprivate(f, first) proc_bind(close) schedule(static)
+    	    for(int i = 0; i < n; i++){
+    	    	f(*(i+first));
+    	    }
+    	    */
+    		#pragma omp parallel firstprivate(f) num_threads(thread_number) proc_bind(close)
+    	    {
+    	    	std::vector<info_for_logging<TIME>> partial_logs;
+    	    	info_for_logging<TIME> result;
+    	    	/* get thread id */
+    	    	size_t tid = omp_get_thread_num();
+
+    	    	/* if it's not last thread compute n/thread_number elements */
+    	    	if(tid != thread_number-1) {
+    	    		for(size_t i = (n/thread_number)*tid; i < (n/thread_number)*(tid+1); i++) {
+    	    			result = f(*(i+first));
+    	    			partial_logs.push_back(result);
+    	    		}
+    	    	/* if it's last thread compute till the end of the vector */
+    			} else {
+    				for(size_t i = (n/thread_number) * tid; i < n ; i++) {
+    					result = f(*(i+first));
+    					partial_logs.push_back(result);
+    				}
+    			}
+
+				#pragma omp critical
+    	    	{
+    	    		logs.insert(logs.end(), std::make_move_iterator(partial_logs.begin()), std::make_move_iterator(partial_logs.end()));
+    	    	}
+
+    		}
+    	    return logs;
+    	}
+
+
+    	template<typename LOGGER, typename TIME, typename ITERATOR, typename FUNC>
+    	void cpu_parallel_for_each_lambda(TIME t, ITERATOR first, ITERATOR last, FUNC& f, size_t thread_number = std::thread::hardware_concurrency()){
+
+    		/* parallel lambda execution */
+    		std::vector<info_for_logging<TIME>> log = cpu_parallel_for_each_with_result(t, first, last, f, thread_number);
+
+    		/* log results */
+    		size_t n = log.size();
+    		for(size_t i=0; i<n; i++){
+    			if(log.at(i).type == "simulator"){
+    				LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::sim_info_collect>(t, log.at(i).model_id);
+    				if(log.at(i).imminent == true){
+    					LOGGER::template log<cadmium::logger::logger_messages, cadmium::logger::sim_messages_collect>(t, log.at(i).model_id, log.at(i).messages_by_port);
+    				}
+    			}
+    		}
+    	}
+
+    	template<typename LOGGER, typename TIME, typename ITERATOR, typename FUNC>
+    	void cpu_parallel_for_each_delta(TIME t, ITERATOR first, ITERATOR last, FUNC& f, size_t thread_number = std::thread::hardware_concurrency()){
+
+    		/* parallel delta execution */
+    		std::vector<info_for_logging<TIME>> log = cpu_parallel_for_each_with_result(t, first, last, f, thread_number);
+
+    		/* log results */
+    		size_t n = log.size();
+    		for(size_t i=0; i<n; i++){
+    			if(log.at(i).type == "simulator"){
+    				LOGGER::template log<cadmium::logger::logger_info,cadmium::logger::sim_info_advance>(log.at(i).last, log.at(i).time, log.at(i).model_id);
+    				LOGGER::template log<cadmium::logger::logger_local_time,cadmium::logger::sim_local_time>(log.at(i).last, log.at(i).time, log.at(i).model_id);
+    				LOGGER::template log<cadmium::logger::logger_state,cadmium::logger::sim_state>(log.at(i).time, log.at(i).model_id, log.at(i).state_as_string);
+    			}
     		}
     	}
 
