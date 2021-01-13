@@ -47,7 +47,7 @@ endif ()
 enable_testing()
 
 #run all tests for sequential and concurrent versions
-set(EXEC_TYPES "seq" "par")
+set(EXEC_TYPES "seq" "flat" "par")
 foreach (exec_type ${EXEC_TYPES})
     # Unit tests
     FILE(GLOB TestSources RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} test/*_test.cpp)
@@ -55,6 +55,9 @@ foreach (exec_type ${EXEC_TYPES})
         get_filename_component(testName ${testSrc} NAME_WE)
         set(testName "${testName}_${exec_type}")
         add_executable(${testName} test/main-test.cpp ${testSrc})
+        if (exec_type STREQUAL "flat")
+            target_compile_definitions(${testName} PUBLIC FLATENNED)
+        endif ()
         if (exec_type STREQUAL "par")
             target_compile_definitions(${testName} PUBLIC CADMIUM_EXECUTE_CONCURRENT BOOST_THREAD_PROVIDES_FUTURE_CONTINUATION BOOST_THREAD_PROVIDES_EXECUTORS BOOST_THREAD_USES_MOVE)
         endif ()
@@ -71,6 +74,9 @@ foreach (exec_type ${EXEC_TYPES})
         set_target_properties(${testCompName} PROPERTIES
                 EXCLUDE_FROM_ALL TRUE
                 EXCLUDE_FROM_DEFAULT_BUILD TRUE)
+		if (exec_type STREQUAL "flat")
+            target_compile_definitions(${testCompName} PUBLIC FLATENNED)
+        endif ()   
         if (exec_type STREQUAL "par")
             target_compile_definitions(${testCompName} PUBLIC CADMIUM_EXECUTE_CONCURRENT BOOST_THREAD_PROVIDES_FUTURE_CONTINUATION BOOST_THREAD_PROVIDES_EXECUTORS BOOST_THREAD_USES_MOVE)
         endif ()
@@ -89,6 +95,9 @@ foreach (exec_type ${EXEC_TYPES})
         set_target_properties(${testCmpFailName} PROPERTIES
                 EXCLUDE_FROM_ALL TRUE
                 EXCLUDE_FROM_DEFAULT_BUILD TRUE)
+		if (exec_type STREQUAL "flat")
+            target_compile_definitions(${testCmpFailName} PUBLIC FLATENNED)
+        endif ()
         if (exec_type STREQUAL "par")
             target_compile_definitions(${testCmpFailName} PUBLIC CADMIUM_EXECUTE_CONCURRENT BOOST_THREAD_PROVIDES_FUTURE_CONTINUATION BOOST_THREAD_PROVIDES_EXECUTORS BOOST_THREAD_USES_MOVE)
         endif ()
