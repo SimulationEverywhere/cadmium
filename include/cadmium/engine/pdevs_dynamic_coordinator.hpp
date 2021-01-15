@@ -57,7 +57,7 @@ namespace cadmium {
                 boost::basic_thread_pool* _threadpool;
                 #endif //CADMIUM_EXECUTE_CONCURRENT
 
-				#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL || defined CPU_DELTA_PARALLEL
+				#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL || defined CPU_DELTA_PARALLEL || defined GPU_PARALLEL || defined GPU_LAMBDA_PARALLEL || defined GPU_DELTA_PARALLEL
                 size_t _thread_number;
 				#endif //CPU_PARALLEL
 
@@ -154,7 +154,7 @@ namespace cadmium {
 					#ifdef CADMIUM_EXECUTE_CONCURRENT
                     cadmium::dynamic::engine::init_subcoordinators<TIME>(initial_time, _subcoordinators, _threadpool);
                     #else
-						#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL || defined CPU_DELTA_PARALLEL
+						#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL || defined CPU_DELTA_PARALLEL || defined GPU_PARALLEL || defined GPU_LAMBDA_PARALLEL || defined GPU_DELTA_PARALLEL
                     	cadmium::dynamic::engine::init_subcoordinators<TIME>(initial_time, _subcoordinators, _thread_number);
 						#else
                     	cadmium::dynamic::engine::init_subcoordinators<TIME>(initial_time, _subcoordinators);
@@ -173,7 +173,7 @@ namespace cadmium {
                 }
                 #endif //CADMIUM_EXECUTE_CONCURRENT
 
-				#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL || defined CPU_DELTA_PARALLEL
+				#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL || defined CPU_DELTA_PARALLEL || defined GPU_PARALLEL || defined GPU_LAMBDA_PARALLEL || defined GPU_DELTA_PARALLEL
                 void init(TIME initial_time, size_t thread_number) {
                     _thread_number = thread_number;
                     this->init(initial_time);
@@ -213,7 +213,7 @@ namespace cadmium {
 						#ifdef CADMIUM_EXECUTE_CONCURRENT
                         cadmium::dynamic::engine::collect_outputs_in_subcoordinators<TIME>(t, _subcoordinators, _threadpool);
 						#else
-							#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL
+							#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL || defined GPU_PARALLEL || defined GPU_LAMBDA_PARALLEL
                         	cadmium::dynamic::engine::collect_outputs_in_subcoordinators<TIME, LOGGER>(t, _subcoordinators, _thread_number);
 							#else
                         	cadmium::dynamic::engine::collect_outputs_in_subcoordinators<TIME>(t, _subcoordinators);
@@ -226,7 +226,7 @@ namespace cadmium {
                 }
 
 
-				#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL
+				#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL || defined GPU_PARALLEL || defined GPU_LAMBDA_PARALLEL
                 cadmium::parallel::info_for_logging<TIME> collect_outputs_without_logging(const TIME &t) {
                 	cadmium::parallel::info_for_logging<TIME> log;
 
@@ -245,7 +245,7 @@ namespace cadmium {
                 		#ifdef CADMIUM_EXECUTE_CONCURRENT
                 		cadmium::dynamic::engine::collect_outputs_in_subcoordinators<TIME>(t, _subcoordinators, _threadpool);
                 		#else
-                			#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL
+                			#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL || defined GPU_PARALLEL || defined GPU_LAMBDA_PARALLEL
                 			cadmium::dynamic::engine::collect_outputs_in_subcoordinators<TIME, LOGGER>(t, _subcoordinators, _thread_number);
                 			#else
                 			cadmium::dynamic::engine::collect_outputs_in_subcoordinators<TIME>(t, _subcoordinators);
@@ -299,7 +299,7 @@ namespace cadmium {
 						#ifdef CADMIUM_EXECUTE_CONCURRENT
                         cadmium::dynamic::engine::advance_simulation_in_subengines<TIME>(t, _subcoordinators, _threadpool);
 						#else
-							#if defined CPU_PARALLEL || defined CPU_DELTA_PARALLEL
+							#if defined CPU_PARALLEL || defined CPU_DELTA_PARALLEL || defined GPU_PARALLEL || defined GPU_DELTA_PARALLEL
                         	cadmium::dynamic::engine::advance_simulation_in_subengines<TIME, LOGGER>(t, _subcoordinators, _thread_number);
 							#else
                         	cadmium::dynamic::engine::advance_simulation_in_subengines<TIME>(t, _subcoordinators);
@@ -315,7 +315,7 @@ namespace cadmium {
                     }
                 }
 
-				#if defined CPU_PARALLEL || defined CPU_DELTA_PARALLEL
+				#if defined CPU_PARALLEL || defined CPU_DELTA_PARALLEL || defined GPU_PARALLEL || defined GPU_DELTA_PARALLEL
                 cadmium::parallel::info_for_logging<TIME> advance_simulation_without_logging(const TIME &t) {
                 	cadmium::parallel::info_for_logging<TIME> log;
                 	//clean outbox because messages are routed before calling this function at a higher level
@@ -338,7 +338,7 @@ namespace cadmium {
 						#ifdef CADMIUM_EXECUTE_CONCURRENT
                         cadmium::dynamic::engine::advance_simulation_in_subengines<TIME>(t, _subcoordinators, _threadpool);
 						#else
-							#if defined CPU_PARALLEL || defined CPU_DELTA_PARALLEL
+							#if defined CPU_PARALLEL || defined CPU_DELTA_PARALLEL || defined GPU_PARALLEL || defined GPU_DELTA_PARALLEL
                         	cadmium::dynamic::engine::advance_simulation_in_subengines<TIME, LOGGER>(t, _subcoordinators, _thread_number);
 							#else
                         	cadmium::dynamic::engine::advance_simulation_in_subengines<TIME>(t, _subcoordinators);

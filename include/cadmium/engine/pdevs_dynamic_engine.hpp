@@ -54,7 +54,7 @@ namespace cadmium {
                 virtual void init(TIME initial_time, boost::basic_thread_pool* threadpool) = 0;
                 #endif
 
-				#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL || defined CPU_DELTA_PARALLEL
+				#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL || defined CPU_DELTA_PARALLEL || defined GPU_PARALLEL || defined GPU_LAMBDA_PARALLEL || defined GPU_DELTA_PARALLEL
                 virtual void init(TIME initial_time, size_t thread_number) = 0;
                 #endif
 
@@ -72,11 +72,11 @@ namespace cadmium {
 
                 virtual ~engine(){}
 
-				#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL
+				#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL || defined GPU_PARALLEL || defined GPU_LAMBDA_PARALLEL
                 virtual cadmium::parallel::info_for_logging<TIME> collect_outputs_without_logging(const TIME &t) = 0;
 				#endif
 
-				#if defined CPU_PARALLEL || defined CPU_DELTA_PARALLEL
+				#if defined CPU_PARALLEL || defined CPU_DELTA_PARALLEL || defined GPU_PARALLEL || defined GPU_DELTA_PARALLEL
                 virtual cadmium::parallel::info_for_logging<TIME> advance_simulation_without_logging(const TIME &t) = 0;
 				#endif
 

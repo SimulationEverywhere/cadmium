@@ -36,7 +36,7 @@
 #include <boost/thread/executors/basic_thread_pool.hpp>
 #endif //CADMIUM_EXECUTE_CONCURRENT
 
-#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL || defined CPU_DELTA_PARALLEL
+#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL || defined CPU_DELTA_PARALLEL || defined GPU_PARALLEL || defined GPU_LAMBDA_PARALLEL || defined GPU_DELTA_PARALLEL
 #include <cadmium/engine/parallel_helpers.hpp>
 #include <algorithm>
 #endif //CPU_PARALLEL
@@ -108,7 +108,7 @@ namespace cadmium {
                 std::for_each(subcoordinators.begin(), subcoordinators.end(), init_coordinator);
             }
             #else
-				#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL || defined CPU_DELTA_PARALLEL
+				#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL || defined CPU_DELTA_PARALLEL || defined GPU_PARALLEL || defined GPU_LAMBDA_PARALLEL || defined GPU_DELTA_PARALLEL
             	template<typename TIME>
             	void init_subcoordinators(TIME t, subcoordinators_type<TIME>& subcoordinators, size_t thread_number) {
                 	auto init_coordinator = [&t, thread_number](auto & c)->void { c->init(t, thread_number); };
@@ -137,11 +137,11 @@ namespace cadmium {
                 }
             }
             #else
-				#if defined CPU_PARALLEL || defined CPU_DELTA_PARALLEL
+				#if defined CPU_PARALLEL || defined CPU_DELTA_PARALLEL || defined GPU_PARALLEL || defined GPU_DELTA_PARALLEL
             	template<typename TIME, typename LOGGER>
             	void advance_simulation_in_subengines(TIME t, subcoordinators_type<TIME>& subcoordinators, size_t thread_number) {
             		auto advance_time= [&t](auto &c)->cadmium::parallel::info_for_logging<TIME> { return c->advance_simulation_without_logging(t); };
-            		cadmium::parallel::cpu_parallel_for_each_delta<LOGGER>(t, subcoordinators.begin(), subcoordinators.end(), advance_time, thread_number);
+            		cadmium::parallel::openmp_parallel_for_each_delta<LOGGER>(t, subcoordinators, advance_time, thread_number);
             	}
 				#else
             	template<typename TIME>
@@ -165,7 +165,7 @@ namespace cadmium {
                 }
             }
             #else
-				#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL
+				#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL || defined GPU_PARALLEL || defined GPU_LAMBDA_PARALLEL
             	template<typename TIME, typename LOGGER>
             	void collect_outputs_in_subcoordinators(TIME t, subcoordinators_type<TIME>& subcoordinators, size_t thread_number) {
             		auto collect_output = [&t](auto &c)->cadmium::parallel::info_for_logging<TIME>
@@ -175,7 +175,7 @@ namespace cadmium {
             			return c->collect_outputs_without_logging(t);
             		};
             		//auto collect_output = [&t](auto & c)->void { c->collect_outputs(t); };
-            		cadmium::parallel::cpu_parallel_for_each_lambda<LOGGER>(t, subcoordinators.begin(), subcoordinators.end(), collect_output, thread_number);
+            		cadmium::parallel::openmp_parallel_for_each_lambda<LOGGER>(t, subcoordinators, collect_output, thread_number);
             		//std::for_each(subcoordinators.begin(), subcoordinators.end(), collect_output);
             	}
 				#else
