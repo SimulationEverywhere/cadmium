@@ -33,7 +33,9 @@
 #include <boost/thread/executors/basic_thread_pool.hpp>
 #endif //CADMIUM_EXECUTE_CONCURRENT
 
-#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL || defined CPU_DELTA_PARALLEL
+#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL || defined CPU_DELTA_PARALLEL || defined GPU_PARALLEL || defined GPU_LAMBDA_PARALLEL \
+|| defined GPU_DELTA_PARALLEL || defined MULTI_GPU_PARALLEL || defined MULTI_GPU_LAMBDA_PARALLEL || defined MULTI_GPU_DELTA_PARALLEL \
+|| defined HET_PARALLEL || defined HET_LAMBDA_PARALLEL || defined HET_DELTA_PARALLEL || defined HPC
 #include <thread>
 #include <cadmium/engine/parallel_helpers.hpp>
 #endif //CPU_PARALLEL
@@ -67,7 +69,9 @@ namespace cadmium {
                 boost::basic_thread_pool _threadpool;
                 #endif //CADMIUM_EXECUTE_CONCURRENT
 
-				#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL || CPU_DELTA_PARALLEL
+				#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL || defined CPU_DELTA_PARALLEL || defined GPU_PARALLEL || defined GPU_LAMBDA_PARALLEL \
+                || defined GPU_DELTA_PARALLEL || defined MULTI_GPU_PARALLEL || defined MULTI_GPU_LAMBDA_PARALLEL || defined MULTI_GPU_DELTA_PARALLEL \
+				|| defined HET_PARALLEL || defined HET_LAMBDA_PARALLEL || defined HET_DELTA_PARALLEL || defined HPC
                 size_t _thread_number;
 				#endif//CPU_PARALLEL
 
@@ -88,7 +92,9 @@ namespace cadmium {
                     _next = _top_coordinator.next();
                 }
                 #else
-					#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL || defined CPU_DELTA_PARALLEL
+                	#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL || defined CPU_DELTA_PARALLEL || defined GPU_PARALLEL || defined GPU_LAMBDA_PARALLEL \
+            		|| defined GPU_DELTA_PARALLEL || defined MULTI_GPU_PARALLEL || defined MULTI_GPU_LAMBDA_PARALLEL || defined MULTI_GPU_DELTA_PARALLEL \
+					|| defined HET_PARALLEL || defined HET_LAMBDA_PARALLEL || defined HET_DELTA_PARALLEL || defined HPC
                 	explicit runner(std::shared_ptr<cadmium::dynamic::modeling::coupled<TIME>> coupled_model, const TIME &init_time, unsigned const thread_number = std::thread::hardware_concurrency())
                     	: _top_coordinator(coupled_model){
                 		_thread_number = thread_number;

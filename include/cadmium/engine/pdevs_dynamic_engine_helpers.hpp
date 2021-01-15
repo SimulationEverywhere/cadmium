@@ -36,7 +36,9 @@
 #include <boost/thread/executors/basic_thread_pool.hpp>
 #endif //CADMIUM_EXECUTE_CONCURRENT
 
-#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL || defined CPU_DELTA_PARALLEL || defined GPU_PARALLEL || defined GPU_LAMBDA_PARALLEL || defined GPU_DELTA_PARALLEL
+#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL || defined CPU_DELTA_PARALLEL || defined GPU_PARALLEL || defined GPU_LAMBDA_PARALLEL \
+|| defined GPU_DELTA_PARALLEL || defined MULTI_GPU_PARALLEL || defined MULTI_GPU_LAMBDA_PARALLEL || defined MULTI_GPU_DELTA_PARALLEL \
+|| defined HET_PARALLEL || defined HET_LAMBDA_PARALLEL || defined HET_DELTA_PARALLEL || defined HPC
 #include <cadmium/engine/parallel_helpers.hpp>
 #include <algorithm>
 #endif //CPU_PARALLEL
@@ -108,7 +110,9 @@ namespace cadmium {
                 std::for_each(subcoordinators.begin(), subcoordinators.end(), init_coordinator);
             }
             #else
-				#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL || defined CPU_DELTA_PARALLEL || defined GPU_PARALLEL || defined GPU_LAMBDA_PARALLEL || defined GPU_DELTA_PARALLEL
+            	#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL || defined CPU_DELTA_PARALLEL || defined GPU_PARALLEL || defined GPU_LAMBDA_PARALLEL \
+            	|| defined GPU_DELTA_PARALLEL || defined MULTI_GPU_PARALLEL || defined MULTI_GPU_LAMBDA_PARALLEL || defined MULTI_GPU_DELTA_PARALLEL \
+				|| defined HET_PARALLEL || defined HET_LAMBDA_PARALLEL || defined HET_DELTA_PARALLEL || defined HPC
             	template<typename TIME>
             	void init_subcoordinators(TIME t, subcoordinators_type<TIME>& subcoordinators, size_t thread_number) {
                 	auto init_coordinator = [&t, thread_number](auto & c)->void { c->init(t, thread_number); };
@@ -137,7 +141,9 @@ namespace cadmium {
                 }
             }
             #else
-				#if defined CPU_PARALLEL || defined CPU_DELTA_PARALLEL || defined GPU_PARALLEL || defined GPU_DELTA_PARALLEL
+            	#if defined CPU_PARALLEL || defined CPU_DELTA_PARALLEL || defined GPU_PARALLEL || defined GPU_DELTA_PARALLEL \
+            	|| defined MULTI_GPU_PARALLEL || defined MULTI_GPU_DELTA_PARALLEL || defined HET_PARALLEL \
+				|| defined HET_DELTA_PARALLEL || defined HPC
             	template<typename TIME, typename LOGGER>
             	void advance_simulation_in_subengines(TIME t, subcoordinators_type<TIME>& subcoordinators, size_t thread_number) {
             		auto advance_time= [&t](auto &c)->cadmium::parallel::info_for_logging<TIME> { return c->advance_simulation_without_logging(t); };
@@ -165,7 +171,9 @@ namespace cadmium {
                 }
             }
             #else
-				#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL || defined GPU_PARALLEL || defined GPU_LAMBDA_PARALLEL
+            	#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL || defined GPU_PARALLEL || defined GPU_LAMBDA_PARALLEL \
+        		|| defined MULTI_GPU_PARALLEL || defined MULTI_GPU_LAMBDA_PARALLEL || defined HET_PARALLEL \
+				|| defined HET_LAMBDA_PARALLEL || defined HPC
             	template<typename TIME, typename LOGGER>
             	void collect_outputs_in_subcoordinators(TIME t, subcoordinators_type<TIME>& subcoordinators, size_t thread_number) {
             		auto collect_output = [&t](auto &c)->cadmium::parallel::info_for_logging<TIME>

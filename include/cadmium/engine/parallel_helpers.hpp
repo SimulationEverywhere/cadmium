@@ -152,7 +152,6 @@ namespace cadmium {
     	    }
     	    */
 
-
     		#pragma omp parallel firstprivate(f) num_threads(thread_number) proc_bind(close)
     	    {
     	    	std::vector<info_for_logging<TIME>> partial_logs;
@@ -209,8 +208,159 @@ namespace cadmium {
     	    return logs;
     	}
 
-    	template<typename LOGGER, typename TIME, typename ITERATOR, typename FUNC>
-    	void cpu_parallel_for_each_lambda_iterator(TIME t, ITERATOR first, ITERATOR last, FUNC& f, size_t thread_number = std::thread::hardware_concurrency()){
+    	template<typename TIME, typename T, typename FUNC>
+    	std::vector<info_for_logging<TIME>> multi_gpu_parallel_for_each_with_result(TIME t, std::vector<T>& obj, FUNC& f, size_t device_number = omp_get_num_devices()){
+    		std::vector<info_for_logging<TIME>> logs;
+    		/* get amount of elements to compute */
+    		size_t size = obj.size();
+
+    		/* if the amount of elements is less than the number of threads execute on n elements */
+    	    if(size<device_number){
+    	    	device_number=size;
+    	    }
+
+    	    T* p = obj.data();
+
+    		#pragma omp parallel firstprivate(f) num_threads(device_number) proc_bind(close)
+    	    {
+    	    	std::vector<info_for_logging<TIME>> partial_logs;
+    	    	info_for_logging<TIME> result;
+    	    	// get thread id
+    	    	size_t tid = omp_get_thread_num();
+
+    	    	// determine first and last element to compute
+    	    	size_t initial = (size/device_number) * tid;
+
+    	    	size_t last;
+    	    	// if it's the last element compute till size, because division may not be perfect
+    	    	if(tid != device_number-1) {
+    	    		last = (size/device_number)*(tid+1);
+    	    	} else {
+    	    		last = size;
+    	    	}
+
+    	    	/* compute size/devices_number elements */
+    	    	#pragma omp target teams distribute parallel for map(tofrom:p[initial:last]) map(from:logs) device(tid)
+    	    	for(size_t i = initial; i < last; i++) {
+    	    		partial_logs.push_back(f(obj[i]));
+    	    	}
+
+				#pragma omp critical
+    	    	{
+    	    		logs.insert(logs.end(), std::make_move_iterator(partial_logs.begin()), std::make_move_iterator(partial_logs.end()));
+    	    	}
+
+    		}
+    	    return logs;
+    	}
+
+
+    	template<typename TIME, typename T, typename FUNC>
+    	std::vector<info_for_logging<TIME>> het_parallel_for_each_with_result(TIME t, std::vector<T>& obj, FUNC& f, size_t thread_number = std::thread::hardware_concurrency()){
+    		std::vector<info_for_logging<TIME>> logs;
+    		/* get amount of elements to compute */
+    		size_t size = obj.size();
+
+    		/* if the amount of elements is less than the number of threads execute on n elements */
+    	    if(size<thread_number){
+    	    	thread_number=size;
+    	    }
+
+    	    T* p = obj.data();
+
+    		#pragma omp parallel firstprivate(f) num_threads(thread_number) proc_bind(close)
+    	    {
+    	    	std::vector<info_for_logging<TIME>> partial_logs;
+    	    	info_for_logging<TIME> result;
+    	    	// get thread id
+    	    	size_t tid = omp_get_thread_num();
+
+    	    	// determine first and last element to compute
+    	    	size_t initial = (size/thread_number) * tid;
+
+    	    	size_t last;
+    	    	// if it's the last element compute till size, because division may not be perfect
+    	    	if(tid != thread_number-1) {
+    	    		last = (size/thread_number)*(tid+1);
+    	    	} else {
+    	    		last = size;
+    	    	}
+
+    	    	/* compute size/devices_number elements */
+    	    	#pragma omp target teams distribute parallel for map(tofrom:p[initial:last]) map(from:logs) device(tid)
+    	    	for(size_t i = initial; i < last; i++) {
+    	    		partial_logs.push_back(f(obj[i]));
+    	    	}
+
+				#pragma omp critical
+    	    	{
+    	    		logs.insert(logs.end(), std::make_move_iterator(partial_logs.begin()), std::make_move_iterator(partial_logs.end()));
+    	    	}
+
+    		}
+    	    return logs;
+    	}
+
+
+
+    	template<typename TIME, typename T, typename FUNC>
+    	std::vector<info_for_logging<TIME>> hpc_parallel_for_each_with_result(TIME t, std::vector<T>& obj, FUNC& f, size_t thread_number = std::thread::hardware_concurrency()){
+    		std::vector<info_for_logging<TIME>> logs;
+    		/* get amount of elements to compute */
+    		size_t size = obj.size();
+
+    		/* if the amount of elements is less than the number of threads execute on n elements */
+    	    if(size<thread_number){
+    	    	thread_number=size;
+    	    }
+
+    	    /* OpenMP parallel loop */
+    	    /* It doesn't work -> execution time as sequential version
+    	    #pragma omp parallel for num_threads(thread_number) firstprivate(f, first) proc_bind(close) schedule(static)
+    	    for(int i = 0; i < n; i++){
+    	    	f(*(i+first));
+    	    }
+    	    */
+
+    		#pragma omp parallel firstprivate(f) num_threads(thread_number) proc_bind(close)
+    	    {
+    	    	std::vector<info_for_logging<TIME>> partial_logs;
+    	    	info_for_logging<TIME> result;
+    	    	// get thread id
+    	    	size_t tid = omp_get_thread_num();
+
+    	    	// determine first and last element to compute
+    	    	size_t initial = (size/thread_number) * tid;
+
+    	    	size_t last;
+    	    	// if it's the last element compute till size, because division may not be perfect
+    	    	if(tid != thread_number-1) {
+    	    		last = (size/thread_number)*(tid+1);
+    	    	} else {
+    	    		last = size;
+    	    	}
+
+    	    	// compute size/thread_number elements
+    	    	for(size_t i = initial; i < last; i++) {
+    	    		result = f(obj[i]);
+    	    		partial_logs.push_back(result);
+    	    	}
+
+				#pragma omp critical
+    	    	{
+    	    		logs.insert(logs.end(), std::make_move_iterator(partial_logs.begin()), std::make_move_iterator(partial_logs.end()));
+    	    	}
+
+
+    		}
+    	    return logs;
+    	}
+
+
+
+
+//    	template<typename LOGGER, typename TIME, typename ITERATOR, typename FUNC>
+//    	void cpu_parallel_for_each_lambda_iterator(TIME t, ITERATOR first, ITERATOR last, FUNC& f, size_t thread_number = std::thread::hardware_concurrency()){
 
     		/* parallel lambda execution */
     		//std::vector<info_for_logging<TIME>> log = cpu_parallel_for_each_with_result(t, first, last, f, thread_number);
@@ -226,10 +376,10 @@ namespace cadmium {
     			}
     		}
     		*/
-    	}
+//    	}
 
-    	template<typename LOGGER, typename TIME, typename ITERATOR, typename FUNC>
-    	void cpu_parallel_for_each_delta_iterator(TIME t, ITERATOR first, ITERATOR last, FUNC& f, size_t thread_number = std::thread::hardware_concurrency()){
+//    	template<typename LOGGER, typename TIME, typename ITERATOR, typename FUNC>
+//    	void cpu_parallel_for_each_delta_iterator(TIME t, ITERATOR first, ITERATOR last, FUNC& f, size_t thread_number = std::thread::hardware_concurrency()){
 
     		/* parallel delta execution */
     		//std::vector<info_for_logging<TIME>> log = cpu_parallel_for_each_with_result(t, first, last, f, thread_number);
@@ -243,15 +393,17 @@ namespace cadmium {
     				LOGGER::template log<cadmium::logger::logger_state,cadmium::logger::sim_state>(log.at(i).time, log.at(i).model_id, log.at(i).state_as_string);
     			}
     		}*/
-    	}
+//    	}
 
+
+/*
     	template<typename LOGGER, typename TIME, typename T, typename FUNC>
     	void cpu_parallel_for_each_lambda(TIME t, std::vector<T>& obj, FUNC& f, size_t thread_number = std::thread::hardware_concurrency()){
 
-    		/* parallel lambda execution */
+    		// parallel lambda execution
     		std::vector<info_for_logging<TIME>> log = gpu_parallel_for_each_with_result(t, obj, f, thread_number);
 
-    		/* log results */
+    		// log results
     		size_t n = log.size();
     		for(size_t i=0; i<n; i++){
     			if(log.at(i).type == "simulator"){
@@ -266,10 +418,10 @@ namespace cadmium {
     	template<typename LOGGER, typename TIME, typename T, typename FUNC>
     	void cpu_parallel_for_each_delta(TIME t, std::vector<T>& obj, FUNC& f, size_t thread_number = std::thread::hardware_concurrency()){
 
-    		/* parallel delta execution */
+    		// parallel delta execution
     		std::vector<info_for_logging<TIME>> log = gpu_parallel_for_each_with_result(t, obj, f, thread_number);
 
-    		/* log results */
+    		// log results
     		size_t n = log.size();
     		for(size_t i=0; i<n; i++){
     			if(log.at(i).type == "simulator"){
@@ -279,6 +431,7 @@ namespace cadmium {
     			}
     		}
     	}
+*/
 
     	template<typename LOGGER, typename TIME, typename T, typename FUNC>
     	void openmp_parallel_for_each_lambda(TIME t, std::vector<T>& obj, FUNC& f, size_t thread_number = std::thread::hardware_concurrency()){
@@ -290,7 +443,19 @@ namespace cadmium {
     			log = cpu_parallel_for_each_with_result(t, obj, f, thread_number);
 			#else
 				#if defined GPU_PARALLEL || defined GPU_LAMBDA_PARALLEL
-    			log = gpu_parallel_for_each_with_result(t, obj, f, thread_number);
+    				log = gpu_parallel_for_each_with_result(t, obj, f, thread_number);
+				#else
+					#if defined MULTI_GPU_PARALLEL || defined MULTI_GPU_LAMBDA_PARALLEL
+    					log = multi_gpu_parallel_for_each_with_result(t, obj, f, thread_number);
+					#else
+						#if defined HET_PARALLEL || defined HET_LAMBDA_PARALLEL
+    						log = het_parallel_for_each_with_result(t, obj, f, thread_number);
+						#else
+							#if defined HPC
+    							log = hpc_parallel_for_each_with_result(t, obj, f, thread_number);
+							#endif
+						#endif
+					#endif
 				#endif //GPU_PARALLEL
             #endif //CPU_PARALLEL
 
@@ -307,19 +472,32 @@ namespace cadmium {
 
     	}
 
+
     	template<typename LOGGER, typename TIME, typename T, typename FUNC>
     	void openmp_parallel_for_each_delta(TIME t, std::vector<T>& obj, FUNC& f, size_t thread_number = std::thread::hardware_concurrency()){
 
     		std::vector<info_for_logging<TIME>> log;
 
-    		/* parallel delta execution */
-    		#if defined CPU_PARALLEL || defined CPU_DELTA_PARALLEL
-    			log = cpu_parallel_for_each_with_result(t, obj, f, thread_number);
+			#if defined CPU_PARALLEL || defined CPU_DELTA_PARALLEL
+    		    log = cpu_parallel_for_each_with_result(t, obj, f, thread_number);
 			#else
 				#if defined GPU_PARALLEL || defined GPU_DELTA_PARALLEL
     		    	log = gpu_parallel_for_each_with_result(t, obj, f, thread_number);
-    			#endif //GPU_PARALLEL
-    		#endif //CPU_PARALLEL
+				#else
+					#if defined MULTI_GPU_PARALLEL || defined MULTI_GPU_DELTA_PARALLEL
+    		    		log = multi_gpu_parallel_for_each_with_result(t, obj, f, thread_number);
+					#else
+						#if defined HET_PARALLEL || defined HET_DELTA_PARALLEL
+    		    			log = het_parallel_for_each_with_result(t, obj, f, thread_number);
+						#else
+							#if defined HPC
+    		    				log = hpc_parallel_for_each_with_result(t, obj, f, thread_number);
+							#endif
+						#endif
+					#endif
+				#endif //GPU_PARALLEL
+			#endif //CPU_PARALLEL
+
 
     		/* log results */
     		size_t n = log.size();

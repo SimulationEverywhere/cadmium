@@ -84,7 +84,9 @@ namespace cadmium {
                 }
                 #endif //CADMIUM_EXECUTE_CONCURRENT
 
-				#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL || defined CPU_DELTA_PARALLEL || defined GPU_PARALLEL || defined GPU_LAMBDA_PARALLEL || defined GPU_DELTA_PARALLEL
+                #if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL || defined CPU_DELTA_PARALLEL || defined GPU_PARALLEL || defined GPU_LAMBDA_PARALLEL \
+            	|| defined GPU_DELTA_PARALLEL || defined MULTI_GPU_PARALLEL || defined MULTI_GPU_LAMBDA_PARALLEL || defined MULTI_GPU_DELTA_PARALLEL \
+				|| defined HET_PARALLEL || defined HET_LAMBDA_PARALLEL || defined HET_DELTA_PARALLEL || defined HPC
                 void init(TIME initial_time, size_t thread_number) override {
                 	this->init(initial_time);
                 }
@@ -116,7 +118,9 @@ namespace cadmium {
 
                 }
 
-				#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL || defined GPU_PARALLEL || defined GPU_LAMBDA_PARALLEL
+				#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL || defined CPU_DELTA_PARALLEL || defined GPU_PARALLEL || defined GPU_LAMBDA_PARALLEL \
+            	|| defined GPU_DELTA_PARALLEL || defined MULTI_GPU_PARALLEL || defined MULTI_GPU_LAMBDA_PARALLEL || defined MULTI_GPU_DELTA_PARALLEL \
+				|| defined HET_PARALLEL || defined HET_LAMBDA_PARALLEL || defined HET_DELTA_PARALLEL || defined HPC
                 cadmium::parallel::info_for_logging<TIME> collect_outputs_without_logging(const TIME &t) {
                 	//LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::sim_info_collect>(t, _model->get_id());
 
@@ -203,7 +207,9 @@ namespace cadmium {
                     LOGGER::template log<cadmium::logger::logger_state,cadmium::logger::sim_state>(t, _model->get_id(), _model->model_state_as_string());
                 }
 
-				#if defined CPU_PARALLEL || defined CPU_DELTA_PARALLEL || defined GPU_PARALLEL || defined GPU_DELTA_PARALLEL
+				#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL || defined CPU_DELTA_PARALLEL || defined GPU_PARALLEL || defined GPU_LAMBDA_PARALLEL \
+            	|| defined GPU_DELTA_PARALLEL || defined MULTI_GPU_PARALLEL || defined MULTI_GPU_LAMBDA_PARALLEL || defined MULTI_GPU_DELTA_PARALLEL \
+				|| defined HET_PARALLEL || defined HET_LAMBDA_PARALLEL || defined HET_DELTA_PARALLEL || defined HPC
                 cadmium::parallel::info_for_logging<TIME> advance_simulation_without_logging(const TIME &t) {
 
                 	cadmium::parallel::info_for_logging<TIME> log;
