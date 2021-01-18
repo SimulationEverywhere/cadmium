@@ -39,7 +39,20 @@
 #include <cadmium/logger/common_loggers.hpp>
 
 namespace cadmium {
-    namespace parallel {
+	namespace parallel {
+
+		void pin_thread_to_core(size_t tid){
+			unsigned long len;
+			cpu_set_t mascara;
+			CPU_ZERO (&mascara);
+
+			//size_t pin_to = tid % thread_number
+			//set Thread to tid core
+			len = sizeof(cpu_set_t);
+			CPU_SET (tid, &mascara);
+			if (sched_setaffinity(0, len, &mascara) < 0)
+				printf("\n\nError :: sched_setaffinity\n\n");
+		}
 
     	template<typename TIME>
     	struct info_for_logging {
@@ -154,10 +167,13 @@ namespace cadmium {
 
     		#pragma omp parallel firstprivate(f) num_threads(thread_number) proc_bind(close)
     	    {
-    	    	std::vector<info_for_logging<TIME>> partial_logs;
-    	    	info_for_logging<TIME> result;
     	    	// get thread id
     	    	size_t tid = omp_get_thread_num();
+    	    	//set affinity
+    	    	pin_thread_to_core(tid);
+
+    	    	std::vector<info_for_logging<TIME>> partial_logs;
+    	    	info_for_logging<TIME> result;
 
     	    	// determine first and last element to compute
     	    	size_t initial = (size/thread_number) * tid;

@@ -97,6 +97,8 @@ namespace cadmium {
 					|| defined HET_PARALLEL || defined HET_LAMBDA_PARALLEL || defined HET_DELTA_PARALLEL || defined HPC
                 	explicit runner(std::shared_ptr<cadmium::dynamic::modeling::coupled<TIME>> coupled_model, const TIME &init_time, unsigned const thread_number = std::thread::hardware_concurrency())
                     	: _top_coordinator(coupled_model){
+                		//set affinity to thread 0
+                		parallel::pin_thread_to_core(0);
                 		_thread_number = thread_number;
                 		LOGGER::template log<cadmium::logger::logger_global_time, cadmium::logger::run_global_time>(init_time);
                 		LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Preparing model");
