@@ -188,7 +188,7 @@ namespace cadmium {
 
     	    	// compute size/thread_number elements
     	    	for(size_t i = initial; i < last; i++) {
-    	    		result = f(obj[i]);
+    	    		result = f(*(obj.begin()+i));
     	    		partial_logs.push_back(result);
     	    	}
 
