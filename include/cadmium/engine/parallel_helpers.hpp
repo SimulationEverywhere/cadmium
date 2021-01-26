@@ -68,10 +68,9 @@ namespace cadmium {
 					for(size_t i = (n/thread_number) * tid; i < n ; i++) {
 						f(*(i+first));
 					}
-				}
+    			}
     		}
     	}
-
     }
 }
 

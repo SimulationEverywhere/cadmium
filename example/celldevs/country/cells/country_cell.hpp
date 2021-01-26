@@ -61,7 +61,7 @@ public:
         return res;
     }
     // It returns the delay to communicate cell's new state.
-    TIME output_delay(int const &cell_state) const override { return 1; }
+    TIME output_delay(int const &cell_state) const override { return TIME(1); }
 };
 
 #endif //CADMIUM_COUNTRY_CELL_HPP

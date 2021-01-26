@@ -40,11 +40,11 @@ using namespace cadmium::celldevs;
 /************************************/
 struct sir {
     unsigned int population;
-    float susceptible;
-    float infected;
-    float recovered;
+    double susceptible;
+    double infected;
+    double recovered;
     sir() : population(0), susceptible(1), infected(0), recovered(0) {}  // a default constructor is required
-    sir(unsigned int pop, float s, float i, float r) : population(pop), susceptible(s), infected(i), recovered(r) {}
+    sir(unsigned int pop, double s, double i, double r) : population(pop), susceptible(s), infected(i), recovered(r) {}
 };
 // Required for comparing states and detect any change
 inline bool operator != (const sir &x, const sir &y) {
@@ -103,8 +103,8 @@ public:
     using grid_cell<T, sir, mc>::map;
     using grid_cell<T, sir, mc>::neighbors;
 
-    float virulence;
-    float recovery;
+    double virulence;
+    double recovery;
 
     hoya_cell() : grid_cell<T, sir, mc>() {}
 
@@ -118,8 +118,8 @@ public:
     // user must define this function. It returns the next cell state and its corresponding timeout
     sir local_computation() const override {
         sir res = state.current_state;
-        float new_i = new_infections();
-        float new_r = res.infected * recovery;
+        double new_i = new_infections();
+        double new_r = res.infected * recovery;
         res.recovered = std::round((res.recovered + new_r) * 100) / 100;
         res.infected = std::round((res.infected + new_i - new_r) * 100) / 100;
         res.susceptible = 1 - res.infected - res.recovered;
@@ -127,18 +127,18 @@ public:
     }
     // It returns the delay to communicate cell's new state.
     T output_delay(sir const &cell_state) const override {
-        return 1;
+        return T(1);
     }
 
-    float new_infections() const {
-        float aux = 0;
+    double new_infections() const {
+        double aux = 0;
         for(auto neighbor: neighbors) {
             sir n = state.neighbors_state.at(neighbor);
             mc v = state.neighbors_vicinity.at(neighbor);
-            aux += n.infected * (float) n.population * v.movement * v.connection;
+            aux += n.infected * (double) n.population * v.movement * v.connection;
         }
         sir s = state.current_state;
-        return std::min(s.susceptible, s.susceptible * virulence * aux / (float) s.population);
+        return std::min(s.susceptible, s.susceptible * virulence * aux / (double) s.population);
     }
 };
 

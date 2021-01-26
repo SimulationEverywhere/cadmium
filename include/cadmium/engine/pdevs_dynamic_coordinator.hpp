@@ -57,9 +57,9 @@ namespace cadmium {
                 boost::basic_thread_pool* _threadpool;
                 #endif //CADMIUM_EXECUTE_CONCURRENT
 
-				#ifdef CPU_PARALLEL
+                #ifdef CPU_PARALLEL
                 size_t _thread_number;
-				#endif //CPU_PARALLEL
+                #endif //CPU_PARALLEL
 
             public:
 
