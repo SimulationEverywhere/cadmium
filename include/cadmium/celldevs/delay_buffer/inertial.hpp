@@ -41,7 +41,6 @@ namespace cadmium::celldevs {
      */
     template <typename T, typename S>
     class inertial_delay_buffer : public delay_buffer<T, S> {
-    private:
         S last_state;  /// Latest state to be transmitted
         T time;  /// Time when the state is to be transmitted (i.e., simulation clock + propagation delay)
     public:

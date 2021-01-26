@@ -70,10 +70,10 @@ void from_json(const json& j, sir &s) {
 /*****COMPLEX VICINITY STRUCTURE*****/
 /************************************/
 struct mc {
-    float connection;
-    float movement;
+    double connection;
+    double movement;
     mc() : connection(0), movement(0) {}  // a default constructor is required
-    mc(float c, float m) : connection(c), movement(m) {}
+    mc(double c, double m) : connection(c), movement(m) {}
 };
 // Required for creating movement-connection objects from JSON file
 void from_json(const json& j, mc &m) {
@@ -85,10 +85,10 @@ void from_json(const json& j, mc &m) {
 /******COMPLEX CONFIG STRUCTURE******/
 /************************************/
 struct vr {
-    float virulence;
-    float recovery;
+    double virulence;
+    double recovery;
     vr(): virulence(0.6), recovery(0.4) {}
-    vr(float v, float r): virulence(v), recovery(r) {}
+    vr(double v, double r): virulence(v), recovery(r) {}
 };
 void from_json(const json& j, vr &v) {
     j.at("virulence").get_to(v.virulence);
@@ -103,7 +103,6 @@ public:
     using grid_cell<T, sir, mc>::map;
     using grid_cell<T, sir, mc>::neighbors;
 
-    using config_type = vr;  // IMPORTANT FOR THE JSON
     float virulence;
     float recovery;
 

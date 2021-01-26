@@ -42,7 +42,6 @@ namespace cadmium::celldevs {
      */
     template <typename T, typename S>
     class hybrid_delay_buffer : public delay_buffer<T, S> {
-    private:
         S last_state;                                 /// Latest transmitted state
         std::deque<std::pair<T, S>> delayed_outputs;  /// Double-ended queue with pairs <time, state>
     public:

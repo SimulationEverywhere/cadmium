@@ -44,7 +44,6 @@ namespace cadmium::celldevs {
      */
     template <typename T, typename S>
     class transport_delay_buffer : public delay_buffer<T, S> {
-    private:
         S last_state;  /// Latest transmitted state
         std::priority_queue<T, std::vector<T>, std::greater<T>> timeline;  /// Queue with times with scheduled events
         std::unordered_map<T, S> delayed_outputs;  /// Unordered map {scheduled time: state to transmit}

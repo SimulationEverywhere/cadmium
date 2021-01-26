@@ -134,7 +134,7 @@ namespace cadmium::celldevs {
         /// @return delay to be applied before communicating to neighbors a new state.
         virtual T output_delay(S const &cell_state) const { return std::numeric_limits<T>::infinity(); }
 
-        /****************** DEVS METHODS ******************/
+        /****************** PDEVS METHODS ******************/
         /// internal transition function clears output delay_buffer buffer and updates clock and next time advance.
         void internal_transition() {
             buffer->pop_buffer();

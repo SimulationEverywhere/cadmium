@@ -82,9 +82,9 @@ namespace cadmium {
                 }
                 #endif //CADMIUM_EXECUTE_CONCURRENT
 
-				#ifdef CPU_PARALLEL
+                #ifdef CPU_PARALLEL
                 void init(TIME initial_time, size_t thread_number) override {
-                	this->init(initial_time);
+                    this->init(initial_time);
                 }
                 #endif //CPU_PARALLEL
 

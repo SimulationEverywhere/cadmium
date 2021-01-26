@@ -59,7 +59,7 @@ namespace cadmium::celldevs {
     protected:
 
         /**
-         * Internal method for adding vicinities to its private attribute. Users must not call to this method.
+         * Internal method for adding vicinities to its protected attribute. Users must not call to this method.
          * @param cell_id ID of the cell. It must not be already defined in the coupled model
          * @param vicinities unordered map {neighboring cell ID: vicinities kind}
          */

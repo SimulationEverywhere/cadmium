@@ -35,7 +35,8 @@
 
 using namespace cadmium::celldevs;
 
-using cell_id_t = std::string; using state_t = int;
+using cell_id_t = std::string;
+using state_t = int;
 
 template <typename TIME>
 class country_cell: public cadmium::celldevs::cell<TIME, cell_id_t, state_t> {
@@ -50,8 +51,6 @@ public:
     country_cell(const cell_id_t &cell_id, std::unordered_map<cell_id_t , state_t> const &neighborhood,
                  state_t initial_state, std::string const &delay_id, int config_in):
             cadmium::celldevs::cell<TIME, cell_id_t, state_t>(cell_id, neighborhood, initial_state, delay_id), config(config_in) {}
-
-    using config_type = int;  // IMPORTANT FOR THE JSON
 
     // user must define this function. It returns the next cell state and its corresponding timeout
     int local_computation() const override {
