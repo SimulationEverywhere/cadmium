@@ -36,7 +36,7 @@ using namespace cadmium::celldevs;
 
 
 template <typename T>
-class country_coupled : public cells_coupled<T, std::string, int, int> {
+struct country_coupled : public cells_coupled<T, std::string, int, int> {
 public:
 
     explicit country_coupled(std::string const &id) : cells_coupled<T, std::string, int, int>(id){}

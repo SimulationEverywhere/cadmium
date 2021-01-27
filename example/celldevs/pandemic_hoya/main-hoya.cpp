@@ -35,7 +35,7 @@ using namespace std;
 using namespace cadmium;
 using namespace cadmium::celldevs;
 
-using TIME = float;
+using TIME = int;
 
 /*************** Loggers *******************/
 static ofstream out_messages("../simulation_results/pandemic_hoya/output_messages.txt");
