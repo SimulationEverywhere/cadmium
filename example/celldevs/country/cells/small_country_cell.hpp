@@ -30,8 +30,8 @@
 
 #include <exception>
 #include <string>
-#include <nlohmann/json.hpp>
 #include <cadmium/celldevs/cell/cell.hpp>
+#include <utility>
 
 using namespace cadmium::celldevs;
 
@@ -51,7 +51,7 @@ public:
     small_country_cell(const cell_id_t &cell_id, std::unordered_map<cell_id_t , state_t> const &neighborhood,
                        state_t initial_state, std::string const &delay_id, std::string config_in):
             cadmium::celldevs::cell<TIME, cell_id_t, state_t>(cell_id, neighborhood, initial_state, delay_id),
-                    config(config_in) {}
+                    config(std::move(config_in)) {}
 
     // user must define this function. It returns the next cell state and its corresponding timeout
     int local_computation() const override {

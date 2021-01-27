@@ -29,10 +29,9 @@
 #define CADMIUM_CELLDEVS_PANDEMIC_CELL_HPP
 
 #include <cmath>
-#include <nlohmann/json.hpp>
 #include <cadmium/celldevs/cell/grid_cell.hpp>
 
-using nlohmann::json;
+using cadmium::json;
 using namespace cadmium::celldevs;
 
 /************************************/

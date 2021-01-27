@@ -35,11 +35,11 @@
 #include <utility>
 #include <vector>
 #include <unordered_map>
-#include <nlohmann/json.hpp>
 #include <cadmium/modeling/dynamic_model.hpp>
 #include <cadmium/modeling/dynamic_model_translator.hpp>
 #include <cadmium/celldevs/utils/utils.hpp>
 #include <cadmium/celldevs/cell/cell.hpp>
+#include <cadmium/json/json.hpp>
 
 
 namespace cadmium::celldevs {
@@ -124,7 +124,7 @@ namespace cadmium::celldevs {
 
         virtual void add_cell_json(std::string const &cell_type, C const &cell_id,
                                    std::unordered_map<C, V> const &neighborhood, S initial_state,
-                                   std::string const &delay_id, nlohmann::json const &config) {}
+                                   std::string const &delay_id, cadmium::json const &config) {}
 
         /**
          * Creates a Cell-DEVS scenario from a JSON file.
@@ -133,15 +133,15 @@ namespace cadmium::celldevs {
         void add_cells_json(std::string const &file_in) {
             // Obtain JSON object from file
             std::ifstream i(file_in);
-            nlohmann::json j;
+            cadmium::json j;
             i >> j;
-            nlohmann::json cells = j["cells"];
+            cadmium::json cells = j["cells"];
             // Read default cell
-            nlohmann::json default_cell = cells["default"];  // TODO check that it exists and all parameters are defined
+            cadmium::json default_cell = cells["default"];  // TODO check that it exists and all parameters are defined
             auto default_delay = default_cell["delay"].get<std::string>();
             auto default_cell_type = default_cell["cell_type"].get<std::string>();
             auto default_state = (default_cell.contains("state")) ? default_cell["state"].get<S>() : S();
-            auto default_config = (default_cell.contains("config")) ? default_cell["config"] : nlohmann::json();
+            auto default_config = (default_cell.contains("config")) ? default_cell["config"] : cadmium::json();
             auto default_neighborhood = (default_cell.contains("neighborhood")) ? default_cell["neighborhood"].get<std::unordered_map<C, V>>() : std::unordered_map<C, V>();
             // Read each cell's particular configuration
             for (auto& el: j["cells"].items()) {

@@ -28,7 +28,6 @@
 #ifndef CADMIUM_CELLDEVS_HOYA_COUPLED_HPP
 #define CADMIUM_CELLDEVS_HOYA_COUPLED_HPP
 
-#include <nlohmann/json.hpp>
 #include <cadmium/celldevs/coupled/grid_coupled.hpp>
 #include "cells/hoya_cell.hpp"
 
@@ -42,7 +41,7 @@ public:
     using cell_unordered = std::unordered_map<std::string,X>;
 
     void add_grid_cell_json(std::string const &cell_type, cell_map<sir, mc> &map, std::string const &delay_id,
-                            nlohmann::json const &config) override {
+                            cadmium::json const &config) override {
         if (cell_type == "hoya") {
             auto conf = config.get<vr>();
             this->template add_cell<hoya_cell>(map, delay_id, conf);

@@ -32,13 +32,13 @@
 #include <utility>
 #include <vector>
 #include <unordered_map>
-#include <nlohmann/json.hpp>
 #include <cadmium/modeling/ports.hpp>
 #include <cadmium/modeling/dynamic_model.hpp>
 #include <cadmium/modeling/dynamic_model_translator.hpp>
 #include <cadmium/celldevs/coupled/cells_coupled.hpp>
 #include <cadmium/celldevs/cell/grid_cell.hpp>
 #include <cadmium/celldevs/utils/grid_utils.hpp>
+#include <cadmium/json/json.hpp>
 
 
 namespace cadmium::celldevs {
@@ -94,12 +94,12 @@ namespace cadmium::celldevs {
         }
 
         virtual void add_grid_cell_json(std::string const &cell_type, cell_map<S, V> &map, std::string const &delay_id,
-                                        nlohmann::json const &config) {}
+                                        cadmium::json const &config) {}
 
         void add_lattice_json(std::string const &file_in) {
             // Obtain JSON object from file
             std::ifstream i(file_in);
-            nlohmann::json j;
+            cadmium::json j;
             i >> j;
             // read shape and wrapped option
             shape = j["shape"].get<cell_position>();
@@ -124,7 +124,7 @@ namespace cadmium::celldevs {
             }
         }
 
-        cell_config_map get_default_configs(const nlohmann::json &cells_config) {
+        cell_config_map get_default_configs(const cadmium::json &cells_config) {
             auto default_configs = cell_config_map({{"default", read_default_cell_config(cells_config["default"])}});
             for (auto &el: cells_config.items()) {
                 const auto &config_id = el.key();
@@ -137,17 +137,17 @@ namespace cadmium::celldevs {
             return default_configs;
         }
 
-        cell_config<S, V> read_default_cell_config(nlohmann::json const &description) {
+        cell_config<S, V> read_default_cell_config(cadmium::json const &description) {
             auto delay = description["delay"].get<std::string>();
             auto cell_type = description["cell_type"].get<std::string>();
             auto state = (description.contains("state")) ? description["state"].get<S>() : S();
             auto neighborhood = (description.contains("neighborhood"))
                     ? parse_neighborhood(description["neighborhood"]) : cell_unordered<V>();
-            auto config = (description.contains("config")) ? description["config"] : nlohmann::json();
+            auto config = (description.contains("config")) ? description["config"] : cadmium::json();
             return cell_config<S, V>(delay, cell_type, state, neighborhood, config);
         }
 
-        cell_config<S, V> read_cell_config(nlohmann::json const &description, cell_config<S, V> const &default_config) {
+        cell_config<S, V> read_cell_config(cadmium::json const &description, cell_config<S, V> const &default_config) {
             auto delay = (description.contains("delay")) ? description["delay"].get<std::string>() : default_config.delay;
             auto cell_type = (description.contains("cell_type")) ? description["cell_type"].get<std::string>()
                                                                 : default_config.cell_type;
@@ -158,13 +158,13 @@ namespace cadmium::celldevs {
             return cell_config<S, V>(delay, cell_type, state, neighborhood, config);
         }
 
-        cell_unordered<V> parse_neighborhood(const nlohmann::json &j) {
+        cell_unordered<V> parse_neighborhood(const cadmium::json &j) {
             auto neighborhood = cell_unordered< V>();
-            for (const nlohmann::json &n: j) {
+            for (const cadmium::json &n: j) {
                 auto type = n["type"].get<std::string>();
                 auto vicinity = n["vicinity"].get<V>();
                 if (type == "custom") {
-                    for (const nlohmann::json &relative: n["neighbors"]) {
+                    for (const cadmium::json &relative: n["neighbors"]) {
                         auto neighbor = relative.get<cell_position>();
                         neighborhood[neighbor] = vicinity;
                     }

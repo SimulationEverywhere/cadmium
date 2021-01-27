@@ -25,36 +25,13 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CADMIUM_CELLDEVS_COUNTRY_COUPLED_HPP
-#define CADMIUM_CELLDEVS_COUNTRY_COUPLED_HPP
+#ifndef CADMIUM_JSON_HPP
+#define CADMIUM_JSON_HPP
 
-#include "cells/country_cell.hpp"
-#include "cells/small_country_cell.hpp"
-#include <cadmium/celldevs/coupled/cells_coupled.hpp>
+#include <nlohmann/json.hpp>
 
-using namespace cadmium::celldevs;
+namespace cadmium {
+    using json = nlohmann::json;  // TODO implement more generic methods (now, it is still very nlohmann-dependent)
+}
 
-
-template <typename T>
-class country_coupled : public cells_coupled<T, std::string, int, int> {
-public:
-
-    explicit country_coupled(std::string const &id) : cells_coupled<T, std::string, int, int>(id){}
-
-    template <typename X>
-    using cell_unordered = std::unordered_map<std::string, X>;
-
-    void add_cell_json(std::string const &cell_type, std::string const &cell_id,
-                       cell_unordered<int> const &neighborhood, int initial_state, std::string const &delay_id,
-                       cadmium::json const &config) override {
-        if (cell_type == "country") {
-            auto conf = config.get<int>();
-            this->template add_cell<country_cell>(cell_id, neighborhood, initial_state, delay_id, conf);
-        } else if (cell_type == "small_country") {
-            auto conf = config.get<std::string>();
-            this->template add_cell<small_country_cell>(cell_id, neighborhood, initial_state, delay_id, conf);
-        } else throw std::bad_typeid();
-    }
-};
-
-#endif //CADMIUM_COUNTRY_COUPLED_HPP
+#endif //CADMIUM_JSON_HPP

@@ -30,7 +30,6 @@
 
 #include <exception>
 #include <string>
-#include <nlohmann/json.hpp>
 #include <cadmium/celldevs/cell/cell.hpp>
 
 using namespace cadmium::celldevs;

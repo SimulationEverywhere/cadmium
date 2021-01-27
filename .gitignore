@@ -67,3 +67,4 @@ example/celldevs/simulation_results/
 
 # JSON
 json/
+!include/cadmium/json
