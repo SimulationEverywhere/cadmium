@@ -82,6 +82,12 @@ namespace cadmium {
                 }
                 #endif //CADMIUM_EXECUTE_CONCURRENT
 
+                #ifdef CPU_PARALLEL
+                void init(TIME initial_time, size_t thread_number) override {
+                    this->init(initial_time);
+                }
+                #endif //CPU_PARALLEL
+
                 std::string get_model_id() const override {
                     return _model->get_id();
                 }

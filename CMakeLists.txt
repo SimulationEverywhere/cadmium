@@ -6,10 +6,12 @@ project(
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake-modules")
 
+set(JSON_BuildTests OFF CACHE INTERNAL "")
+
 include(CheckCXXCompilerFlag)
 IF (CMAKE_BUILD_TYPE MATCHES Debug)
     message("debug mode")
-    IF (NOT WIN32)
+    IF (NOT UNIX)  # This produces hundreds of warnings in Mac (cannot merge previous GCDA file: corrupt arc tag)
         include(CodeCoverage)
         set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -ftest-coverage -fprofile-arcs")
     ENDIF ()
@@ -21,6 +23,7 @@ find_package(Boost 1.56.0 COMPONENTS unit_test_framework system thread REQUIRED)
 add_library(cadmium INTERFACE)
 
 include_directories(include ${Boost_INCLUDE_DIRS})
+add_subdirectory(json)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic -Wall")
 
@@ -40,14 +43,14 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -O0")
 #Enabling instrumentation for profiling if required
 option(PROFILER_ENABLED "Profiler-enabled" OFF)
 if (PROFILER_ENABLED)
-    message(STATUS "Intrumenting profiling")
+    message(STATUS "Instrumenting profiling")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-instr-generate")
 endif ()
 
 enable_testing()
 
 #run all tests for sequential and concurrent versions
-set(EXEC_TYPES "seq" "par")
+set(EXEC_TYPES "seq" "conc" "par")
 foreach (exec_type ${EXEC_TYPES})
     # Unit tests
     FILE(GLOB TestSources RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} test/*_test.cpp)
@@ -55,8 +58,11 @@ foreach (exec_type ${EXEC_TYPES})
         get_filename_component(testName ${testSrc} NAME_WE)
         set(testName "${testName}_${exec_type}")
         add_executable(${testName} test/main-test.cpp ${testSrc})
-        if (exec_type STREQUAL "par")
+        if (exec_type STREQUAL "conc")
             target_compile_definitions(${testName} PUBLIC CADMIUM_EXECUTE_CONCURRENT BOOST_THREAD_PROVIDES_FUTURE_CONTINUATION BOOST_THREAD_PROVIDES_EXECUTORS BOOST_THREAD_USES_MOVE)
+        endif ()
+        if (exec_type STREQUAL "par")
+            target_compile_definitions(${testName} PUBLIC CPU_PARALLEL)
         endif ()
         target_link_libraries(${testName} PUBLIC ${Boost_LIBRARIES})
         add_test(${testName} ${testName})
@@ -71,8 +77,11 @@ foreach (exec_type ${EXEC_TYPES})
         set_target_properties(${testCompName} PROPERTIES
                 EXCLUDE_FROM_ALL TRUE
                 EXCLUDE_FROM_DEFAULT_BUILD TRUE)
-        if (exec_type STREQUAL "par")
+        if (exec_type STREQUAL "conc")
             target_compile_definitions(${testCompName} PUBLIC CADMIUM_EXECUTE_CONCURRENT BOOST_THREAD_PROVIDES_FUTURE_CONTINUATION BOOST_THREAD_PROVIDES_EXECUTORS BOOST_THREAD_USES_MOVE)
+        endif ()
+        if (exec_type STREQUAL "par")
+            target_compile_definitions(${testCompName} PUBLIC CPU_PARALLEL)
         endif ()
         target_include_directories(${testCompName} PUBLIC test-compile/compiles)
         add_test(NAME ${testCompName}
@@ -89,8 +98,11 @@ foreach (exec_type ${EXEC_TYPES})
         set_target_properties(${testCmpFailName} PROPERTIES
                 EXCLUDE_FROM_ALL TRUE
                 EXCLUDE_FROM_DEFAULT_BUILD TRUE)
-        if (exec_type STREQUAL "par")
+        if (exec_type STREQUAL "conc")
             target_compile_definitions(${testCmpFailName} PUBLIC CADMIUM_EXECUTE_CONCURRENT BOOST_THREAD_PROVIDES_FUTURE_CONTINUATION BOOST_THREAD_PROVIDES_EXECUTORS BOOST_THREAD_USES_MOVE)
+        endif ()
+        if (exec_type STREQUAL "par")
+            target_compile_definitions(${testCmpFailName} PUBLIC CPU_PARALLEL)
         endif ()
         add_test(NAME ${testCmpFailName}
                 COMMAND ${CMAKE_COMMAND} --build . --target ${testCmpFailName}
@@ -99,8 +111,16 @@ foreach (exec_type ${EXEC_TYPES})
     endforeach (testCmpFailSrc)
 endforeach (exec_type)
 
-# Examples
-FILE(GLOB Examples RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} example/main-*.cpp)
+# PDEVS Examples
+FILE(GLOB Examples RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} example/pdevs/main-*.cpp)
+foreach (exampleSrc ${Examples})
+    get_filename_component(exampleName ${exampleSrc} NAME_WE)
+    add_executable(${exampleName} ${exampleSrc})
+    target_link_libraries(${exampleName} PUBLIC ${Boost_LIBRARIES})
+endforeach (exampleSrc)
+
+# Cell-DEVS Examples
+FILE(GLOB Examples RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} example/celldevs/*/main-*.cpp)
 foreach (exampleSrc ${Examples})
     get_filename_component(exampleName ${exampleSrc} NAME_WE)
     add_executable(${exampleName} ${exampleSrc})
