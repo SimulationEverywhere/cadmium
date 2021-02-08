@@ -35,7 +35,7 @@
 using namespace std;
 using namespace cadmium;
 
-using TIME = int;
+using TIME = double;
 std::string json_file = "./scenario.json";
 /*************** Loggers *******************/
 static ofstream out_messages("../simulation_results/country/output_messages.txt");
