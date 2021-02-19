@@ -55,6 +55,7 @@ namespace cadmium::celldevs {
     public:
 
         using cadmium::dynamic::modeling::coupled<T>::_models;
+        using cell_config_map = std::unordered_map<std::string, cell_config<C, S, V>>;
 
     protected:
 
@@ -70,7 +71,8 @@ namespace cadmium::celldevs {
             add_cell_neighborhood(cell_id, neighbors);
         }
 
-        std::unordered_map<C, std::vector<C>> neighborhoods;  /// Unordered map: {cell ID: [Neighbor cell 1, ....]}
+        std::unordered_map<C, std::vector<C>> neighborhoods;    /// Unordered map: {cell ID: [Neighbor cell 1, ....]}
+        cadmium::json default_config_json;                      /// JSON chunk with default configuration
 
         /**
          * Internal method for adding vicinities to its private attribute. Users must not call to this method.
@@ -90,7 +92,7 @@ namespace cadmium::celldevs {
          * Constructor of the cells_coupled class
          * @param id ID of the Coupled DEVS model that contains the Cell-DEVS scenario
          */
-        explicit cells_coupled(std::string const &id) : cadmium::dynamic::modeling::coupled<T>(id), neighborhoods() {}
+        explicit cells_coupled(std::string const &id) : cadmium::dynamic::modeling::coupled<T>(id), neighborhoods(), default_config_json() {}
 
         /**
          * Adds a single Cell-DEVS cell to the coupled model
@@ -135,28 +137,66 @@ namespace cadmium::celldevs {
             std::ifstream i(file_in);
             cadmium::json j;
             i >> j;
-            cadmium::json cells = j["cells"];
+            default_config_json = j["cells"]["default"];
             // Read default cell
-            cadmium::json default_cell = cells["default"];  // TODO check that it exists and all parameters are defined
-            auto default_delay = default_cell["delay"].get<std::string>();
-            auto default_cell_type = default_cell["cell_type"].get<std::string>();
-            auto default_state = (default_cell.contains("state")) ? default_cell["state"].get<S>() : S();
-            auto default_config = (default_cell.contains("config")) ? default_cell["config"] : cadmium::json();
-            auto default_neighborhood = (default_cell.contains("neighborhood")) ? default_cell["neighborhood"].get<std::unordered_map<C, V>>() : std::unordered_map<C, V>();
-            // Read each cell's particular configuration
-            for (auto& el: j["cells"].items()) {
-                const auto& cell_id = el.key();
-                auto cell_conf = el.value();
+            auto cell_configs = get_default_configs(j["cells"]);
+            for (auto &cell: cell_configs) {
+                const auto &cell_id = cell.first;
                 if (cell_id == "default") {
                     continue;
                 }
-                auto delay = (cell_conf.contains("delay")) ? cell_conf["delay"].get<std::string>() : default_delay;
-                auto cell_type = (cell_conf.contains("cell_type")) ? cell_conf["cell_type"].get<std::string>() : default_cell_type;
-                auto state = (cell_conf.contains("state"))? cell_conf["state"].get<S>() : default_state;
-                auto config = (cell_conf.contains("config")) ? cell_conf["config"] : default_config;
-                auto neighborhood = (cell_conf.contains("neighborhood")) ? cell_conf["neighborhood"].get<std::unordered_map<C, V>>() : default_neighborhood;
-                add_cell_json(cell_type, cell_id, neighborhood, state, delay, config);
+                auto cell_conf = cell.second;
+                add_cell_json(cell_conf.cell_type, cell_id, cell_conf.neighborhood, cell_conf.state, cell_conf.delay, cell_conf.config);
             }
+        }
+
+        cell_config_map get_default_configs(const cadmium::json &cells_config) {
+            auto default_configs = cell_config_map({{"default", read_default_cell_config(cells_config["default"])}});
+            for (auto &el: cells_config.items()) {
+                const auto &config_id = el.key();
+                auto config_val = el.value();
+                if (config_id == "default") {
+                    continue;
+                }
+                default_configs[config_id] = read_cell_config(config_val, default_configs.at("default"));
+            }
+            return default_configs;
+        }
+
+        cell_config<C, S, V> read_default_cell_config(cadmium::json const &description) {
+            auto delay = (description.contains("delay")) ? description["delay"].get<std::string>() : "inertial";
+            auto cell_type = (description.contains("cell_type")) ? description["cell_type"].get<std::string>() : "default";
+            auto state = (description.contains("state")) ? description["state"].get<S>() : S();
+            auto neighborhood = (description.contains("neighborhood"))
+                                ? parse_neighborhood(description["neighborhood"]) : std::unordered_map<C, V>();
+            auto config = (description.contains("config")) ? description["config"] : cadmium::json();
+            return cell_config<C, S, V>(delay, cell_type, state, neighborhood, config);
+        }
+
+        cell_config<C, S, V> read_cell_config(cadmium::json const &description, cell_config<C, S, V> const &default_config) {
+            auto delay = (description.contains("delay")) ? description["delay"].get<std::string>() : default_config.delay;
+            auto cell_type = (description.contains("cell_type")) ? description["cell_type"].get<std::string>()
+                                                                 : default_config.cell_type;
+            auto state = default_config.state;
+            if (description.contains("state")) {
+                if (default_config_json.contains("state")) {  // If state is an object and a patch exists, we try to apply it
+                    state = patch_default_item<S>(default_config_json["state"], description["state"]);
+                } else {
+                    state = description["state"].get<S>();
+                }
+            }
+            auto neighborhood = (description.contains("neighborhood"))
+                                ? parse_neighborhood(description["neighborhood"]) : default_config.neighborhood;
+            auto config = default_config.config;
+            if (description.contains("config")) {  // If a patch exists, we try to apply it
+                config = cadmium::json::parse(default_config.config.dump());  // deep copy of default state
+                config.merge_patch(description["config"]);
+            }
+            return cell_config<C, S, V>(delay, cell_type, state, neighborhood, config);
+        }
+
+        virtual std::unordered_map<C, V> parse_neighborhood(const cadmium::json &j) {
+            return j.get<std::unordered_map<C, V>>();
         }
 
         /// The user must call this method right after having included all the cells of the scenario
@@ -184,6 +224,13 @@ namespace cadmium::celldevs {
             std::stringstream model_name;
             model_name << cadmium::dynamic::modeling::coupled<T>::get_id() << "_" << cell_id;
             return model_name.str();
+        }
+
+         template <typename X>
+         X patch_default_item(cadmium::json const &d, cadmium::json const &p) {
+            auto d_copy = cadmium::json::parse(d.dump());
+            d_copy.merge_patch(p);
+            return d_copy.get<X>();
         }
     };
 } //namespace cadmium::celldevs

@@ -51,9 +51,8 @@ namespace cadmium::celldevs {
     template <typename C, typename S>
     struct cell_ports_def{
         struct [[maybe_unused]] cell_in: public cadmium::in_port<cell_state_message<C, S>> {};
-        struct cell_out : public cadmium::out_port<cell_state_message<C, S>> {};
+        struct [[maybe_unused]] cell_out : public cadmium::out_port<cell_state_message<C, S>> {};
     };
-
 
     /**
      * Abstract DEVS atomic model for defining cells in extended Cell-DEVS scenarios.

@@ -35,6 +35,7 @@
 #include <functional>
 #include <unordered_map>
 #include <nlohmann/json.hpp>
+#include <cadmium/json/json.hpp>
 #include <boost/functional/hash.hpp>
 
 /**
@@ -65,5 +66,30 @@ template <typename SEQ>
 /// Specialization of std::hash function for vectors
 template<typename X>
 struct [[maybe_unused]] std::hash<std::vector<X>> : boost::hash<std::vector<X>> {};
+
+
+namespace cadmium::celldevs {
+    /**
+     * Cell configuration structure.
+     * @tparam C type used to represent cell IDs.
+     * @tparam S type used to represent cell states.
+     * @tparam V type used to represent vicinities between cells.
+     */
+    template<typename C, typename S, typename V>
+    struct cell_config {
+        std::string delay;                      /// ID of the delay buffer of the cell.
+        std::string cell_type;                  /// Cell model type.
+        S state;                                /// Initial state of the cell.
+        std::unordered_map<C, V> neighborhood;  /// Unordered map {neighbor_cell_position: vicinity}.
+        cadmium::json config;                   /// JSON file with additional configuration parameters.
+
+        cell_config() = default;
+
+        cell_config(std::string delay, std::string cell_type, const S &state,
+                    const std::unordered_map<C, V> &neighborhood, cadmium::json config) :
+                delay(std::move(delay)), cell_type(std::move(cell_type)), state(state), neighborhood(neighborhood),
+                config(std::move(config)) {}
+    };
+}  // namespace cadmium::celldevs
 
 #endif //CADMIUM_CELLDEVS_UTILS_HPP

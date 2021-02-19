@@ -72,31 +72,3 @@ BOOST_AUTO_TEST_CASE(von_neumann) {
         }
     }
 }
-
-BOOST_AUTO_TEST_CASE(grid_test_2d) {
-    cell_position scenario_shape = {10, 10};
-
-    grid_scenario space = grid_scenario<int, int>(scenario_shape, 0, true);
-    space.set_initial_state({0, 0}, 1);
-    space.set_von_neumann_neighborhood(1);
-    cell_unordered<int> neighbors = space.get_vicinities();
-    BOOST_CHECK(!space.cell_in_scenario({10, 10}));
-    BOOST_CHECK(!space.cell_in_scenario({-1, 0}));
-    BOOST_CHECK(space.cell_in_scenario({0, 9}));
-    BOOST_CHECK(space.cell_in_scenario({0, 0}));
-    cell_position ref = {0, 0};
-    cell_map<int, int> neighborhood = space.get_cell_map(ref);
-    BOOST_CHECK_EQUAL(neighborhood.neighborhood.size(), space.get_vicinities().size());
-    for (auto &cell_mapping: neighborhood.neighborhood) {
-        BOOST_CHECK_LT(space.manhattan_distance(ref, cell_mapping.first), 2);
-    }
-
-    space = grid_scenario(scenario_shape, 0, neighbors, false);
-    neighborhood = space.get_cell_map(ref);
-    BOOST_CHECK_NE(neighborhood.neighborhood.size(), space.get_vicinities().size());
-    for (auto &cell_mapping: neighborhood.neighborhood) {
-        BOOST_CHECK_LT(space.manhattan_distance(ref, cell_mapping.first), 2);
-    }
-    ref = {3, 3};
-    cell_map<int, int> cell_u = space.get_cell_map(ref);
-}
