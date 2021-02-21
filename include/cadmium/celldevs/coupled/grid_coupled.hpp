@@ -130,12 +130,17 @@ namespace cadmium::celldevs {
             for (const cadmium::json &n: j) {
                 auto type = n["type"].get<std::string>();
                 auto vicinity = n["vicinity"].get<V>();
-                if (type == "custom") {  // TODO change "custom" to "relative"
+                if (type == "custom" || type == "relative") {
+                    if (type == "custom") {
+                        std::cerr << "Deprecation warning: \"custom\" neighborhood type has been changed to \"relative\". Change it in your JSON configuration file.\n";
+                    }
                     for (const cadmium::json &relative: n["neighbors"]) {
                         auto neighbor = relative.get<cell_position>();
                         neighborhood[neighbor] = vicinity;
                     }
-                } else {  // TODO add "absolute" and "remove" neighborhoods
+                } else if (type == "absolute" || type == "remove") {
+                    throw std::logic_error("Neighborhood type not yet implemented");  // TODO implement these neighborhood types
+                } else {
                     auto range = (n.contains("range")) ? n["range"].get<int>() : 1;
                     std::vector<cell_position> neighbors;
                     if (type == "von_neumann") {

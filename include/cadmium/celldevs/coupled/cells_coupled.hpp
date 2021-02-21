@@ -189,7 +189,7 @@ namespace cadmium::celldevs {
                                 ? parse_neighborhood(description["neighborhood"]) : default_config.neighborhood;
             auto config = default_config.config;
             if (description.contains("config")) {  // If a patch exists, we try to apply it
-                config = cadmium::json::parse(default_config.config.dump());  // deep copy of default state
+                config = cadmium::json::parse(config.dump());
                 config.merge_patch(description["config"]);
             }
             return cell_config<C, S, V>(delay, cell_type, state, neighborhood, config);
