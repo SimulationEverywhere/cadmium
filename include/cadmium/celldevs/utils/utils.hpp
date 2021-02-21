@@ -34,7 +34,6 @@
 #include <iostream>
 #include <functional>
 #include <unordered_map>
-#include <nlohmann/json.hpp>
 #include <cadmium/json/json.hpp>
 #include <boost/functional/hash.hpp>
 
