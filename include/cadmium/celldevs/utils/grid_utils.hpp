@@ -36,8 +36,8 @@
 #include <cassert>
 #include <exception>
 #include <cmath>
-#include <cadmium/celldevs/utils/utils.hpp>
 #include <boost/functional/hash.hpp>
+#include <cadmium/celldevs/utils/utils.hpp>
 
 
 namespace cadmium::celldevs {
@@ -57,18 +57,7 @@ namespace cadmium::celldevs {
      * @tparam V type used to represent vicinities between cells.
      */
     template <typename S, typename V>
-    struct cell_config {
-        std::string delay;                  /// ID of the delay buffer of the cell.
-        std::string cell_type;              /// Cell model type.
-        S state;                            /// Initial state of the cell.
-        cell_unordered<V> neighborhood;     /// Unordered map {neighbor_cell_position: vicinity}.
-        nlohmann::json config;              /// JSON file with additional configuration parameters.
-
-        cell_config() {};
-
-        cell_config(std::string delay, std::string cell_type, const S &state, const cell_unordered<V> &neighborhood, nlohmann::json config):
-                delay(std::move(delay)), cell_type(std::move(cell_type)), state(state), neighborhood(neighborhood), config(std::move(config)) {}
-    };
+    using grid_cell_config = cell_config<cell_position, S, V>;
 
     /**
      * Auxiliary class with useful functions for grid cells.
@@ -110,13 +99,13 @@ namespace cadmium::celldevs {
     template<typename S, typename V>
     class grid_scenario {
     public:
-        cell_position shape;                        /// Shape of the scenario.
-        unsigned int dimension;                     /// Dimension of the grid of the scenario.
-        cell_unordered<cell_config<S, V>> configs;  /// Configuration of cells in the grid.
-        bool wrapped;                               /// It indicates whether the scenario is wrapped or not.
+        cell_position shape;                             /// Shape of the scenario.
+        unsigned int dimension;                          /// Dimension of the grid of the scenario.
+        cell_unordered<grid_cell_config<S, V>> configs;  /// Configuration of cells in the grid.
+        bool wrapped;                                    /// It indicates whether the scenario is wrapped or not.
 
-        void set_initial_config(const cell_config<S, V> &config) {
-            configs = cell_unordered<cell_config<S, V>>();
+        void set_initial_config(const grid_cell_config<S, V> &config) {
+            configs = cell_unordered<grid_cell_config<S, V>>();
             cell_position current = cell_position();
             for (int i = 0; i < dimension; i++)
                 current.push_back(0);
@@ -130,12 +119,12 @@ namespace cadmium::celldevs {
             }
         }
 
-        void set_initial_config(const cell_position &cell, const cell_config<S, V> config) {
+        void set_initial_config(const cell_position &cell, const grid_cell_config<S, V> config) {
             assert(cell_in_scenario(cell));
             configs[cell] = config;
         }
 
-        grid_scenario(const cell_position &shape, const cell_config<S, V> &config, bool wrapped):
+        grid_scenario(const cell_position &shape, const grid_cell_config<S, V> &config, bool wrapped):
         shape(shape), dimension(shape.size()), configs(), wrapped(wrapped) {
             // Assert that the shape of the scenario is well-defined
             set_initial_config(config);

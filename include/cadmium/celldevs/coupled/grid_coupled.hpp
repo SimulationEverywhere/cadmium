@@ -37,6 +37,7 @@
 #include <cadmium/modeling/dynamic_model_translator.hpp>
 #include <cadmium/celldevs/coupled/cells_coupled.hpp>
 #include <cadmium/celldevs/cell/grid_cell.hpp>
+#include <cadmium/celldevs/utils/utils.hpp>
 #include <cadmium/celldevs/utils/grid_utils.hpp>
 #include <cadmium/json/json.hpp>
 
@@ -55,9 +56,8 @@ namespace cadmium::celldevs {
         cell_position shape = cell_position();
         bool wrapped = false;
     public:
-
-        using cell_config_map = std::unordered_map<std::string, cell_config<S, V>>;
-
+        using cells_coupled<T, cell_position, S, V>::default_config_json;
+        using cells_coupled<T, cell_position, S, V>::get_default_configs;
         using cells_coupled<T, cell_position, S, V>::get_cell_name;
         using cells_coupled<T, cell_position, S, V>::add_cell;
         using cells_coupled<T, cell_position, S, V>::add_cell_neighborhood;
@@ -105,6 +105,7 @@ namespace cadmium::celldevs {
             shape = j["shape"].get<cell_position>();
             wrapped = j.contains("wrapped") && j["wrapped"].get<bool>();
             // Read cell configurations and create default scenario
+            default_config_json = j["cells"]["default"];
             auto default_configs = get_default_configs(j["cells"]);
             grid_scenario<S, V> scenario = grid_scenario<S, V>(shape, default_configs.at("default"), wrapped);
             // Set special configurations
@@ -124,50 +125,21 @@ namespace cadmium::celldevs {
             }
         }
 
-        cell_config_map get_default_configs(const cadmium::json &cells_config) {
-            auto default_configs = cell_config_map({{"default", read_default_cell_config(cells_config["default"])}});
-            for (auto &el: cells_config.items()) {
-                const auto &config_id = el.key();
-                auto config_val = el.value();
-                if (config_id == "default") {
-                    continue;
-                }
-                default_configs[config_id] = read_cell_config(config_val, default_configs.at("default"));
-            }
-            return default_configs;
-        }
-
-        cell_config<S, V> read_default_cell_config(cadmium::json const &description) {
-            auto delay = description["delay"].get<std::string>();
-            auto cell_type = description["cell_type"].get<std::string>();
-            auto state = (description.contains("state")) ? description["state"].get<S>() : S();
-            auto neighborhood = (description.contains("neighborhood"))
-                    ? parse_neighborhood(description["neighborhood"]) : cell_unordered<V>();
-            auto config = (description.contains("config")) ? description["config"] : cadmium::json();
-            return cell_config<S, V>(delay, cell_type, state, neighborhood, config);
-        }
-
-        cell_config<S, V> read_cell_config(cadmium::json const &description, cell_config<S, V> const &default_config) {
-            auto delay = (description.contains("delay")) ? description["delay"].get<std::string>() : default_config.delay;
-            auto cell_type = (description.contains("cell_type")) ? description["cell_type"].get<std::string>()
-                                                                : default_config.cell_type;
-            auto state = (description.contains("state")) ? description["state"].get<S>() : default_config.state;
-            auto neighborhood = (description.contains("neighborhood"))
-                    ? parse_neighborhood(description["neighborhood"]) : default_config.neighborhood;
-            auto config = (description.contains("config")) ? description["config"] : default_config.config;
-            return cell_config<S, V>(delay, cell_type, state, neighborhood, config);
-        }
-
-        cell_unordered<V> parse_neighborhood(const cadmium::json &j) {
+        cell_unordered<V> parse_neighborhood(const cadmium::json &j) override {
             auto neighborhood = cell_unordered< V>();
             for (const cadmium::json &n: j) {
                 auto type = n["type"].get<std::string>();
                 auto vicinity = n["vicinity"].get<V>();
-                if (type == "custom") {
+                if (type == "custom" || type == "relative") {
+                    if (type == "custom") {
+                        std::cerr << "Deprecation warning: \"custom\" neighborhood type has been changed to \"relative\". Change it in your JSON configuration file.\n";
+                    }
                     for (const cadmium::json &relative: n["neighbors"]) {
                         auto neighbor = relative.get<cell_position>();
                         neighborhood[neighbor] = vicinity;
                     }
+                } else if (type == "absolute" || type == "remove") {
+                    throw std::logic_error("Neighborhood type not yet implemented");  // TODO implement these neighborhood types
                 } else {
                     auto range = (n.contains("range")) ? n["range"].get<int>() : 1;
                     std::vector<cell_position> neighbors;

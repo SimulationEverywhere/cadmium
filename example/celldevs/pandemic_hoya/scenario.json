@@ -36,10 +36,14 @@
     },
     "epicenter": {
       "state": {
-        "population": 100,
         "susceptible": 0.7,
-        "infected": 0.3,
-        "recovered": 0
+        "infected": 0.3
+      }
+    },
+    "recovered": {
+      "state": {
+        "susceptible": 0,
+        "recovered": 1
       }
     },
     "immune": {
