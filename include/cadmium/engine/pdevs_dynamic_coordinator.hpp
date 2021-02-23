@@ -57,7 +57,7 @@ namespace cadmium {
                 boost::basic_thread_pool* _threadpool;
                 #endif //CADMIUM_EXECUTE_CONCURRENT
 
-				#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL || defined CPU_DELTA_PARALLEL
+				#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL || defined CPU_DELTA_PARALLEL || defined CPU_ROUTING_PARALLEL || defined CPU_MIN_PARALLEL
                 size_t _thread_number;
 				#endif //CPU_PARALLEL
 
@@ -154,7 +154,7 @@ namespace cadmium {
 					#ifdef CADMIUM_EXECUTE_CONCURRENT
                     cadmium::dynamic::engine::init_subcoordinators<TIME>(initial_time, _subcoordinators, _threadpool);
                     #else
-						#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL || defined CPU_DELTA_PARALLEL
+						#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL || defined CPU_DELTA_PARALLEL || defined CPU_ROUTING_PARALLEL || defined CPU_MIN_PARALLEL
                     	cadmium::dynamic::engine::init_subcoordinators<TIME>(initial_time, _subcoordinators, _thread_number);
 						#else
                     	cadmium::dynamic::engine::init_subcoordinators<TIME>(initial_time, _subcoordinators);
@@ -163,7 +163,14 @@ namespace cadmium {
 
 
                     //find the one with the lowest next time
-                    _next = cadmium::dynamic::engine::min_next_in_subcoordinators<TIME>(_subcoordinators);
+                    //_next = cadmium::dynamic::engine::min_next_in_subcoordinators<TIME>(_subcoordinators);
+					#if defined CPU_PARALLEL || defined CPU_MIN_PARALLEL
+                    	_next = cadmium::dynamic::engine::min_next_in_subcoordinators<TIME>(_subcoordinators, _thread_number);
+                        //_next = cadmium::dynamic::engine::min_next_in_subcoordinators<TIME>(_subcoordinators);
+					#else
+                    	_next = cadmium::dynamic::engine::min_next_in_subcoordinators<TIME>(_subcoordinators);
+                    #endif
+
                 }
 
                 #ifdef CADMIUM_EXECUTE_CONCURRENT
@@ -173,7 +180,7 @@ namespace cadmium {
                 }
                 #endif //CADMIUM_EXECUTE_CONCURRENT
 
-				#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL || defined CPU_DELTA_PARALLEL
+				#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL || defined CPU_DELTA_PARALLEL || defined CPU_ROUTING_PARALLEL || defined CPU_MIN_PARALLEL
                 void init(TIME initial_time, size_t thread_number) {
                     _thread_number = thread_number;
                     this->init(initial_time);
@@ -290,7 +297,14 @@ namespace cadmium {
 
                         //Route the messages standing in the outboxes to mapped inboxes following ICs and EICs
                         LOGGER::template log<cadmium::logger::logger_message_routing, cadmium::logger::coor_routing_ic_collect>(t, _model_id);
-                        cadmium::dynamic::engine::route_internal_coupled_messages_on_subcoordinators<TIME, LOGGER>(_internal_coupligns);
+                        //cadmium::dynamic::engine::route_internal_coupled_messages_on_subcoordinators<TIME, LOGGER>(_internal_coupligns);
+
+						#if defined CPU_PARALLEL || defined CPU_ROUTING_PARALLEL
+                        	cadmium::dynamic::engine::route_internal_coupled_messages_on_subcoordinators<TIME, LOGGER>(_internal_coupligns, _thread_number);
+						#else
+                        	cadmium::dynamic::engine::route_internal_coupled_messages_on_subcoordinators<TIME, LOGGER>(_internal_coupligns);
+						#endif
+
 
                         LOGGER::template log<cadmium::logger::logger_message_routing, cadmium::logger::coor_routing_eic_collect>(t, _model_id);
                         cadmium::dynamic::engine::route_external_input_coupled_messages_on_subcoordinators<TIME, LOGGER>(_inbox, _external_input_couplings);
@@ -308,7 +322,14 @@ namespace cadmium {
 
                         //set _last and _next
                         _last = t;
-                        _next = cadmium::dynamic::engine::min_next_in_subcoordinators<TIME>(_subcoordinators);
+                        //_next = cadmium::dynamic::engine::min_next_in_subcoordinators<TIME>(_subcoordinators);
+						#if defined CPU_PARALLEL || defined CPU_MIN_PARALLEL
+                        	_next = cadmium::dynamic::engine::min_next_in_subcoordinators<TIME>(_subcoordinators, _thread_number);
+                        	//_next = cadmium::dynamic::engine::min_next_in_subcoordinators<TIME>(_subcoordinators);
+						#else
+                        	_next = cadmium::dynamic::engine::min_next_in_subcoordinators<TIME>(_subcoordinators);
+						#endif
+
 
                         //clean inbox because they were processed already
                         _inbox = cadmium::dynamic::message_bags();
@@ -329,7 +350,14 @@ namespace cadmium {
 
                         //Route the messages standing in the outboxes to mapped inboxes following ICs and EICs
                         LOGGER::template log<cadmium::logger::logger_message_routing, cadmium::logger::coor_routing_ic_collect>(t, _model_id);
-                        cadmium::dynamic::engine::route_internal_coupled_messages_on_subcoordinators<TIME, LOGGER>(_internal_coupligns);
+                        //cadmium::dynamic::engine::route_internal_coupled_messages_on_subcoordinators<TIME, LOGGER>(_internal_coupligns);
+
+						#if defined CPU_PARALLEL || defined CPU_ROUTING_PARALLEL
+                        	cadmium::dynamic::engine::route_internal_coupled_messages_on_subcoordinators<TIME, LOGGER>(_internal_coupligns, _thread_number);
+							#else
+                        	cadmium::dynamic::engine::route_internal_coupled_messages_on_subcoordinators<TIME, LOGGER>(_internal_coupligns);
+						#endif
+
 
                         LOGGER::template log<cadmium::logger::logger_message_routing, cadmium::logger::coor_routing_eic_collect>(t, _model_id);
                         cadmium::dynamic::engine::route_external_input_coupled_messages_on_subcoordinators<TIME, LOGGER>(_inbox, _external_input_couplings);
@@ -347,7 +375,15 @@ namespace cadmium {
 
                         //set _last and _next
                         _last = t;
-                        _next = cadmium::dynamic::engine::min_next_in_subcoordinators<TIME>(_subcoordinators);
+                        //_next = cadmium::dynamic::engine::min_next_in_subcoordinators<TIME>(_subcoordinators);
+
+						#if defined CPU_PARALLEL || defined CPU_MIN_PARALLEL
+                        	_next = cadmium::dynamic::engine::min_next_in_subcoordinators<TIME>(_subcoordinators, _thread_number);
+                        	//_next = cadmium::dynamic::engine::min_next_in_subcoordinators<TIME>(_subcoordinators);
+						#else
+                        	_next = cadmium::dynamic::engine::min_next_in_subcoordinators<TIME>(_subcoordinators);
+						#endif
+
 
                         //clean inbox because they were processed already
                         _inbox = cadmium::dynamic::message_bags();

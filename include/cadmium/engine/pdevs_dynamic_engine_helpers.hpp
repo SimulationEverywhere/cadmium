@@ -108,7 +108,7 @@ namespace cadmium {
                 std::for_each(subcoordinators.begin(), subcoordinators.end(), init_coordinator);
             }
             #else
-				#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL || defined CPU_DELTA_PARALLEL
+				#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL || defined CPU_DELTA_PARALLEL || defined CPU_ROUTING_PARALLEL || defined CPU_MIN_PARALLEL
             	template<typename TIME>
             	void init_subcoordinators(TIME t, subcoordinators_type<TIME>& subcoordinators, size_t thread_number) {
                 	auto init_coordinator = [&t, thread_number](auto & c)->void { c->init(t, thread_number); };
@@ -219,21 +219,62 @@ namespace cadmium {
                 std::for_each(coupling.begin(), coupling.end(), route_messages);
             }
 
+
+			#if defined CPU_PARALLEL || defined CPU_ROUTING_PARALLEL
             template<typename TIME, typename LOGGER>
-            void route_internal_coupled_messages_on_subcoordinators(const internal_couplings<TIME>& coupling) {
-                auto route_messages = [](auto & c)->void {
+            void route_internal_coupled_messages_on_subcoordinators(const internal_couplings<TIME>& coupling, size_t thread_number) {
+                auto route_messages = [](auto & c)->std::vector<cadmium::dynamic::logger::routed_messages>{
+
+                	//cadmium::parallel::info_for_logging<TIME>
+                	std::vector<cadmium::dynamic::logger::routed_messages> logs;
+
                     for (const auto& l : c.second) {
                         auto& from_outbox = c.first.first->outbox();
                         auto& to_inbox = c.first.second->inbox();
                         cadmium::dynamic::logger::routed_messages message_to_log = l->route_messages(from_outbox, to_inbox);
-
-                        LOGGER::template log<cadmium::logger::logger_message_routing, cadmium::logger::coor_routing_collect>(message_to_log.from_port, message_to_log.to_port, message_to_log.from_messages, message_to_log.to_messages);
+                        logs.push_back(message_to_log);
+                        //LOGGER::template log<cadmium::logger::logger_message_routing, cadmium::logger::coor_routing_collect>(message_to_log.from_port, message_to_log.to_port, message_to_log.from_messages, message_to_log.to_messages);
                     }
+
+                    return logs;
                 };
 
-                std::for_each(coupling.begin(), coupling.end(), route_messages);
+                //std::for_each(coupling.begin(), coupling.end(), route_messages);
+                cadmium::parallel::cpu_parallel_for_each_routing<LOGGER>(coupling.begin(), coupling.end(), route_messages, thread_number);
+                //cadmium::parallel::cpu_parallel_for_each_lambda<LOGGER>(t, subcoordinators.begin(), subcoordinators.end(), collect_output, thread_number);
             }
+			#else
+            template<typename TIME, typename LOGGER>
+            void route_internal_coupled_messages_on_subcoordinators(const internal_couplings<TIME>& coupling) {
+            	auto route_messages = [](auto & c)->void {
+            		for (const auto& l : c.second) {
+            			auto& from_outbox = c.first.first->outbox();
+            			auto& to_inbox = c.first.second->inbox();
+            			cadmium::dynamic::logger::routed_messages message_to_log = l->route_messages(from_outbox, to_inbox);
 
+            			LOGGER::template log<cadmium::logger::logger_message_routing, cadmium::logger::coor_routing_collect>(message_to_log.from_port, message_to_log.to_port, message_to_log.from_messages, message_to_log.to_messages);
+            		}
+            	};
+
+            	std::for_each(coupling.begin(), coupling.end(), route_messages);
+            }
+			#endif //CPU_PARALLEL
+
+
+			#if defined CPU_PARALLEL || defined CPU_MIN_PARALLEL
+            template<typename TIME>
+            TIME min_next_in_subcoordinators(const subcoordinators_type<TIME>& subcoordinators, size_t thread_number) {
+            	std::vector<TIME> next_times(subcoordinators.size());
+            	std::transform(
+            			subcoordinators.cbegin(),
+						subcoordinators.cend(),
+						next_times.begin(),
+						[] (const auto& c) -> TIME { return c->next(); }
+            	);
+            	return *cadmium::parallel::parallel_min_element(next_times.begin(), next_times.end(), thread_number);
+            	//return *std::min_element(next_times.begin(), next_times.end());
+            }
+			#else
             template<typename TIME>
             TIME min_next_in_subcoordinators(const subcoordinators_type<TIME>& subcoordinators) {
                 std::vector<TIME> next_times(subcoordinators.size());
@@ -245,6 +286,9 @@ namespace cadmium {
                 );
                 return *std::min_element(next_times.begin(), next_times.end());
             }
+			#endif
+
+
         }
     }
 }

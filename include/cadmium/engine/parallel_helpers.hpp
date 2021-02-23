@@ -133,6 +133,54 @@ namespace cadmium {
     	}
 
 
+    	template<typename ITERATOR, typename FUNC>
+    	std::vector<cadmium::dynamic::logger::routed_messages> cpu_parallel_for_each_with_result_routing(ITERATOR first, ITERATOR last, FUNC& f, size_t thread_number = std::thread::hardware_concurrency()){
+    		std::vector<cadmium::dynamic::logger::routed_messages> logs;
+    	    /* get amount of elements to compute */
+    	    size_t n = std::distance(first, last);
+    	    /* if the amount of elements is less than the number of threads execute on n elements */
+    	    if(n<thread_number){
+    	    	thread_number=n;
+    	    }
+    	    /* OpenMP parallel loop */
+    	    /* It doesn't work -> execution time as sequential version
+    	    #pragma omp parallel for num_threads(thread_number) firstprivate(f, first) proc_bind(close) schedule(static)
+    	    for(int i = 0; i < n; i++){
+    	    	f(*(i+first));
+    	    }
+    	    */
+    	    #pragma omp parallel firstprivate(f) num_threads(thread_number) proc_bind(close)
+    	    {
+    	    	std::vector<cadmium::dynamic::logger::routed_messages> partial_logs;
+    	    	std::vector<cadmium::dynamic::logger::routed_messages> result;
+    	    	/* get thread id */
+    	    	size_t tid = omp_get_thread_num();
+
+    	    	/* if it's not last thread compute n/thread_number elements */
+    	    	if(tid != thread_number-1) {
+    	    		for(size_t i = (n/thread_number)*tid; i < (n/thread_number)*(tid+1); i++) {
+    	    			result = f(*(i+first));
+    	    	    	//partial_logs.push_back(result);
+    	    	    	partial_logs.insert(partial_logs.end(), std::make_move_iterator(result.begin()), std::make_move_iterator(result.end()));
+    	    	    }
+    	    	/* if it's last thread compute till the end of the vector */
+    	    	} else {
+    	    		for(size_t i = (n/thread_number) * tid; i < n ; i++) {
+    	    			result = f(*(i+first));
+    	    			//partial_logs.push_back(result);
+    	    			partial_logs.insert(partial_logs.end(), std::make_move_iterator(result.begin()), std::make_move_iterator(result.end()));
+    	    		}
+    	    	}
+
+    			#pragma omp critical
+    	    	{
+    	    		logs.insert(logs.end(), std::make_move_iterator(partial_logs.begin()), std::make_move_iterator(partial_logs.end()));
+    	    	}
+
+    	    }
+    	    return logs;
+    	}
+
     	template<typename LOGGER, typename TIME, typename ITERATOR, typename FUNC>
     	void cpu_parallel_for_each_lambda(TIME t, ITERATOR first, ITERATOR last, FUNC& f, size_t thread_number = std::thread::hardware_concurrency()){
 
@@ -167,6 +215,65 @@ namespace cadmium {
     			}
     		}
     	}
+
+
+    	template<typename LOGGER, typename ITERATOR, typename FUNC>
+    	void cpu_parallel_for_each_routing(ITERATOR first, ITERATOR last, FUNC& f, size_t thread_number = std::thread::hardware_concurrency()){
+
+    		/* parallel routing execution */
+    		std::vector<cadmium::dynamic::logger::routed_messages> log = cpu_parallel_for_each_with_result_routing(first, last, f, thread_number);
+
+    		/* log results */
+    		size_t n = log.size();
+    		for(size_t i=0; i<n; i++){
+    			LOGGER::template log<cadmium::logger::logger_message_routing, cadmium::logger::coor_routing_collect>(log.at(i).from_port, log.at(i).to_port, log.at(i).from_messages, log.at(i).to_messages);
+    	    }
+    	}
+
+
+    	template<class ForwardIt>
+    	ForwardIt parallel_min_element(ForwardIt first, ForwardIt last, unsigned long thread_number = std::thread::hardware_concurrency()) {
+    		if (first == last) return first;
+    		ForwardIt result=first;
+    		size_t n = std::distance(first, last);
+
+    	    /* if the amount of elements is less than the number of threads execute on n elements */
+    	    if(n<thread_number){
+    	    	thread_number=n;
+    	    }
+
+    		//#pragma omp parallel shared(result) firstprivate(first, last) num_threads(thread_number) proc_bind(close)
+			#pragma omp parallel num_threads(thread_number)
+    	    {
+    	    	ForwardIt start, end, smallest;
+    	    	// get thread id /
+    	    	size_t tid = omp_get_thread_num();
+    	    	// calculate number of elements to compute /
+    	    	size_t local_n = n/thread_number;
+    	    	// calculate start position /
+    	    	start = first+(tid*local_n);
+    	    	// calculate end position /
+    	    	if(tid != (thread_number-1)){
+    	    		end = start+local_n;
+    	    	}else{
+    	    		end = last;
+    	    	}
+
+    	    	// each thread computes partial result //
+    	    	smallest = std::min_element(start, end);
+
+    	    	// calculate final result from partial_results sequentially /
+    			#pragma omp critical
+    	    	{
+    	    		if(*smallest < *result){
+    	    			result = smallest;
+    	    		}
+    	    	}
+    	    }
+
+    	    return result;
+    	}
+
 
     }
 }
