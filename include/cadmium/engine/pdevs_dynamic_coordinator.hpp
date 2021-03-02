@@ -161,7 +161,6 @@ namespace cadmium {
 						#endif
                     #endif //CADMIUM_EXECUTE_CONCURRENT
 
-
                     //find the one with the lowest next time
                     //_next = cadmium::dynamic::engine::min_next_in_subcoordinators<TIME>(_subcoordinators);
 					#if defined CPU_PARALLEL || defined CPU_MIN_PARALLEL
@@ -199,6 +198,36 @@ namespace cadmium {
                     return _next;
                 }
 
+                TIME last() const noexcept {
+                	return _last;
+                }
+
+                void set_next(TIME t) {
+                	_next = t;
+                }
+
+
+                //subcoordinators_type<TIME> _subcoordinators;
+                //external_couplings<TIME> _external_output_couplings;
+                //external_couplings<TIME> _external_input_couplings;
+                //internal_couplings<TIME> _internal_coupligns;
+
+                subcoordinators_type<TIME> subcoordinators() {
+                	return _subcoordinators;
+                }
+
+                external_couplings<TIME> external_output_couplings() {
+                	return _external_output_couplings;
+                }
+
+                external_couplings<TIME> external_input_couplings() {
+                	return _external_input_couplings;
+                }
+
+                internal_couplings<TIME> subcoordinators_internal_couplings() {
+                	return _internal_coupligns;
+                }
+
                 /**
                  * @brief Collects outputs ready for output before advancing the simulation
                  * @param t time the simulation will be advanced to
@@ -233,7 +262,135 @@ namespace cadmium {
                 }
 
 
-				#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL
+				//#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL
+
+                template<typename Iterator>
+                std::vector<cadmium::parallel::info_for_logging<TIME>> collect_outputs_in_subcoordinators(Iterator first, Iterator last, const TIME &t) {
+                	std::vector<cadmium::parallel::info_for_logging<TIME>> log_info;
+                	cadmium::parallel::info_for_logging<TIME> result;
+
+                	auto collect_output = [&t](auto &c)->std::vector<cadmium::parallel::info_for_logging<TIME>>
+    				{
+            			std::vector<cadmium::parallel::info_for_logging<TIME>> logs;
+    					//cadmium::parallel::info_for_logging<TIME> result = c->collect_outputs_without_logging(t);
+    					//return result;
+    					logs.push_back(c->collect_outputs_without_logging(t));
+    					return logs;
+    				};
+
+
+                	for(; first!=last;first++){
+                		//result = _subcoordinators.at(i).collect_outputs_without_logging(t);
+                		//result = (*first)->collect_outputs_without_logging(t);
+                		result = _subcoordinators.at(first)->collect_outputs_without_logging(t);
+                		log_info.push_back(result);
+                	}
+
+                	//log_info = cadmium::parallel::for_each_with_result<cadmium::parallel::info_for_logging<TIME>>(first, last, collect_output);
+
+                	return log_info;
+                }
+
+
+                //#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL
+                template<typename Iterator>
+                std::vector<cadmium::dynamic::logger::routed_messages> internal_couplings_routing(Iterator first, Iterator last) {
+                	std::vector<cadmium::dynamic::logger::routed_messages> log_info;
+                	std::vector<cadmium::dynamic::logger::routed_messages> partial_logs;
+
+                	auto route_messages = [](auto & c)->std::vector<cadmium::dynamic::logger::routed_messages>
+                	{
+                		//cadmium::parallel::info_for_logging<TIME>
+                		std::vector<cadmium::dynamic::logger::routed_messages> logs;
+
+                		for (const auto& l : c.second) {
+                			auto& from_outbox = c.first.first->outbox();
+                			auto& to_inbox = c.first.second->inbox();
+                			cadmium::dynamic::logger::routed_messages message_to_log = l->route_messages(from_outbox, to_inbox);
+                			logs.push_back(message_to_log);
+                			//LOGGER::template log<cadmium::logger::logger_message_routing, cadmium::logger::coor_routing_collect>(message_to_log.from_port, message_to_log.to_port, message_to_log.from_messages, message_to_log.to_messages);
+                		}
+                	    return logs;
+                	};
+
+                	for(; first!=last; first++){
+                		//result = _subcoordinators.at(i).collect_outputs_without_logging(t);
+                		//partial_logs = first.route_messages();
+                		partial_logs = route_messages(_internal_coupligns.at(first));
+                		log_info.insert(log_info.end(), std::make_move_iterator(partial_logs.begin()), std::make_move_iterator(partial_logs.end()));
+                	}
+
+                	return log_info;
+                }
+
+                //#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL
+                template<typename Iterator>
+                std::vector<cadmium::parallel::info_for_logging<TIME>> apply_delta_without_logging(Iterator first, Iterator last, const TIME &t) {
+                	std::vector<cadmium::parallel::info_for_logging<TIME>> log_info;
+                	cadmium::parallel::info_for_logging<TIME> result;
+
+                	for(; first!=last;first++){
+                		//result = _subcoordinators.at(first)->advance_simulation_without_logging(t);
+                		result = _subcoordinators.at(first)->advance_simulation_without_logging(t);
+                		//result = first->advance_simulation_without_logging(t);
+                		log_info.push_back(result);
+                	}
+                	return log_info;
+                }
+
+                /*
+                #if defined CPU_PARALLEL || defined CPU_MIN_PARALLEL
+	            template<typename TIME>
+	            TIME min_next_in_subcoordinators(const subcoordinators_type<TIME>& subcoordinators, size_t thread_number) {
+	            	std::vector<TIME> next_times(subcoordinators.size());
+	            	std::transform(
+	            			subcoordinators.cbegin(),
+							subcoordinators.cend(),
+							next_times.begin(),
+							[] (const auto& c) -> TIME { return c->next(); }
+	            	);
+	            	return *cadmium::parallel::parallel_min_element(next_times.begin(), next_times.end(), thread_number);
+	            	//return *std::min_element(next_times.begin(), next_times.end());
+	            }
+	            */
+
+                //#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL
+
+                template<typename Iterator>
+                TIME next_in_subcoordinators(Iterator first, Iterator last) {
+                	//std::vector<TIME> next_times(last-first);
+                	//size_t n = std::distance(first, last);
+                	//std::vector<TIME> next_times(n);
+                	/*
+                	std::transform(
+	            			subcoordinators.cbegin(),
+							subcoordinators.cend(),
+							next_times.begin(),
+							[] (const auto& c) -> TIME { return c->next(); }
+	            	);*/
+                /*
+                	std::transform(
+	            			first,
+							last,
+							next_times.begin(),
+							[] (const auto& c) -> TIME { return c->next(); }
+	            	);
+	            */
+                	size_t n = last-first;
+                	TIME min = _subcoordinators.at(first)->next();
+
+                	for(int i=first; first!=last; first++){
+                		if(_subcoordinators.at(i)->next() < min){
+                			min = _subcoordinators.at(i)->next();
+                		}
+                	}
+
+                	return min;
+                	//return *std::min_element(next_times.begin(), next_times.end());
+                }
+
+
+                //#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL || defined CPU_ROUTING_PARALLEL || defined CPU_MIN_PARALLEL
                 cadmium::parallel::info_for_logging<TIME> collect_outputs_without_logging(const TIME &t) {
                 	cadmium::parallel::info_for_logging<TIME> log;
 
@@ -264,7 +421,8 @@ namespace cadmium {
                 	}
                 	return log;
                 }
-				#endif //CPU_PARALLEL
+				//#endif //CPU_PARALLEL
+
 
                 /**
                  * @brief outbox keeps the output generated by the last call to collect_outputs
@@ -336,7 +494,7 @@ namespace cadmium {
                     }
                 }
 
-				#if defined CPU_PARALLEL || defined CPU_DELTA_PARALLEL
+				//#if defined CPU_PARALLEL || defined CPU_DELTA_PARALLEL || defined CPU_ROUTING_PARALLEL || defined CPU_MIN_PARALLEL
                 cadmium::parallel::info_for_logging<TIME> advance_simulation_without_logging(const TIME &t) {
                 	cadmium::parallel::info_for_logging<TIME> log;
                 	//clean outbox because messages are routed before calling this function at a higher level
@@ -391,7 +549,7 @@ namespace cadmium {
 
                     return log;
                 }
-				#endif //CPU_PARALLEL
+				//#endif //CPU_PARALLEL
             };
         }
     }

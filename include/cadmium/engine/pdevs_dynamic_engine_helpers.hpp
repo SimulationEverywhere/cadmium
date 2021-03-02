@@ -36,7 +36,7 @@
 #include <boost/thread/executors/basic_thread_pool.hpp>
 #endif //CADMIUM_EXECUTE_CONCURRENT
 
-#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL || defined CPU_DELTA_PARALLEL
+#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL || defined CPU_DELTA_PARALLEL || defined CPU_ROUTING_PARALLEL || defined CPU_MIN_PARALLEL
 #include <cadmium/engine/parallel_helpers.hpp>
 #include <algorithm>
 #endif //CPU_PARALLEL
@@ -223,7 +223,7 @@ namespace cadmium {
 			#if defined CPU_PARALLEL || defined CPU_ROUTING_PARALLEL
             template<typename TIME, typename LOGGER>
             void route_internal_coupled_messages_on_subcoordinators(const internal_couplings<TIME>& coupling, size_t thread_number) {
-                auto route_messages = [](auto & c)->std::vector<cadmium::dynamic::logger::routed_messages>{
+            	auto route_messages = [](auto & c)->std::vector<cadmium::dynamic::logger::routed_messages>{
 
                 	//cadmium::parallel::info_for_logging<TIME>
                 	std::vector<cadmium::dynamic::logger::routed_messages> logs;
