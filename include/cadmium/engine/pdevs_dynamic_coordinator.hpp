@@ -338,9 +338,9 @@ namespace cadmium {
                 	return log_info;
                 }
 
-                /*
-                #if defined CPU_PARALLEL || defined CPU_MIN_PARALLEL
-	            template<typename TIME>
+
+                //#if defined CPU_PARALLEL || defined CPU_MIN_PARALLEL
+	            //template<typename TIME>
 	            TIME min_next_in_subcoordinators(const subcoordinators_type<TIME>& subcoordinators, size_t thread_number) {
 	            	std::vector<TIME> next_times(subcoordinators.size());
 	            	std::transform(
@@ -349,10 +349,10 @@ namespace cadmium {
 							next_times.begin(),
 							[] (const auto& c) -> TIME { return c->next(); }
 	            	);
-	            	return *cadmium::parallel::parallel_min_element(next_times.begin(), next_times.end(), thread_number);
-	            	//return *std::min_element(next_times.begin(), next_times.end());
+	            	//return *cadmium::parallel::parallel_min_element(next_times.begin(), next_times.end(), thread_number);
+	            	return *std::min_element(next_times.begin(), next_times.end());
 	            }
-	            */
+
 
                 //#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL
 
@@ -367,7 +367,8 @@ namespace cadmium {
 							subcoordinators.cend(),
 							next_times.begin(),
 							[] (const auto& c) -> TIME { return c->next(); }
-	            	);*/
+	            	);
+	            	*/
                 /*
                 	std::transform(
 	            			first,
@@ -378,12 +379,23 @@ namespace cadmium {
 	            */
                 	size_t n = last-first;
                 	TIME min = _subcoordinators.at(first)->next();
+                	//TIME min;
 
-                	for(int i=first; first!=last; first++){
-                		if(_subcoordinators.at(i)->next() < min){
-                			min = _subcoordinators.at(i)->next();
+
+
+
+                	for(; first!=last; first++){
+                		if(_subcoordinators.at(first)->next() < min){
+                			min = _subcoordinators.at(first)->next();
+
+                			//std::cout << "NEXT: " << _subcoordinators.at(first)->next() << min << std::endl;
+
                 		}
                 	}
+
+
+                	//std::cout << "AFTER LOOP NEXT: " << _subcoordinators.at(0)->next() << min << std::endl;
+
 
                 	return min;
                 	//return *std::min_element(next_times.begin(), next_times.end());

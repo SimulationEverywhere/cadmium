@@ -131,7 +131,8 @@ namespace cadmium {
 
                 cadmium::dynamic::logger::routed_messages
                 route_messages(const cadmium::dynamic::message_bags& bags_from, cadmium::dynamic::message_bags& bags_to) const override {
-                    if (bags_from.find(this->from_port_type_index()) != bags_from.cend()) {
+
+                	if (bags_from.find(this->from_port_type_index()) != bags_from.cend()) {
 
                         if (bags_to.find(this->to_port_type_index()) != bags_to.cend()) {
                             return this->pass_messages(bags_from.at(this->from_port_type_index()),
@@ -142,6 +143,7 @@ namespace cadmium {
                             return this->pass_messages_to_new_bag(
                                     bags_from.at(this->from_port_type_index()), bags_to);
                         }
+
                     }
 
                     cadmium::dynamic::logger::routed_messages empty_ret(

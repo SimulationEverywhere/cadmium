@@ -135,7 +135,7 @@ namespace cadmium {
 
                 		LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Starting run");
 
-						#pragma omp parallel num_threads(_thread_number)
+						#pragma omp parallel num_threads(_thread_number) shared(_next)
                 		{
                 			size_t tid = omp_get_thread_num();
 
@@ -169,7 +169,7 @@ namespace cadmium {
 	               			//auto first_subcoordinators, last_subcoordinators;
 	               			//auto first_internal_coupligns, last_internal_couplings;
 
-							TIME _local_next;
+							TIME _local_next = _next;
 
 	               			// calculate number of elements to compute /
 	               			size_t local_n_subcoordinators = n_subcoordinators/thread_number;
@@ -210,6 +210,8 @@ namespace cadmium {
 	               			//auto last_internal_couplings = _top_coordinator.subcoordinators_internal_couplings().begin()+(tid+1*local_n_internal_couplings);
 
 							//_next = _top_coordinator.next();
+
+							//#pragma omp barrier
 
                 			// simulation cycle loop
 	               			while (_next < t) {
@@ -434,15 +436,31 @@ namespace cadmium {
                             	}
                             	*/
 
-        			    	    _local_next = _top_coordinator.next_in_subcoordinators(first,last);
+//								#pragma omp critical
+//        			    	    {
+        			    	    	//std::cout <<"tid: " << tid << " time: "<< _next << " local next: " << _local_next << std::endl;
+//        			    	    }
+
+								#pragma omp critical
+        			    	    {
+        			    	    	_local_next = _top_coordinator.next_in_subcoordinators(first,last);
+        			    	    }
+
+//								#pragma omp barrier
+
+//								#pragma omp critical
+//        			    	    {
+        			    	    	//std::cout <<"tid: " << tid << " time: "<< _next << " local next: " << _local_next << std::endl;
+//        			    	    }
 
         			    	    //if(tid == 0){
         			    	    #pragma omp single
+								//#pragma omp critical
     	               			{
         			    	    	_next = _local_next;
         			    	    }
 
-        			    	    #pragma omp barrier
+        			    	    //#pragma omp barrier
 
                             	// calculate final result from partial_results sequentially /
                             	#pragma omp critical
@@ -452,13 +470,32 @@ namespace cadmium {
                             		}
                             	}
 
+//								#pragma omp barrier
+
+//								#pragma omp critical
+//        			    	    {
+        			    	    	//std::cout <<"tid: " << tid << " time: "<< _next << " local next: " << _local_next << std::endl;
+//        			    	    }
+
+//								#pragma omp barrier
+
+
+/*
+								#pragma omp single
+        			    	    {
+                            	//if (tid == 0){
+                            		_next = _top_coordinator.min_next_in_subcoordinators(_top_coordinator.subcoordinators(),1);
+                            	}
+*/
+
+
 /*
 								#pragma omp critical
         			    	    {
                             		//std::cout << "after calculte next time step" << std::endl;
         			    	    }
 */
-
+								#pragma omp barrier
                             	//sequential
                             	//if(tid == 0){
                             	#pragma omp single
