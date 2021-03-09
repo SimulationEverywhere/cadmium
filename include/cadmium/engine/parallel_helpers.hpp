@@ -61,13 +61,15 @@ namespace cadmium {
     	};
 
     	void pin_thread_to_core(size_t tid){
-    		unsigned long len;
+    		size_t len, core;
     		cpu_set_t mascara;
     		CPU_ZERO (&mascara);
+    		size_t thread_number = std::thread::hardware_concurrency();
 
-    		//set thread to tid core
+    		//set thread to tid core % number of threads
     		len = sizeof(cpu_set_t);
-    		CPU_SET (tid, &mascara);
+    		core = tid % thread_number;
+    		CPU_SET (core, &mascara);
     		if (sched_setaffinity(0, len, &mascara) < 0)
     			printf("\n\nError :: sched_setaffinity\n\n");
     	}
