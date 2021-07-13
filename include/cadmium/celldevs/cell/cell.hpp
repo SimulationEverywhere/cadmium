@@ -35,6 +35,7 @@
 #include <exception>
 #include <algorithm>
 #include <unordered_map>
+#include <memory>
 #include <cadmium/modeling/message_bag.hpp>
 #include <cadmium/celldevs/utils/utils.hpp>
 #include <cadmium/celldevs/cell/msg.hpp>
@@ -72,7 +73,7 @@ namespace cadmium::celldevs {
         std::vector<C> neighbors;                           /// Neighboring cells' IDs
         T simulation_clock;                                 /// Simulation clock (i.e. current time during a simulation)
         T next_internal;                                    /// Time remaining until next internal state transition
-        delay_buffer<T, S> *buffer;                         /// output message buffer
+        std::unique_ptr<delay_buffer<T, S>> buffer;         /// output message buffer
 
         struct state_type {
             S current_state;                                /// Cell's internal state

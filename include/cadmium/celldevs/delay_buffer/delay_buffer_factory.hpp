@@ -30,6 +30,7 @@
 
 #include <string>
 #include <exception>
+#include <memory>
 #include <cadmium/celldevs/delay_buffer/delay_buffer.hpp>
 #include <cadmium/celldevs/delay_buffer/inertial.hpp>
 #include <cadmium/celldevs/delay_buffer/transport.hpp>
@@ -42,14 +43,17 @@ namespace cadmium::celldevs {
     class delay_buffer_factory {
     public:
         template<typename... Args>
-        static delay_buffer<T, S>* create_delay_buffer(std::string const &delay_buffer_id, Args&&... args) {
+        static std::unique_ptr<delay_buffer<T, S>> create_delay_buffer(std::string const &delay_buffer_id, Args&&... args) {
+            delay_buffer<T, S> *buffer_p = NULL;
             if (delay_buffer_id == "inertial")
-                return new inertial_delay_buffer<T, S>(std::forward<Args>(args)...);
+                buffer_p = new inertial_delay_buffer<T, S>(std::forward<Args>(args)...);
             else if (delay_buffer_id == "transport")
-                return new transport_delay_buffer<T, S>(std::forward<Args>(args)...);
+                buffer_p = new transport_delay_buffer<T, S>(std::forward<Args>(args)...);
             else if (delay_buffer_id == "hybrid")
-                return new hybrid_delay_buffer<T, S>(std::forward<Args>(args)...);
+                buffer_p = new hybrid_delay_buffer<T, S>(std::forward<Args>(args)...);
             else throw std::out_of_range("Output delay buffer type not found");
+
+            return std::unique_ptr<delay_buffer<T, S>>(buffer_p);
         }
     };
 } //namespace cadmium::celldevs
