@@ -29,6 +29,10 @@
 
 #include <cadmium/engine/pdevs_dynamic_coordinator.hpp>
 
+#ifdef FLAT
+#include <cadmium/engine/pdevs_dynamic_flat_coordinator.hpp>
+#endif //FLAT
+
 #ifdef CADMIUM_EXECUTE_CONCURRENT
 #include <boost/thread/executors/basic_thread_pool.hpp>
 #endif //CADMIUM_EXECUTE_CONCURRENT
@@ -61,7 +65,11 @@ namespace cadmium {
             class runner {
                 TIME _next; //next scheduled event
 
-                cadmium::dynamic::engine::coordinator<TIME, LOGGER> _top_coordinator; //this only works for coupled models.
+				#ifdef FLAT
+                	cadmium::dynamic::engine::flat_coordinator<TIME, LOGGER> _top_coordinator; //this only works for coupled models.
+				#else
+                	cadmium::dynamic::engine::coordinator<TIME, LOGGER> _top_coordinator; //this only works for coupled models.
+				#endif
 
                 #ifdef CADMIUM_EXECUTE_CONCURRENT
                 boost::basic_thread_pool _threadpool;

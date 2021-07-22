@@ -51,7 +51,7 @@ namespace cadmium {
                 subcoordinators_type<TIME> _subcoordinators;
                 external_couplings<TIME> _external_output_couplings;
                 external_couplings<TIME> _external_input_couplings;
-                internal_couplings<TIME> _internal_coupligns;
+                internal_couplings<TIME> _internal_couplings;
 
                 #ifdef CADMIUM_EXECUTE_CONCURRENT
                 boost::basic_thread_pool* _threadpool;
@@ -137,7 +137,7 @@ namespace cadmium {
                     	new_ic.first.first = engines_by_id.at(ic._from);
                     	new_ic.first.second = engines_by_id.at(ic._to);
                     	new_ic.second.push_back(ic._link);
-                    	_internal_coupligns.push_back(new_ic);
+                    	_internal_couplings.push_back(new_ic);
                     }
 
                 }
@@ -258,7 +258,7 @@ namespace cadmium {
 
                         //Route the messages standing in the outboxes to mapped inboxes following ICs and EICs
                         LOGGER::template log<cadmium::logger::logger_message_routing, cadmium::logger::coor_routing_ic_collect>(t, _model_id);
-                        cadmium::dynamic::engine::route_internal_coupled_messages_on_subcoordinators<TIME, LOGGER>(_internal_coupligns);
+                        cadmium::dynamic::engine::route_internal_coupled_messages_on_subcoordinators<TIME, LOGGER>(_internal_couplings);
 
                         LOGGER::template log<cadmium::logger::logger_message_routing, cadmium::logger::coor_routing_eic_collect>(t, _model_id);
                         cadmium::dynamic::engine::route_external_input_coupled_messages_on_subcoordinators<TIME, LOGGER>(_inbox, _external_input_couplings);
@@ -282,6 +282,19 @@ namespace cadmium {
                         _inbox = cadmium::dynamic::message_bags();
                     }
                 }
+
+                internal_couplings<TIME> get_internal_couplings() const {
+                	return _internal_couplings;
+                }
+
+                external_couplings<TIME> get_external_input_couplings() const {
+                	return _external_output_couplings;
+                }
+
+                external_couplings<TIME> get_external_output_couplings() const {
+                	return _external_output_couplings;
+                }
+
             };
         }
     }

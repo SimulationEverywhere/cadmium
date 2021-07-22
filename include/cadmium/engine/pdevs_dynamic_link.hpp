@@ -34,6 +34,8 @@
 #include <cadmium/modeling/dynamic_message_bag.hpp>
 #include <cadmium/logger/common_loggers_helpers.hpp>
 
+#include <string>
+
 namespace cadmium {
     namespace dynamic {
         namespace engine {
@@ -48,8 +50,21 @@ namespace cadmium {
 
                 virtual std::type_index to_port_type_index() const = 0;
 
+                //virtual std::type_index get_from_port() const = 0;
+
+                //virtual std::type_index get_to_port() const = 0;
+
                 virtual cadmium::dynamic::logger::routed_messages
                 route_messages(const cadmium::dynamic::message_bags& bags_from, cadmium::dynamic::message_bags& bags_to) const = 0;
+
+                //std::type_index from_port;
+
+                //std::type_index to_port;
+
+                virtual const std::type_info* from_port() = 0;
+
+                virtual const std::type_info* to_port() = 0;
+
 
                 virtual ~link_abstract() {}
             };
@@ -62,12 +77,17 @@ namespace cadmium {
                 using to_message_type = typename PORT_TO::message_type;
                 using to_message_bag_type = typename cadmium::message_bag<PORT_TO>;
 
+
+
                 link() {
                     static_assert(
                             std::is_same<from_message_type, to_message_type>::value,
                             "PORT_FROM message type and PORT_TO message types must be the same type"
                     );
                 }
+
+                //std::type_index from_port = typeid(PORT_FROM);
+                //std::type_index to_port = typeid(PORT_TO);
 
                 std::type_index from_type_index() const override {
                     return typeid(from_message_bag_type);
@@ -84,6 +104,61 @@ namespace cadmium {
                 std::type_index to_port_type_index() const override {
                     return typeid(PORT_TO);
                 }
+
+               /*
+                std::type_index get_from_port() const override {
+                	return from_port;
+                }
+
+                std::type_index get_to_port() const override {
+                	return to_port;
+                }
+                */
+
+                const std::type_info* from_port() override {
+                	return &typeid(PORT_FROM);
+                }
+
+
+                const std::type_info* to_port() override {
+                	return &typeid(PORT_TO);
+                }
+
+
+
+                //std::type_index from_type;
+
+                //std::type_index to_type;
+
+/*
+                std::type_index from_port() const override {
+                	return boost::typeindex::type_id<PORT_FROM>();
+                }
+
+                std::type_index to_port() const override {
+                	return boost::typeindex::type_id<PORT_TO>();
+                }
+*/
+
+				/*
+                std::string from_port() const override {
+                	return boost::typeindex::type_id<PORT_FROM>().pretty_name();
+                }
+
+                std::string to_port() const override {
+                	return boost::typeindex::type_id<PORT_FROM>().pretty_name();
+                }
+				*/
+
+                /*
+                std::type_index get_from_message_type() const override {
+                	return typeid(from_message_type);
+                }
+
+                std::type_index get_to_message_type() const override {
+                    return typeid(to_message_type);
+                }
+				*/
 
                 cadmium::dynamic::logger::routed_messages
                 pass_messages(const boost::any& bag_from, boost::any& bag_to) const {
