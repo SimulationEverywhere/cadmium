@@ -139,7 +139,10 @@ namespace cadmium {
                 		{
                 			size_t tid = omp_get_thread_num();
 
-                			cadmium:parallel::pin_thread_to_core(tid);
+							#pragma omp critical
+                			{
+                				cadmium:parallel::pin_thread_to_core(tid);
+                			}
 
 							std::vector<cadmium::parallel::info_for_logging<TIME>> partial_logs;
 							cadmium::parallel::info_for_logging<TIME> result;
