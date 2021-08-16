@@ -148,18 +148,18 @@ namespace cadmium {
                  */
                 void progress_bar(int current, int total)
                 {
-                    cout << "\r[" << current << "/";
+                    std::cout << "\r[" << current << "/";
 
                     if (total == (int)std::numeric_limits<TIME>::infinity())
-                        cout << "inf]";
+                        std::cout << "inf]";
                     else
-                        cout << total << "]";
+                        std::cout << total << "]";
 
-                    cout << flush;
+                    std::cout << std::flush;
                 }
 
-                void turn_progress_on()  { progressBar = true;  cout << "\033[33m" << flush;  }
-                void turn_progress_off() { progressBar = false; cout << "\033[0m"  << flush;  }
+                void turn_progress_on()  { progressBar = true;  std::cout << "\033[33m" << std::flush;  }
+                void turn_progress_off() { progressBar = false; std::cout << "\033[0m"  << std::flush;  }
             };
         }
     }
