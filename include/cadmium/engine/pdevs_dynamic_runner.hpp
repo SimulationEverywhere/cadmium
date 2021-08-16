@@ -61,6 +61,8 @@ namespace cadmium {
             class runner {
                 TIME _next; //next scheduled event
 
+                bool progressBar = false;
+
                 cadmium::dynamic::engine::coordinator<TIME, LOGGER> _top_coordinator; //this only works for coupled models.
 
                 #ifdef CADMIUM_EXECUTE_CONCURRENT
@@ -120,7 +122,12 @@ namespace cadmium {
                         _top_coordinator.collect_outputs(_next);
                         _top_coordinator.advance_simulation(_next);
                         _next = _top_coordinator.next();
+
+                        if (progressBar)
+                            progress_bar(_next, t);
                     }
+
+                    turn_progress_off();
                     LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Finished run");
                     return _next;
                 }
@@ -131,6 +138,28 @@ namespace cadmium {
                 void run_until_passivate() {
                     run_until(std::numeric_limits<TIME>::infinity());
                 }
+
+                /**
+                 * @brief Displays current progress of simulation
+                 *  e.g., [50/500]
+                 * 
+                 * @param current Current time step
+                 * @param total Maximum timestep (can be infinity)
+                 */
+                void progress_bar(int current, int total)
+                {
+                    cout << "\r[" << current << "/";
+
+                    if (total == (int)std::numeric_limits<TIME>::infinity())
+                        cout << "inf]";
+                    else
+                        cout << total << "]";
+
+                    cout << flush;
+                }
+
+                void turn_progress_on()  { progressBar = true;  cout << "\033[33m" << flush;  }
+                void turn_progress_off() { progressBar = false; cout << "\033[0m"  << flush;  }
             };
         }
     }
