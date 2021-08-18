@@ -75,6 +75,7 @@ int main(int argc, char ** argv) {
 
     cadmium::dynamic::engine::runner<TIME, logger_top> r(t, {0});
     float sim_time = (argc > 2)? atof(argv[2]) : 500;
+    r.turn_progress_on();
     r.run_until(sim_time);
     return 0;
 }

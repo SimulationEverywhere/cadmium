@@ -15,7 +15,7 @@
           }
         },
         {
-          "type": "custom",
+          "type": "relative",
           "neighbors": [[0, 0]],
           "vicinity": {
             "connection": 1,
