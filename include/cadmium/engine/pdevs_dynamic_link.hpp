@@ -34,14 +34,12 @@
 #include <cadmium/modeling/dynamic_message_bag.hpp>
 #include <cadmium/logger/common_loggers_helpers.hpp>
 
-#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL || defined CPU_DELTA_PARALLEL || defined CPU_ROUTING_PARALLEL || defined CPU_MIN_PARALLEL
+#include <cadmium/hpc_engine/cpu_parallel/locks.hpp>
+
+#if defined CPU_PARALLEL || defined CPU_ROUTING_PARALLEL || defined GPU_PARALLEL || defined GPU_ROUTING_PARALLEL
 #include <omp.h>
-#endif //CPU_PARALLEL
-
 #include <stdexcept>
-
-#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL || defined CPU_DELTA_PARALLEL || defined CPU_ROUTING_PARALLEL || defined CPU_MIN_PARALLEL
-omp_lock_t writelock;
+//#include <cadmium/hpc_engine/cpu_parallel/locks.hpp>
 #endif //CPU_PARALLEL
 
 namespace cadmium {
@@ -105,12 +103,11 @@ namespace cadmium {
                     from_message_bag_type b_from = boost::any_cast<from_message_bag_type>(bag_from);
                     to_message_bag_type *b_to = boost::any_cast<to_message_bag_type>(&bag_to);
 
-					#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL || defined CPU_DELTA_PARALLEL || defined CPU_ROUTING_PARALLEL || defined CPU_MIN_PARALLEL
-                    omp_init_lock(&writelock);
-                    omp_set_lock(&writelock);
-					#endif //CPU_PARALLEL
+                    #if defined CPU_PARALLEL || defined CPU_ROUTING_PARALLEL || defined GPU_PARALLEL || defined GPU_ROUTING_PARALLEL
+                    //cadmium::dynamic::hpc_engine::cpu_parallel::locks l;
+                    cadmium::dynamic::hpc_engine::cpu_parallel::set_route_lock(this->to_port_type_index());
 
-					b_to->messages.insert(b_to->messages.end(), b_from.messages.begin(),
+                    b_to->messages.insert(b_to->messages.end(), b_from.messages.begin(),
                                           b_from.messages.end());
 
 /*
@@ -118,11 +115,11 @@ namespace cadmium {
 						b_to->messages.push_back(*it);
 					}
 */
-
-					#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL || defined CPU_DELTA_PARALLEL || defined CPU_ROUTING_PARALLEL || defined CPU_MIN_PARALLEL
-                    omp_unset_lock(&writelock);
-                    omp_destroy_lock(&writelock);
-					#endif //CPU_PARALLEL
+                    cadmium::dynamic::hpc_engine::cpu_parallel::release_route_lock(this->to_port_type_index());
+                    #else
+                    b_to->messages.insert(b_to->messages.end(), b_from.messages.begin(),
+                                                              b_from.messages.end());
+                    #endif //CPU_PARALLEL
 
                     return cadmium::dynamic::logger::routed_messages(
                             cadmium::logger::messages_as_strings(b_from.messages),
@@ -138,20 +135,20 @@ namespace cadmium {
                     from_message_bag_type b_from = boost::any_cast<from_message_bag_type>(bag_from);
                     to_message_bag_type b_to;
 
-					#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL || defined CPU_DELTA_PARALLEL || defined CPU_ROUTING_PARALLEL || defined CPU_MIN_PARALLEL
-                    omp_init_lock(&writelock);
-                    omp_set_lock(&writelock);
-					#endif //CPU_PARALLEL
+    	            #if defined CPU_PARALLEL || defined CPU_ROUTING_PARALLEL || defined GPU_PARALLEL || defined GPU_ROUTING_PARALLEL
+                    //cadmium::dynamic::hpc_engine::cpu_parallel::locks l;
+                    cadmium::dynamic::hpc_engine::cpu_parallel::set_route_lock(this->to_port_type_index());
 
                     b_to.messages.insert(b_to.messages.end(), b_from.messages.begin(),
                                          b_from.messages.end());
                     bags_to[this->to_port_type_index()] = b_to;
 
-					#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL || defined CPU_DELTA_PARALLEL || defined CPU_ROUTING_PARALLEL || defined CPU_MIN_PARALLEL
-                    omp_unset_lock(&writelock);
-                    omp_destroy_lock(&writelock);
-					#endif //CPU_PARALLEL
-
+                    cadmium::dynamic::hpc_engine::cpu_parallel::release_route_lock(this->to_port_type_index());
+                    #else
+                    b_to.messages.insert(b_to.messages.end(), b_from.messages.begin(),
+                                                             b_from.messages.end());
+                    bags_to[this->to_port_type_index()] = b_to;
+                    #endif //CPU_PARALLEL
 
                     return cadmium::dynamic::logger::routed_messages(
                             cadmium::logger::messages_as_strings(b_from.messages),
@@ -199,8 +196,8 @@ namespace cadmium {
 
                 	if (bags_from.find(this->from_port_type_index()) != bags_from.cend()) {
 
-                		if (bags_to.find(this->to_port_type_index()) != bags_to.cend()) {
-                			return this->pass_messages(bags_from.at(this->from_port_type_index()),
+                        if (bags_to.find(this->to_port_type_index()) != bags_to.cend()) {
+                		    return this->pass_messages(bags_from.at(this->from_port_type_index()),
                 	                                   bags_to.at(this->to_port_type_index()));
                 		}
 

@@ -151,25 +151,24 @@ namespace cadmium {
                     _last = initial_time;
                     //init all subcoordinators and find next transition time.
 
-					#ifdef CADMIUM_EXECUTE_CONCURRENT
+                    #ifdef CADMIUM_EXECUTE_CONCURRENT
                     cadmium::dynamic::engine::init_subcoordinators<TIME>(initial_time, _subcoordinators, _threadpool);
                     #else
-						#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL || defined CPU_DELTA_PARALLEL || defined CPU_ROUTING_PARALLEL || defined CPU_MIN_PARALLEL
-                    	cadmium::dynamic::engine::init_subcoordinators<TIME>(initial_time, _subcoordinators, _thread_number);
-						#else
-                    	cadmium::dynamic::engine::init_subcoordinators<TIME>(initial_time, _subcoordinators);
-						#endif
+					    #if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL || defined CPU_DELTA_PARALLEL || defined CPU_ROUTING_PARALLEL || defined CPU_MIN_PARALLEL
+                        cadmium::dynamic::engine::init_subcoordinators<TIME>(initial_time, _subcoordinators, _thread_number);
+					    #else
+                        cadmium::dynamic::engine::init_subcoordinators<TIME>(initial_time, _subcoordinators);
+                        #endif
                     #endif //CADMIUM_EXECUTE_CONCURRENT
 
                     //find the one with the lowest next time
                     //_next = cadmium::dynamic::engine::min_next_in_subcoordinators<TIME>(_subcoordinators);
-					#if defined CPU_PARALLEL || defined CPU_MIN_PARALLEL
-                    	_next = cadmium::dynamic::engine::min_next_in_subcoordinators<TIME>(_subcoordinators, _thread_number);
+                    #if defined CPU_PARALLEL || defined CPU_MIN_PARALLEL
+                        _next = cadmium::dynamic::engine::min_next_in_subcoordinators<TIME>(_subcoordinators, _thread_number);
                         //_next = cadmium::dynamic::engine::min_next_in_subcoordinators<TIME>(_subcoordinators);
-					#else
-                    	_next = cadmium::dynamic::engine::min_next_in_subcoordinators<TIME>(_subcoordinators);
+                    #else
+                        _next = cadmium::dynamic::engine::min_next_in_subcoordinators<TIME>(_subcoordinators);
                     #endif
-
                 }
 
                 #ifdef CADMIUM_EXECUTE_CONCURRENT

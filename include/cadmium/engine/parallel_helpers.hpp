@@ -55,6 +55,7 @@ namespace cadmium {
     		TIME time;
     		TIME last;
     		bool imminent;
+    		bool imminent_or_receiver;
 			std::string model_id;
     		std:: string messages_by_port;
     		std::string state_as_string;

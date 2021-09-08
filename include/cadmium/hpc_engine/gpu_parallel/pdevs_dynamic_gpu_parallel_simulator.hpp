@@ -24,20 +24,19 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CADMIUM_PDEVS_DYNAMIC_SIMULATOR_HPP
-#define CADMIUM_PDEVS_DYNAMIC_SIMULATOR_HPP
+#ifndef CADMIUM_PDEVS_DYNAMIC_PARALLEL_SIMULATOR_HPP
+#define CADMIUM_PDEVS_DYNAMIC_PARALLEL_SIMULATOR_HPP
 
 #include <cadmium/modeling/dynamic_model.hpp>
 #include <cadmium/modeling/dynamic_message_bag.hpp>
-#include <cadmium/engine/pdevs_dynamic_engine.hpp>
+#include <cadmium/parallel_engine/pdevs_dynamic_parallel_engine.hpp>
 #include <cadmium/logger/dynamic_common_loggers.hpp>
 #include <cadmium/logger/common_loggers.hpp>
-
 #include <cadmium/engine/parallel_helpers.hpp>
 
 namespace cadmium {
     namespace dynamic {
-        namespace engine {
+        namespace parallel_engine {
 
             /**
              * @brief This class is a simulator for dynamic_atomic models.
@@ -47,7 +46,7 @@ namespace cadmium {
              * @tparam LOGGER - The logger type used to log simulation information as model states.
              */
             template<typename TIME, typename LOGGER>
-            class simulator : public engine<TIME> {
+            class parallel_simulator : public parallel_engine<TIME> {
                 using model_type=typename cadmium::dynamic::modeling::atomic_abstract<TIME>;
 
                 std::shared_ptr<cadmium::dynamic::modeling::atomic_abstract<TIME>> _model;
@@ -59,9 +58,9 @@ namespace cadmium {
                 cadmium::dynamic::message_bags _outbox;
                 cadmium::dynamic::message_bags _inbox;
 
-                simulator() = delete;
+                parallel_simulator() = delete;
 
-                simulator(std::shared_ptr<cadmium::dynamic::modeling::atomic_abstract<TIME>> model)
+                parallel_simulator(std::shared_ptr<cadmium::dynamic::modeling::atomic_abstract<TIME>> model)
                 : _model(model) {}
 
                 /**
@@ -69,26 +68,17 @@ namespace cadmium {
                  *
                  * @param initial_time is the start time
                  */
-                void init(TIME initial_time) override {
-                    LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::sim_info_init>(initial_time, _model->get_id());
-
+                cadmium::parallel::info_for_logging<TIME> init(TIME initial_time) {
+                    cadmium::parallel::info_for_logging<TIME> log;
                     _last = initial_time;
                     _next = initial_time + _model->time_advance();
 
-                    LOGGER::template log<cadmium::logger::logger_state, cadmium::logger::sim_state>(initial_time, _model->get_id(), _model->model_state_as_string());
-                }
+                    log.time = initial_time;
+                    log.model_id = _model->get_id();
+                    log.state_as_string = _model->model_state_as_string();
 
-                #ifdef CADMIUM_EXECUTE_CONCURRENT
-                void init(TIME initial_time, boost::basic_thread_pool* threadpool) override {
-                    this->init(initial_time);
+                    return log;
                 }
-                #endif //CADMIUM_EXECUTE_CONCURRENT
-
-				#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL || defined CPU_DELTA_PARALLEL || defined CPU_ROUTING_PARALLEL || defined CPU_MIN_PARALLEL
-                void init(TIME initial_time, size_t thread_number) override {
-                	this->init(initial_time);
-                }
-                #endif //CPU_PARALLEL
 
                 std::string get_model_id() const override {
                     return _model->get_id();
@@ -98,52 +88,51 @@ namespace cadmium {
                     return _next;
                 }
 
-                void collect_outputs(const TIME &t) override {
-                    LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::sim_info_collect>(t, _model->get_id());
+                /**
+                 * @brief collect_outputs leaves in _outbox the output function in imminent simulators.
+                 * @param t is the time when the outputs are collected.
+                 */
+                cadmium::parallel::info_for_logging<TIME> collect_outputs(const TIME &t) {
+                    cadmium::parallel::info_for_logging<TIME> log;
 
                     // Cleaning the inbox and producing outbox
                     _inbox = cadmium::dynamic::message_bags();
 
                     if (_next < t) {
-                        throw std::domain_error("Trying to obtain output in a higher time than the next scheduled internal event");
+                	    throw std::domain_error("Trying to obtain output in a higher time than the next scheduled internal event");
                     } else if (_next == t) {
-                        _outbox = _model->output();
-                        std::string messages_by_port = _model->messages_by_port_as_string(_outbox);
-                        LOGGER::template log<cadmium::logger::logger_messages, cadmium::logger::sim_messages_collect>(t, _model->get_id(), messages_by_port);
+                	    _outbox = _model->output();
+                		std::string messages_by_port = _model->messages_by_port_as_string(_outbox);
+                		log.imminent= true;
+                		log.messages_by_port = messages_by_port;
+                    } else {
+                        _outbox = cadmium::dynamic::message_bags();
+                	    log.imminent= false;
+                    }
+
+                    log.time = t;
+                    log.model_id = _model->get_id();
+                    return log;
+                }
+
+                /**
+                 * @brief collect_outputs leaves in _outbox the output function in imminent simulators.
+                 * @param t is the time when the outputs are collected.
+                 */
+                void collect_outputs_no_log(const TIME &t) {
+
+                    // Cleaning the inbox and producing outbox
+                    _inbox = cadmium::dynamic::message_bags();
+
+                    if (_next < t) {
+                	    throw std::domain_error("Trying to obtain output in a higher time than the next scheduled internal event");
+                    } else if (_next == t) {
+                	    _outbox = _model->output();
+                		std::string messages_by_port = _model->messages_by_port_as_string(_outbox);
                     } else {
                         _outbox = cadmium::dynamic::message_bags();
                     }
-
                 }
-
-				//#if defined CPU_PARALLEL || defined CPU_LAMBDA_PARALLEL || defined CPU_ROUTING_PARALLEL || defined CPU_MIN_PARALLEL
-                cadmium::parallel::info_for_logging<TIME> collect_outputs_without_logging(const TIME &t) {
-                	//LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::sim_info_collect>(t, _model->get_id());
-
-                	cadmium::parallel::info_for_logging<TIME> log;
-                	// Cleaning the inbox and producing outbox
-                	_inbox = cadmium::dynamic::message_bags();
-
-                	if (_next < t) {
-                		throw std::domain_error("Trying to obtain output in a higher time than the next scheduled internal event");
-                	} else if (_next == t) {
-                		_outbox = _model->output();
-                		std::string messages_by_port = _model->messages_by_port_as_string(_outbox);
-                		//LOGGER::template log<cadmium::logger::logger_messages, cadmium::logger::sim_messages_collect>(t, _model->get_id(), messages_by_port);
-                		log.imminent= true;
-                		log.messages_by_port = messages_by_port;
-                		//LOGGER::template log<cadmium::logger::logger_messages, cadmium::logger::sim_messages_collect>(t, _model->get_id(), messages_by_port);
-                	} else {
-                		_outbox = cadmium::dynamic::message_bags();
-                		log.imminent= false;
-                	}
-
-                	log.type = "simulator";
-                	log.time = t;
-                	log.model_id = _model->get_id();
-                	return log;
-                }
-				//#endif //CPU_PARALLEL
 
                 /**
                  * @brief outbox keeps the output generated by the last call to collect_outputs
@@ -161,62 +150,17 @@ namespace cadmium {
                 }
 
                 /**
-                 * @brief advanceSimulation advances the execution to t, at t introduces the messages into the system (if any).
+                 * @brief Applies the state transition if its imminent or receiver
                  * @param t is the time the transition is expected to be run.
                 */
-                void advance_simulation(const TIME &t) override {
+                cadmium::parallel::info_for_logging<TIME> state_transition(const TIME &t) {
+                    cadmium::parallel::info_for_logging<TIME> log;
                     //clean outbox because messages are routed before calling this function at a higher level
                     _outbox = cadmium::dynamic::message_bags();
-
-                    LOGGER::template log<cadmium::logger::logger_info,cadmium::logger::sim_info_advance>(_last, t, _model->get_id());
-                    LOGGER::template log<cadmium::logger::logger_local_time,cadmium::logger::sim_local_time>(_last, t, _model->get_id());
-
-                    if (t < _last) {
-                        throw std::domain_error("Event received for executing in the past of current simulation time");
-                    } else if (_next < t) {
-                        throw std::domain_error("Event received for executing after next internal event");
-                    } else {
-                        if (!_inbox.empty()) { //input available
-                            if (t == _next) { //confluence
-                                _model->confluence_transition(t - _last, _inbox);
-                            } else { //external
-                                _model->external_transition(t - _last, _inbox);
-                            }
-                            _last = t;
-                            _next = _last + _model->time_advance();
-                            //clean inbox because they were processed already
-                            _inbox = cadmium::dynamic::message_bags();
-                        } else { //no input available
-                            if (t != _next) {
-                                //throw std::domain_error("Trying to execute internal transition at wrong time");
-                                //for now, we iterate all models in place of using a FEL.
-                                //Then, it could reach the case nothing is there.
-                                //Just a nop is enough. And no _next or _last should be changed.
-                            } else {
-                                _model->internal_transition();
-                                _last = t;
-                                _next = _last + _model->time_advance();
-                            }
-                        }
-                    }
-
-                    LOGGER::template log<cadmium::logger::logger_state,cadmium::logger::sim_state>(t, _model->get_id(), _model->model_state_as_string());
-                }
-
-				//#if defined CPU_PARALLEL || defined CPU_DELTA_PARALLEL || defined CPU_ROUTING_PARALLEL || defined CPU_MIN_PARALLEL
-                cadmium::parallel::info_for_logging<TIME> advance_simulation_without_logging(const TIME &t) {
-
-                	cadmium::parallel::info_for_logging<TIME> log;
-                	//clean outbox because messages are routed before calling this function at a higher level
-                    _outbox = cadmium::dynamic::message_bags();
-
-                    //LOGGER::template log<cadmium::logger::logger_info,cadmium::logger::sim_info_advance>(_last, t, _model->get_id());
-                    //LOGGER::template log<cadmium::logger::logger_local_time,cadmium::logger::sim_local_time>(_last, t, _model->get_id());
 
                     log.time = t;
                     log.last = _last;
                     log.model_id = _model->get_id();
-                    log.imminent_or_receiver = false;
 
                     if (t < _last) {
                         throw std::domain_error("Event received for executing in the past of current simulation time");
@@ -233,7 +177,6 @@ namespace cadmium {
                             _next = _last + _model->time_advance();
                             //clean inbox because they were processed already
                             _inbox = cadmium::dynamic::message_bags();
-                            log.imminent_or_receiver = true;
                         } else { //no input available
                             if (t != _next) {
                                 //throw std::domain_error("Trying to execute internal transition at wrong time");
@@ -244,19 +187,53 @@ namespace cadmium {
                                 _model->internal_transition();
                                 _last = t;
                                 _next = _last + _model->time_advance();
-                                log.imminent_or_receiver = true;
                             }
                         }
                     }
-
-                    //LOGGER::template log<cadmium::logger::logger_state,cadmium::logger::sim_state>(t, _model->get_id(), _model->model_state_as_string());
-                    /* gather info for logging */
-                    log.type = "simulator";
                     log.state_as_string = _model->model_state_as_string();
-
                     return log;
                 }
-				//#endif //CPU_PARALLEL
+
+                /**
+                 * @brief Applies the state transition if its imminent or receiver
+                 * @param t is the time the transition is expected to be run.
+                */
+                void state_transition_no_log(const TIME &t) {
+                    cadmium::parallel::info_for_logging<TIME> log;
+                    //clean outbox because messages are routed before calling this function at a higher level
+                    _outbox = cadmium::dynamic::message_bags();
+
+                    if (t < _last) {
+                        throw std::domain_error("Event received for executing in the past of current simulation time");
+                    } else if (_next < t) {
+                        throw std::domain_error("Event received for executing after next internal event");
+                    } else {
+                        if (!_inbox.empty()) { //input available
+                            if (t == _next) { //confluence
+                                _model->confluence_transition(t - _last, _inbox);
+                            } else { //external
+                                _model->external_transition(t - _last, _inbox);
+                            }
+                            _last = t;
+                            _next = _last + _model->time_advance();
+                            //clean inbox because they were processed already
+                            _inbox = cadmium::dynamic::message_bags();
+                        } else { //no input available
+                            if (t != _next) {
+                                //throw std::domain_error("Trying to execute internal transition at wrong time");
+                                //for now, we iterate all models in place of using a FEL.
+                                //Then, it could reach the case nothing is there.
+                                //Just a nop is enough. And no _next or _last should be changed.
+                            } else {
+                                _model->internal_transition();
+                                _last = t;
+                                _next = _last + _model->time_advance();
+                            }
+                        }
+                    }
+                }
+
+
             };
         }
     }
