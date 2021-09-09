@@ -117,6 +117,8 @@ namespace cadmium {
                             //init partial subcoordinators
                             _top_coordinator.init_subcoordinators(first_subcoordinators, last_subcoordinators, init_time);
 
+                            #pragma omp barrier
+
                             //calculate time for next event
                             _local_next = _top_coordinator.next_in_subcoordinators(first_subcoordinators,last_subcoordinators);
 
