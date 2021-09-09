@@ -126,6 +126,8 @@ namespace cadmium {
                     	        _next = _local_next;
                     	        _top_coordinator.set_next(_next);
     			            }
+	                        //sync threads
+	                        #pragma omp barrier
 
                             //1 thread at the time updates final result//
                             #pragma omp critical
