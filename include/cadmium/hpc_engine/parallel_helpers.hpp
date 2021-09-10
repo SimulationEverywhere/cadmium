@@ -76,6 +76,87 @@ namespace cadmium {
     			    printf("\n\nError :: sched_setaffinity\n\n");
             }
 
+    	    void pin_thread_to_core_xeon(size_t tid){
+    		    size_t len, core;
+    		    cpu_set_t mascara;
+    		    CPU_ZERO (&mascara);
+    		    size_t thread_number = std::thread::hardware_concurrency();
+
+    		    //set thread to tid core % number of threads
+    		    len = sizeof(cpu_set_t);
+    		    core = tid % thread_number;
+
+    		    if(tid % thread_number == 0){
+    		        core = 0;
+    		    }
+
+    		    if(tid % thread_number == 1){
+    		        core = 1;
+    		    }
+
+    		    if(tid % thread_number == 2){
+    		        core = 2;
+    	        }
+
+    		    if(tid % thread_number == 3){
+    		        core = 3;
+    	        }
+
+    		    if(tid % thread_number == 4){
+    		    	core = 8;
+    		    }
+
+    		    if(tid % thread_number == 5){
+    		    	core = 9;
+    		    }
+
+    		    if(tid % thread_number == 6){
+    		    	core = 10;
+    	        }
+
+    		    if(tid % thread_number == 7){
+    		    	core = 11;
+    	        }
+
+    		    if(tid % thread_number == 8){
+    		    	core = 4;
+    		    }
+
+    		    if(tid % thread_number == 9){
+    		    	core = 5;
+    		    }
+
+    		    if(tid % thread_number == 10){
+    		    	core = 6;
+    	        }
+
+    		    if(tid % thread_number == 11){
+    		    	core = 7;
+    	        }
+
+    		    if(tid % thread_number == 12){
+    		    	core = 12;
+    		    }
+
+    		    if(tid % thread_number == 13){
+    		    	core = 13;
+    		    }
+
+    		    if(tid % thread_number == 14){
+    		    	core = 14;
+    	        }
+
+    		    if(tid % thread_number == 15){
+    		    	core = 15;
+    	        }
+
+    		    CPU_SET (core, &mascara);
+    		    if (sched_setaffinity(0, len, &mascara) < 0)
+    			    printf("\n\nError :: sched_setaffinity\n\n");
+            }
+
+
+
     	}
     }
 }
