@@ -26,6 +26,7 @@
 
 #ifndef CADMIUM_PDEVS_DYNAMIC_COORDINATOR_HPP
 #define CADMIUM_PDEVS_DYNAMIC_COORDINATOR_HPP
+#include <limits>
 
 #include <cadmium/modeling/dynamic_coupled.hpp>
 #include <cadmium/engine/pdevs_dynamic_simulator.hpp>
