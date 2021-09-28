@@ -28,6 +28,7 @@
 #define CADMIUM_PDEVS_DYNAMIC_RUNNER_HPP
 
 #include <cadmium/engine/pdevs_dynamic_coordinator.hpp>
+#include<limits>
 
 #ifdef CADMIUM_EXECUTE_CONCURRENT
 #include <boost/thread/executors/basic_thread_pool.hpp>
