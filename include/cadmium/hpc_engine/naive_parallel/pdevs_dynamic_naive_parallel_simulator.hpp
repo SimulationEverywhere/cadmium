@@ -24,20 +24,19 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CADMIUM_PDEVS_DYNAMIC_GPU_PARALLEL_SIMULATOR_HPP
-#define CADMIUM_PDEVS_DYNAMIC_GPU_PARALLEL_SIMULATOR_HPP
+#ifndef CADMIUM_PDEVS_DYNAMIC_NAIVE_PARALLEL_SIMULATOR_HPP
+#define CADMIUM_PDEVS_DYNAMIC_NAIVE_PARALLEL_SIMULATOR_HPP
 
 #include <cadmium/modeling/dynamic_model.hpp>
 #include <cadmium/modeling/dynamic_message_bag.hpp>
 #include <cadmium/logger/dynamic_common_loggers.hpp>
 #include <cadmium/logger/common_loggers.hpp>
-#include <cadmium/hpc_engine/gpu_parallel/pdevs_dynamic_gpu_parallel_engine.hpp>
-#include <cadmium/hpc_engine/gpu_parallel/locks.hpp>
+#include <cadmium/hpc_engine/naive_parallel/pdevs_dynamic_naive_parallel_engine.hpp>
 
 namespace cadmium {
     namespace dynamic {
         namespace hpc_engine {
-            namespace gpu_parallel {
+            namespace naive_parallel {
                 /**
                  * @brief This class is a simulator for dynamic_atomic models.
                  *
@@ -46,7 +45,7 @@ namespace cadmium {
                  * @tparam LOGGER - The logger type used to log simulation information as model states.
                  */
                 template<typename TIME, typename LOGGER>
-                class gpu_parallel_simulator : public cadmium::dynamic::hpc_engine::gpu_parallel::gpu_parallel_engine<TIME>  {
+                class naive_parallel_simulator : public cadmium::dynamic::hpc_engine::naive_parallel::naive_parallel_engine<TIME> {
                     using model_type=typename cadmium::dynamic::modeling::atomic_abstract<TIME>;
 
                     std::shared_ptr<cadmium::dynamic::modeling::atomic_abstract<TIME>> _model;
@@ -58,9 +57,9 @@ namespace cadmium {
                     cadmium::dynamic::message_bags _outbox;
                     cadmium::dynamic::message_bags _inbox;
 
-                    gpu_parallel_simulator() = delete;
+                    naive_parallel_simulator() = delete;
 
-                    gpu_parallel_simulator(std::shared_ptr<cadmium::dynamic::modeling::atomic_abstract<TIME>> model)
+                    naive_parallel_simulator(std::shared_ptr<cadmium::dynamic::modeling::atomic_abstract<TIME>> model)
                     : _model(model) {}
 
                     /**
@@ -71,18 +70,14 @@ namespace cadmium {
                     void init(TIME initial_time) {
 
                         #if !defined(NO_LOGGER)
-                    	cadmium::dynamic::hpc_engine::gpu_parallel::set_log_lock();
                 	    LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::sim_info_init>(initial_time, _model->get_id());
-                	    cadmium::dynamic::hpc_engine::gpu_parallel::release_log_lock();
                 	    #endif
 
                         _last = initial_time;
                         _next = initial_time + _model->time_advance();
 
 				        #if !defined(NO_LOGGER)
-                        cadmium::dynamic::hpc_engine::gpu_parallel::set_log_lock();
-                        LOGGER::template log<cadmium::logger::logger_state, cadmium::logger::sim_state>(initial_time, _model->get_id(), _model->model_state_as_string());
-                        cadmium::dynamic::hpc_engine::gpu_parallel::release_log_lock();
+                        LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::sim_info_init>(initial_time, _model->get_id());
                         #endif
                     }
 
@@ -101,9 +96,7 @@ namespace cadmium {
                     void collect_outputs(const TIME &t) {
 
                         #if !defined(NO_LOGGER)
-                    	cadmium::dynamic::hpc_engine::gpu_parallel::set_log_lock();
                         LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::sim_info_collect>(t, _model->get_id());
-                        cadmium::dynamic::hpc_engine::gpu_parallel::release_log_lock();
                         #endif
 
                 	    // Cleaning the inbox and producing outbox
@@ -116,9 +109,7 @@ namespace cadmium {
                 		    std::string messages_by_port = _model->messages_by_port_as_string(_outbox);
 
                             #if !defined(NO_LOGGER)
-                		    cadmium::dynamic::hpc_engine::gpu_parallel::set_log_lock();
-                            LOGGER::template log<cadmium::logger::logger_messages, cadmium::logger::sim_messages_collect>(t, _model->get_id(), messages_by_port);
-                            cadmium::dynamic::hpc_engine::gpu_parallel::release_log_lock();
+                		    LOGGER::template log<cadmium::logger::logger_messages, cadmium::logger::sim_messages_collect>(t, _model->get_id(), messages_by_port);
                             #endif
 
                         } else {
@@ -150,10 +141,8 @@ namespace cadmium {
                         _outbox = cadmium::dynamic::message_bags();
 
                         #if !defined(NO_LOGGER)
-                        cadmium::dynamic::hpc_engine::gpu_parallel::set_log_lock();
                         LOGGER::template log<cadmium::logger::logger_info,cadmium::logger::sim_info_advance>(_last, t, _model->get_id());
                         LOGGER::template log<cadmium::logger::logger_local_time,cadmium::logger::sim_local_time>(_last, t, _model->get_id());
-                        cadmium::dynamic::hpc_engine::gpu_parallel::release_log_lock();
                         #endif
 
                         if (t < _last) {
@@ -186,12 +175,11 @@ namespace cadmium {
                         }
 
                         #if !defined(NO_LOGGER)
-                        cadmium::dynamic::hpc_engine::gpu_parallel::set_log_lock();
                         LOGGER::template log<cadmium::logger::logger_state,cadmium::logger::sim_state>(t, _model->get_id(), _model->model_state_as_string());
-                        cadmium::dynamic::hpc_engine::gpu_parallel::release_log_lock();
                         #endif
                     }
                 };
+
             }
         }
     }

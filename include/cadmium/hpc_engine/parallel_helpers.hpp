@@ -68,6 +68,8 @@ namespace cadmium {
     		    CPU_ZERO (&mascara);
     		    size_t thread_number = std::thread::hardware_concurrency();
 
+        		//std::cout << "Bind thread " << tid << " core " << core;
+
     		    //set thread to tid core % number of threads
     		    len = sizeof(cpu_set_t);
     		    core = tid % thread_number;
@@ -84,7 +86,7 @@ namespace cadmium {
 
     		    //set thread to tid core % number of threads
     		    len = sizeof(cpu_set_t);
-    		    core = tid % thread_number;
+    		    //core = tid % thread_number;
 
     		    if(tid % thread_number == 0){
     		        core = 0;
@@ -151,6 +153,9 @@ namespace cadmium {
     	        }
 
     		    CPU_SET (core, &mascara);
+
+    		    //std::cout << "Bind thread " << tid << " core " << core;
+
     		    if (sched_setaffinity(0, len, &mascara) < 0)
     			    printf("\n\nError :: sched_setaffinity\n\n");
             }

@@ -70,6 +70,7 @@ namespace cadmium {
     		//set thread to tid core % number of threads
     		len = sizeof(cpu_set_t);
     		core = tid % thread_number;
+
     		CPU_SET (core, &mascara);
     		if (sched_setaffinity(0, len, &mascara) < 0)
     			printf("\n\nError :: sched_setaffinity\n\n");
