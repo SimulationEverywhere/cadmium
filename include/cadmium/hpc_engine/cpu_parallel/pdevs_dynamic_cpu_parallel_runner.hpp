@@ -186,7 +186,7 @@ namespace cadmium {
                     TIME run_until(const TIME &t, const TIME &init_time, size_t _thread_number) {
 
                 	    #if !defined(NO_LOGGER)
-                	        LOGGER::template log<cadmium::logger::logger_global_time, cadmium::logger::run_global_time>(init_time);
+                	    LOGGER::template log<cadmium::logger::logger_global_time, cadmium::logger::run_global_time>(init_time);
                             LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Preparing model");
                             LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Starting run");
                         #endif
