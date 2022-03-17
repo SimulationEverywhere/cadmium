@@ -51,7 +51,7 @@ namespace cadmium {
                     subcoordinators_type<TIME, LOGGER> _subcoordinators;
                     external_couplings<TIME, LOGGER> _external_output_couplings;
                     external_couplings<TIME, LOGGER> _external_input_couplings;
-                    internal_couplings<TIME, LOGGER> _internal_coupligns;
+                    internal_couplings<TIME, LOGGER> _internal_couplings;
 
                 public:
 
@@ -84,9 +84,8 @@ namespace cadmium {
                                 if (m_atomic != nullptr) {
                                     throw std::domain_error("Invalid submodel is defined as both coupled and atomic");
                                 }
-                                // should be simulator
-                                //std::shared_ptr<cadmium::dynamic::parallel_engine::sequential::sequential_engine<TIME>> coordinator = std::make_shared<cadmium::dynamic::parallel_engine::sequential_coordinator<TIME, LOGGER>>(m_coupled);
-                                //_subcoordinators.push_back(coordinator);
+                                // Error, it should be simulator
+                                throw std::domain_error("Invalid model it only works for flattened models");
                             }
 
                             engines_by_id.insert(std::make_pair(_subcoordinators.back()->get_model_id(), _subcoordinators.back()));
@@ -126,7 +125,7 @@ namespace cadmium {
                             new_ic.first.first = engines_by_id.at(ic._from);
                             new_ic.first.second = engines_by_id.at(ic._to);
                             new_ic.second.push_back(ic._link);
-                            _internal_coupligns.push_back(new_ic);
+                            _internal_couplings.push_back(new_ic);
                         }
 
                     }
@@ -140,12 +139,9 @@ namespace cadmium {
                         LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::coor_info_init>(initial_time, _model_id);
                         #endif
 
-                        _last = initial_time;
-                        //init all subcoordinators and find next transition time.
-                        cadmium::dynamic::hpc_engine::sequential::init_subcoordinators<TIME>(initial_time, _subcoordinators);
-
-                        //find the one with the lowest next time
-                        _next = cadmium::dynamic::hpc_engine::sequential::min_next_in_subcoordinators<TIME>(_subcoordinators);
+                        for(size_t i=0; i<_subcoordinators.size();i++){
+                            _subcoordinators[i]->init(initial_time);
+                        }
                     }
 
                     std::string get_model_id() const override {
@@ -180,7 +176,7 @@ namespace cadmium {
                     }
 
                     internal_couplings<TIME, LOGGER> subcoordinators_internal_couplings() {
-                	    return _internal_coupligns;
+                	    return _internal_couplings;
                     }
 
                     /**
@@ -205,11 +201,9 @@ namespace cadmium {
                             LOGGER::template log<cadmium::logger::logger_message_routing, cadmium::logger::coor_routing_eoc_collect>(t, _model_id);
                             #endif
 
-                            // Fill all outboxes and clean the inboxes in the lower levels recursively
-                            cadmium::dynamic::hpc_engine::sequential::collect_outputs_in_subcoordinators<TIME>(t, _subcoordinators);
-
-                            // Use the EOC mapping to compose current level output
-                            _outbox = cadmium::dynamic::hpc_engine::sequential::collect_messages_by_eoc<TIME, LOGGER>(_external_output_couplings);
+                            for(size_t i=0; i<_subcoordinators.size();i++){
+                                _subcoordinators[i]->collect_outputs(t);
+                            }
                         }
                     }
 
@@ -242,13 +236,23 @@ namespace cadmium {
                         LOGGER::template log<cadmium::logger::logger_message_routing, cadmium::logger::coor_routing_ic_collect>(t, _model_id);
                         #endif
 
-                        cadmium::dynamic::hpc_engine::sequential::route_internal_coupled_messages_on_subcoordinators<TIME, LOGGER>(_internal_coupligns);
+                        //Route internal couplings
+                        for(size_t i=0; i<_internal_couplings.size(); i++){
+                            for(size_t j=0; j<_internal_couplings[i].second.size(); j++){
+                                auto& from_outbox = _internal_couplings[i].first.first->outbox();
+                                auto& to_inbox = _internal_couplings[i].first.second->inbox();
+                                cadmium::dynamic::logger::routed_messages message_to_log = _internal_couplings[i].second[j]->route_messages(from_outbox, to_inbox);
+
+                                #if !defined(NO_LOGGER)
+                                LOGGER::template log<cadmium::logger::logger_message_routing, cadmium::logger::coor_routing_collect>(message_to_log.from_port, message_to_log.to_port, message_to_log.from_messages, message_to_log.to_messages);
+                                #endif
+                            }
+                        }
 
                         #if !defined(NO_LOGGER)
                         LOGGER::template log<cadmium::logger::logger_message_routing, cadmium::logger::coor_routing_eic_collect>(t, _model_id);
                         #endif
 
-                        cadmium::dynamic::hpc_engine::sequential::route_external_input_coupled_messages_on_subcoordinators<TIME, LOGGER>(_inbox, _external_input_couplings);
                     }
 
                     /**
@@ -256,7 +260,12 @@ namespace cadmium {
                      * @param t is the time the transition is expected to be run.
                      */
                     void state_transition(const TIME &t) {
-                        cadmium::dynamic::hpc_engine::sequential::state_transition_in_subengines<TIME, LOGGER>(t, _subcoordinators);
+                        //cadmium::dynamic::hpc_engine::sequential::state_transition_in_subengines<TIME, LOGGER>(t, _subcoordinators);
+
+                        for(size_t i=0; i<_subcoordinators.size();i++){
+                            _subcoordinators[i]->state_transition(t);
+                        }
+
                     }
 
                     /**
@@ -264,7 +273,12 @@ namespace cadmium {
                      * @param t is the time the transition is expected to be run.
                      */
                     TIME next_in_subcoordinators() {
-                        _next = cadmium::dynamic::hpc_engine::sequential::min_next_in_subcoordinators<TIME>(_subcoordinators);
+                        _next = _subcoordinators[0]->next();
+                        for(size_t i=1; i<_subcoordinators.size();i++){
+                            if(_subcoordinators[i]->next()<_next){
+                                _next = _subcoordinators[i]->next();
+                            }
+                        }
                         return _next;
                     }
 

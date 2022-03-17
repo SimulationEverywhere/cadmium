@@ -1,4 +1,7 @@
 /**
+ * Copyright (c) 2022, Guillermo Trabes
+ * Carleton University, Universidad Nacional de San Luis
+ *
  * Copyright (c) 2018, Damian Vicino, Laouen M. L. Belloli
  * Carleton University, Universite de Nice-Sophia Antipolis, Universidad de Buenos Aires
  * All rights reserved.
@@ -66,8 +69,16 @@ namespace cadmium {
                      * @brief set the dynamic parameters for the simulation
                      * @param init_time is the initial time of the simulation.
                      */
-                    explicit sequential_runner(std::shared_ptr<cadmium::dynamic::modeling::coupled<TIME>> coupled_model, const TIME &init_time)
+                    explicit sequential_runner(std::shared_ptr<cadmium::dynamic::modeling::coupled<TIME>> coupled_model)
                     : _top_coordinator(coupled_model) {
+                    }
+
+                    /**
+                     * @brief runUntil starts the simulation and stops when the next event is scheduled after t.
+                     * @param t is the limit time for the simulation.
+                     * @return the TIME of the next event to happen when simulation stopped.
+                     */
+                    TIME run_until(const TIME &init_time, const TIME &t) {
 
                         #if !defined(NO_LOGGER)
                         LOGGER::template log<cadmium::logger::logger_global_time, cadmium::logger::run_global_time>(init_time);
@@ -76,14 +87,7 @@ namespace cadmium {
 
                         _top_coordinator.init(init_time);
                         _next = _top_coordinator.next_in_subcoordinators();
-                    }
 
-                    /**
-                     * @brief runUntil starts the simulation and stops when the next event is scheduled after t.
-                     * @param t is the limit time for the simulation.
-                     * @return the TIME of the next event to happen when simulation stopped.
-                     */
-                    TIME run_until(const TIME &t) {
                         #if !defined(NO_LOGGER)
                         LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Starting run");
                         #endif

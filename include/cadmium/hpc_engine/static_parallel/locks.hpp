@@ -24,8 +24,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CADMIUM_PDEVS_DYNAMIC_LOGS_LOCK_HPP
-#define CADMIUM_PDEVS_DYNAMIC_LOGS_LOCK_HPP
+#ifndef CADMIUM_PDEVS_DYNAMIC_CPU_PARALLEL_LOGS_LOCK_HPP
+#define CADMIUM_PDEVS_DYNAMIC_CPU_PARALLEL_LOGS_LOCK_HPP
 
 #include <typeindex>
 #include <memory>
@@ -41,7 +41,7 @@
 namespace cadmium {
     namespace dynamic {
         namespace hpc_engine {
-            namespace cpu_parallel {
+            namespace parallel {
                 static std::map<std::type_index, omp_lock_t> route_locks;
                 static omp_lock_t logs_lock;
 
@@ -65,19 +65,20 @@ namespace cadmium {
                     }
 */
                     static void set_route_lock(std::type_index index) {
-//                        if (cadmium::dynamic::hpc_engine::cpu_parallel::route_locks.find(index) != cadmium::dynamic::hpc_engine::cpu_parallel::route_locks.cend()) {
-//                            omp_set_lock(&cadmium::dynamic::hpc_engine::cpu_parallel::route_locks[index]);
-//                        }
-//                        else {
-//                            omp_lock_t lock;
-//                            cadmium::dynamic::hpc_engine::cpu_parallel::route_locks[index] = lock;
-//                            omp_init_lock(&(cadmium::dynamic::hpc_engine::cpu_parallel::route_locks[index]));
-//                            omp_set_lock(&(cadmium::dynamic::hpc_engine::cpu_parallel::route_locks[index]));
-//                        }
+/*                        if (cadmium::dynamic::hpc_engine::cpu_parallel::route_locks.find(index) != cadmium::dynamic::hpc_engine::cpu_parallel::route_locks.cend()) {
+                            omp_set_lock(&cadmium::dynamic::hpc_engine::cpu_parallel::route_locks[index]);
+                        }
+                        else {
+                            omp_lock_t lock;
+                            cadmium::dynamic::hpc_engine::cpu_parallel::route_locks[index] = lock;
+                            omp_init_lock(&(cadmium::dynamic::hpc_engine::cpu_parallel::route_locks[index]));
+                            omp_set_lock(&(cadmium::dynamic::hpc_engine::cpu_parallel::route_locks[index]));
+                        }
+*/
                     }
 
                     static void set_log_lock() {
-                        omp_set_lock(&(cadmium::dynamic::hpc_engine::cpu_parallel::logs_lock));
+//                        omp_set_lock(&(cadmium::dynamic::hpc_engine::cpu_parallel::logs_lock));
                     }
 
                     static void release_route_lock(std::type_index index) {
@@ -85,7 +86,7 @@ namespace cadmium {
                     }
 
                     static void release_log_lock() {
-                        omp_unset_lock(&(cadmium::dynamic::hpc_engine::cpu_parallel::logs_lock));
+//                        omp_unset_lock(&(cadmium::dynamic::hpc_engine::cpu_parallel::logs_lock));
                     }
 
 //                };

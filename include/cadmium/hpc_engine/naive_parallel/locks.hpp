@@ -24,8 +24,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CADMIUM_PDEVS_DYNAMIC_LOGS_LOCK_HPP
-#define CADMIUM_PDEVS_DYNAMIC_LOGS_LOCK_HPP
+#ifndef CADMIUM_PDEVS_DYNAMIC_NAIVE_PARALLEL_LOGS_LOCK_HPP
+#define CADMIUM_PDEVS_DYNAMIC_NAIVE_PARALLEL_LOGS_LOCK_HPP
 
 #include <typeindex>
 #include <memory>
@@ -40,47 +40,19 @@
 
 namespace cadmium {
     namespace dynamic {
-        namespace parallel_engine {
-
-            class locks {
-            private:
-                static omp_lock_t route_lock[INT_MAX];
+        namespace hpc_engine {
+            namespace naive_parallel {
+                static std::map<std::type_index, omp_lock_t> route_locks;
                 static omp_lock_t logs_lock;
 
-                locks() {}
-
-                ~locks(){
-                    omp_destroy_lock(&logs_lock);
-                    for(size_t i=0; i<INT_MAX; i++){
-                        omp_destroy_lock(&route_lock[i]);
+                    static void set_log_lock() {
+                        omp_set_lock(&(cadmium::dynamic::hpc_engine::naive_parallel::logs_lock));
                     }
-                }
 
-            public:
-                void init_locks() {
-                    omp_init_lock(&logs_lock);
-                    for(size_t i=0; i<INT_MAX; i++){
-                        omp_init_lock(&route_lock[i]);
+                    static void release_log_lock() {
+                        omp_unset_lock(&(cadmium::dynamic::hpc_engine::naive_parallel::logs_lock));
                     }
-                }
-
-                void set_route_lock(size_t index) {
-                    omp_set_lock(&route_lock[index]);
-                }
-
-                void set_log_lock() {
-                    omp_set_lock(&logs_lock);
-                }
-
-                void release_route_lock(size_t index) {
-                    omp_set_lock(&route_lock[index]);
-                }
-
-                void release_log_lock() {
-                    omp_set_lock(&logs_lock);
-                }
-
-            };
+            }
         }
     }
 }

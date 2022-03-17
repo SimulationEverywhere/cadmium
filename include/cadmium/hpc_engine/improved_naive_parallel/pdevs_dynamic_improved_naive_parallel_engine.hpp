@@ -1,4 +1,7 @@
 /**
+ * Copyright (c) 2022, Guillermo Trabes
+ * Carleton University, Universidad Nacional de San Luis
+ *
  * Copyright (c) 2017, Laouen M. L. Belloli
  * Carleton University, Universidad de Buenos Aires
  * All rights reserved.
@@ -24,15 +27,15 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CADMIUM_PDEVS_DYNAMIC_GPU_PARALLEL_ENGINE_HPP
-#define CADMIUM_PDEVS_DYNAMIC_GPU_PARALLEL_ENGINE_HPP
+#ifndef CADMIUM_PDEVS_DYNAMIC_IMPROVE_NAIVE_PARALLEL_ENGINE_HPP
+#define CADMIUM_PDEVS_DYNAMIC_IMPROVE_NAIVE_PARALLEL_ENGINE_HPP
 
 #include <cadmium/modeling/dynamic_message_bag.hpp>
 
 namespace cadmium {
     namespace dynamic {
         namespace hpc_engine {
-            namespace gpu_parallel {
+            namespace improved_naive_parallel {
                 /**
                  * @brief Abstract class to allow pointer polymorphism between dynamic::coordinator
                  * and dynamic::atomic
@@ -40,7 +43,7 @@ namespace cadmium {
                  * @tparam TIME
                  */
                 template<typename TIME>
-                class gpu_parallel_engine {
+                class improved_naive_parallel_engine {
                 public:
 
                     virtual std::string get_model_id() const = 0;
@@ -51,7 +54,7 @@ namespace cadmium {
 
                     virtual cadmium::dynamic::message_bags& inbox() = 0;
 
-                    virtual ~gpu_parallel_engine(){}
+                    virtual ~improved_naive_parallel_engine(){}
 
                 };
             }

@@ -1,4 +1,7 @@
 /**
+ * Copyright (c) 2022, Guillermo Trabes
+ * Carleton University, Universidad Nacional de San Luis
+ *
  * Copyright (c) 2017, Laouen M. L. Belloli
  * Carleton University, Universidad de Buenos Aires
  * All rights reserved.
@@ -24,30 +27,28 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CADMIUM_PDEVS_DYNAMIC_SEQUENTIAL_ENGINE_HELPERS_HPP
-#define CADMIUM_PDEVS_DYNAMIC_SEQUENTIAL_ENGINE_HELPERS_HPP
+#ifndef CADMIUM_PDEVS_DYNAMIC_PARALLEL_ENGINE_HELPERS_HPP
+#define CADMIUM_PDEVS_DYNAMIC_PARALLEL_ENGINE_HELPERS_HPP
 
 #include <cadmium/modeling/dynamic_message_bag.hpp>
 #include <cadmium/logger/common_loggers.hpp>
-//#include <algorithm>
 #include <cadmium/engine/pdevs_dynamic_link.hpp>
-
-#include <cadmium/hpc_engine/sequential/pdevs_dynamic_sequential_engine.hpp>
-#include <cadmium/hpc_engine/sequential/pdevs_dynamic_sequential_simulator.hpp>
+#include <cadmium/hpc_engine/parallel/pdevs_dynamic_parallel_engine.hpp>
+#include <cadmium/hpc_engine/parallel/pdevs_dynamic_parallel_simulator.hpp>
 
 namespace cadmium {
     namespace dynamic {
         namespace hpc_engine {
-            namespace sequential {
+            namespace parallel {
 
                 template<typename TIME, typename LOGGER>
-                using subcoordinators_type = typename std::vector<std::shared_ptr<cadmium::dynamic::hpc_engine::sequential::sequential_simulator<TIME, LOGGER>>>;
+                using subcoordinators_type = typename std::vector<std::shared_ptr<cadmium::dynamic::hpc_engine::parallel::parallel_simulator<TIME, LOGGER>>>;
                 using external_port_couplings = typename std::map<std::string, std::vector<std::shared_ptr<cadmium::dynamic::engine::link_abstract>>>;
 
                 template<typename TIME, typename LOGGER>
                 using external_couplings = typename std::vector<
                         std::pair<
-                                std::shared_ptr<cadmium::dynamic::hpc_engine::sequential::sequential_simulator<TIME, LOGGER>>,
+                                std::shared_ptr<cadmium::dynamic::hpc_engine::parallel::parallel_simulator<TIME, LOGGER>>,
                                 std::vector<std::shared_ptr<cadmium::dynamic::engine::link_abstract>>
                         >
                 >;
@@ -55,8 +56,8 @@ namespace cadmium {
                 template<typename TIME, typename LOGGER>
                 using internal_coupling = std::pair<
                         std::pair<
-                                std::shared_ptr<cadmium::dynamic::hpc_engine::sequential::sequential_simulator<TIME, LOGGER>>, // from model
-                                std::shared_ptr<cadmium::dynamic::hpc_engine::sequential::sequential_simulator<TIME, LOGGER>> // to model
+                                std::shared_ptr<cadmium::dynamic::hpc_engine::parallel::parallel_simulator<TIME, LOGGER>>, // from model
+                                std::shared_ptr<cadmium::dynamic::hpc_engine::parallel::parallel_simulator<TIME, LOGGER>> // to model
                         >,
                         std::vector<std::shared_ptr<cadmium::dynamic::engine::link_abstract>>
                 >;
@@ -66,7 +67,7 @@ namespace cadmium {
 
                 template<typename TIME, typename LOGGER>
                 using external_coupling = std::pair<
-                        std::shared_ptr<cadmium::dynamic::hpc_engine::sequential::sequential_simulator<TIME, LOGGER>>,
+                        std::shared_ptr<cadmium::dynamic::hpc_engine::parallel::parallel_simulator<TIME, LOGGER>>,
                         std::vector<std::shared_ptr<cadmium::dynamic::engine::link_abstract>>
 				>;
 

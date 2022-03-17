@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2017, Laouen M. L. Belloli
+ * Copyright (c) 2018, Laouen M. L. Belloli
  * Carleton University, Universidad de Buenos Aires
  * All rights reserved.
  *
@@ -24,38 +24,38 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CADMIUM_PDEVS_DYNAMIC_PARALLEL_ENGINE_HPP
-#define CADMIUM_PDEVS_DYNAMIC_PARALLEL_ENGINE_HPP
+#ifndef CADMIUM_PDEVS_DYNAMIC_IMPROVE_NAIVE_PARALLEL_LOGS_LOCK_HPP
+#define CADMIUM_PDEVS_DYNAMIC_IMPROVE_NAIVE_PARALLEL_LOGS_LOCK_HPP
 
+#include <typeindex>
+#include <memory>
+
+#include <cadmium/logger/dynamic_common_loggers.hpp>
 #include <cadmium/modeling/dynamic_message_bag.hpp>
+#include <cadmium/logger/common_loggers_helpers.hpp>
+#include <omp.h>
+
+#include <limits.h>
+
 
 namespace cadmium {
     namespace dynamic {
-        namespace parallel_engine {
+        namespace hpc_engine {
+            namespace improved_naive_parallel {
+                static std::map<std::type_index, omp_lock_t> route_locks;
+                static omp_lock_t logs_lock;
 
-            /**
-             * @brief Abstract class to allow pointer polymorphism between dynamic::coordinator
-             * and dynamic::atomic
-             *
-             * @tparam TIME
-             */
-            template<typename TIME>
-            class parallel_engine {
-            public:
+                    static void set_log_lock() {
+                        omp_set_lock(&(cadmium::dynamic::hpc_engine::improved_naive_parallel::logs_lock));
+                    }
 
-                virtual std::string get_model_id() const = 0;
-
-                virtual TIME next() const noexcept = 0;
-
-                virtual cadmium::dynamic::message_bags& outbox() = 0;
-
-                virtual cadmium::dynamic::message_bags& inbox() = 0;
-
-                virtual ~parallel_engine(){}
-
-            };
+                    static void release_log_lock() {
+                        omp_unset_lock(&(cadmium::dynamic::hpc_engine::improved_naive_parallel::logs_lock));
+                    }
+            }
         }
     }
 }
 
-#endif //CADMIUM_PDEVS_DYNAMIC_ENGINE_HPP
+
+#endif //CADMIUM_PDEVS_DYNAMIC_LINK_HPP

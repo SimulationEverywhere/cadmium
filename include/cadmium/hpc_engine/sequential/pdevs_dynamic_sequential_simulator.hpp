@@ -77,7 +77,7 @@ namespace cadmium {
                         _next = initial_time + _model->time_advance();
 
 				        #if !defined(NO_LOGGER)
-                        LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::sim_info_init>(initial_time, _model->get_id());
+                        LOGGER::template log<cadmium::logger::logger_state, cadmium::logger::sim_state>(initial_time, _model->get_id(), _model->model_state_as_string());
                         #endif
                     }
 

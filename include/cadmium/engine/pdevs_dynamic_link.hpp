@@ -34,7 +34,7 @@
 #include <cadmium/modeling/dynamic_message_bag.hpp>
 #include <cadmium/logger/common_loggers_helpers.hpp>
 
-#include <cadmium/hpc_engine/cpu_parallel/locks.hpp>
+#include <cadmium/hpc_engine/parallel/locks.hpp>
 
 #if defined CPU_PARALLEL || defined CPU_ROUTING_PARALLEL || defined GPU_PARALLEL || defined GPU_ROUTING_PARALLEL
 #include <omp.h>
@@ -105,7 +105,7 @@ namespace cadmium {
 
                     #if defined CPU_PARALLEL || defined CPU_ROUTING_PARALLEL || defined GPU_PARALLEL || defined GPU_ROUTING_PARALLEL
                     //cadmium::dynamic::hpc_engine::cpu_parallel::locks l;
-                    cadmium::dynamic::hpc_engine::cpu_parallel::set_route_lock(this->to_port_type_index());
+                    //cadmium::dynamic::hpc_engine::cpu_parallel::set_route_lock(this->to_port_type_index());
 
                     b_to->messages.insert(b_to->messages.end(), b_from.messages.begin(),
                                           b_from.messages.end());
@@ -115,7 +115,7 @@ namespace cadmium {
 						b_to->messages.push_back(*it);
 					}
 */
-                    cadmium::dynamic::hpc_engine::cpu_parallel::release_route_lock(this->to_port_type_index());
+                    //cadmium::dynamic::hpc_engine::cpu_parallel::release_route_lock(this->to_port_type_index());
                     #else
                     b_to->messages.insert(b_to->messages.end(), b_from.messages.begin(),
                                                               b_from.messages.end());
@@ -137,13 +137,13 @@ namespace cadmium {
 
     	            #if defined CPU_PARALLEL || defined CPU_ROUTING_PARALLEL || defined GPU_PARALLEL || defined GPU_ROUTING_PARALLEL
                     //cadmium::dynamic::hpc_engine::cpu_parallel::locks l;
-                    cadmium::dynamic::hpc_engine::cpu_parallel::set_route_lock(this->to_port_type_index());
+                    //cadmium::dynamic::hpc_engine::cpu_parallel::set_route_lock(this->to_port_type_index());
 
                     b_to.messages.insert(b_to.messages.end(), b_from.messages.begin(),
                                          b_from.messages.end());
                     bags_to[this->to_port_type_index()] = b_to;
 
-                    cadmium::dynamic::hpc_engine::cpu_parallel::release_route_lock(this->to_port_type_index());
+                    //cadmium::dynamic::hpc_engine::cpu_parallel::release_route_lock(this->to_port_type_index());
                     #else
                     b_to.messages.insert(b_to.messages.end(), b_from.messages.begin(),
                                                              b_from.messages.end());

@@ -27,25 +27,24 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CADMIUM_PDEVS_DYNAMIC_NAIVE_PARALLEL_COORDINATOR_HPP
-#define CADMIUM_PDEVS_DYNAMIC_NAIVE_PARALLEL_COORDINATOR_HPP
+#ifndef CADMIUM_PDEVS_DYNAMIC_PARALLEL_COORDINATOR_HPP
+#define CADMIUM_PDEVS_DYNAMIC_PARALLEL_COORDINATOR_HPP
 
 #include <cadmium/modeling/dynamic_coupled.hpp>
 #include <cadmium/modeling/dynamic_message_bag.hpp>
 #include <cadmium/logger/dynamic_common_loggers.hpp>
 #include <cadmium/logger/common_loggers.hpp>
+#include <cadmium/hpc_engine/parallel/pdevs_dynamic_parallel_engine_helpers.hpp>
+#include <cadmium/hpc_engine/parallel/pdevs_dynamic_parallel_engine.hpp>
+#include <cadmium/hpc_engine/parallel/pdevs_dynamic_parallel_simulator.hpp>
 #include <cadmium/hpc_engine/parallel_helpers.hpp>
-#include <cadmium/hpc_engine/naive_parallel/pdevs_dynamic_naive_parallel_engine_helpers.hpp>
-#include <cadmium/hpc_engine/naive_parallel/pdevs_dynamic_naive_parallel_engine.hpp>
-#include <cadmium/hpc_engine/naive_parallel/pdevs_dynamic_naive_parallel_simulator.hpp>
-#include <omp.h>
 
 namespace cadmium {
     namespace dynamic {
         namespace hpc_engine {
-            namespace naive_parallel {
+            namespace parallel {
                 template<typename TIME, typename LOGGER>
-                class naive_parallel_coordinator : public cadmium::dynamic::hpc_engine::naive_parallel::naive_parallel_engine<TIME> {
+                class parallel_coordinator : public cadmium::dynamic::hpc_engine::parallel::parallel_engine<TIME> {
 
                     //MODEL is assumed valid, the whole model tree is checked at "runner level" to fail fast
                     TIME _last; //last transition time
@@ -68,12 +67,12 @@ namespace cadmium {
                     /**
                      * @brief A dynamic coordinator must be constructed with the coupled model to coordinate.
                      */
-                    naive_parallel_coordinator() = delete;
+                    parallel_coordinator() = delete;
 
-                    naive_parallel_coordinator(std::shared_ptr<model_type> coupled_model)
-                            : _model_id(coupled_model->get_id())
+                    parallel_coordinator(std::shared_ptr<model_type> coupled_model)
+                    : _model_id(coupled_model->get_id())
                     {
-                        std::map<std::string, std::shared_ptr<naive_parallel_simulator<TIME, LOGGER>>> engines_by_id;
+                        std::map<std::string, std::shared_ptr<parallel_simulator<TIME, LOGGER>>> engines_by_id;
 
                         for(auto& m : coupled_model->_models) {
                             std::shared_ptr<cadmium::dynamic::modeling::coupled<TIME>> m_coupled = std::dynamic_pointer_cast<cadmium::dynamic::modeling::coupled<TIME>>(m);
@@ -83,7 +82,7 @@ namespace cadmium {
                                 if (m_atomic == nullptr) {
                                     throw std::domain_error("Invalid submodel is neither coupled nor atomic");
                                 }
-                                std::shared_ptr<cadmium::dynamic::hpc_engine::naive_parallel::naive_parallel_simulator<TIME, LOGGER>> simulator = std::make_shared<cadmium::dynamic::hpc_engine::naive_parallel::naive_parallel_simulator<TIME, LOGGER>>(m_atomic);
+                                std::shared_ptr<cadmium::dynamic::hpc_engine::parallel::parallel_simulator<TIME, LOGGER>> simulator = std::make_shared<cadmium::dynamic::hpc_engine::parallel::parallel_simulator<TIME, LOGGER>>(m_atomic);
                                 _subcoordinators.push_back(simulator);
                             } else {
                                 if (m_atomic != nullptr) {
@@ -103,7 +102,7 @@ namespace cadmium {
                     		    throw std::domain_error("External output coupling from invalid model");
                     	    }
 
-                    	    cadmium::dynamic::hpc_engine::naive_parallel::external_coupling<TIME, LOGGER> new_eoc;
+                    	    cadmium::dynamic::hpc_engine::parallel::external_coupling<TIME, LOGGER> new_eoc;
                     	    new_eoc.first = engines_by_id.at(eoc._from);
                     	    new_eoc.second.push_back(eoc._link);
                     	    _external_output_couplings.push_back(new_eoc);
@@ -114,7 +113,7 @@ namespace cadmium {
                     		    throw std::domain_error("External input coupling to invalid model");
                     	    }
 
-                    	    cadmium::dynamic::hpc_engine::naive_parallel::external_coupling<TIME, LOGGER> new_eic;
+                    	    cadmium::dynamic::hpc_engine::parallel::external_coupling<TIME, LOGGER> new_eic;
                     	    new_eic.first = engines_by_id.at(eic._to);
                     	    new_eic.second.push_back(eic._link);
                     	    _external_input_couplings.push_back(new_eic);
@@ -126,7 +125,7 @@ namespace cadmium {
                     		    throw std::domain_error("Internal coupling to invalid model");
                     	    }
 
-                    	    cadmium::dynamic::hpc_engine::naive_parallel::internal_coupling<TIME, LOGGER> new_ic;
+                    	    cadmium::dynamic::hpc_engine::parallel::internal_coupling<TIME, LOGGER> new_ic;
                             new_ic.first.first = engines_by_id.at(ic._from);
                             new_ic.first.second = engines_by_id.at(ic._to);
                             new_ic.second.push_back(ic._link);
@@ -180,7 +179,7 @@ namespace cadmium {
                 	    return _external_input_couplings;
                     }
 
-                    internal_couplings<TIME, LOGGER> subcoordinators_internal_couplings() {
+                    internal_couplings<TIME, LOGGER> get_internal_couplings() {
                 	    return _internal_couplings;
                     }
 
@@ -191,7 +190,7 @@ namespace cadmium {
                      * strategy to lower copying, maybe.
                      * @todo Merge the Collect output calls into the advance simulation as done with ICs and EICs routing
                      */
-                    void collect_outputs(const TIME &t, int thread_num) {
+                    void collect_outputs(const TIME &t) {
 
                         #if !defined(NO_LOGGER)
                         LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::coor_info_collect>(t, _model_id);
@@ -206,28 +205,24 @@ namespace cadmium {
                             LOGGER::template log<cadmium::logger::logger_message_routing, cadmium::logger::coor_routing_eoc_collect>(t, _model_id);
                             #endif
 
-                            /*
-                            #pragma omp parallel for num_threads(thread_num) //schedule(static) proc_bind(close)
+
+                            //#pragma omp parallel for num_threads(thread_num) //schedule(static) proc_bind(close)
                             for(size_t i=0; i<_subcoordinators.size();i++){
                                 _subcoordinators[i]->collect_outputs(t);
-                            }*/
-
-                            #pragma omp parallel num_threads(thread_num) shared(_next, t, _subcoordinators)
+                            }
+/*
+                            #pragma omp parallel num_threads(thread_num)
                     	    {
                     	    //schedule(static) proc_bind(close)
-                            	int tid = omp_get_thread_num();
+                            	int tid = omp_get_thread_num();;
+                            	cadmium::dynamic::hpc_engine::pin_thread_to_core(tid);
 
-                                #pragma omp critical
-                            	{
-                            	    cadmium::dynamic::hpc_engine::pin_thread_to_core(tid);
-                    	        }
-
-                                //#pragma omp parallel for num_threads(thread_num) schedule(static) proc_bind(close)
                                 #pragma omp for schedule(static)
                     		    for(size_t i=0; i<_subcoordinators.size();i++) {
                     		        _subcoordinators[i]->collect_outputs(t);
                                 }
                             }
+*/
                         }
                     }
 
@@ -283,31 +278,27 @@ namespace cadmium {
                      * @brief advanceSimulation advances the execution to t, at t introduces the messages into the system (if any).
                      * @param t is the time the transition is expected to be run.
                      */
-                    void state_transition(const TIME &t, int thread_num) {
+                    void state_transition(const TIME &t) {
                         //#pragma omp parallel num_threads(thread_num)
                     	//{
                     	//schedule(static) proc_bind(close)
                             //#pragma omp for
-                    		//for(size_t i=0; i<_subcoordinators.size();i++) {
-                    		//    _subcoordinators[i]->state_transition(t);
-                            //}
-
+                    		for(size_t i=0; i<_subcoordinators.size();i++) {
+                    		    _subcoordinators[i]->state_transition(t);
+                            }
+/*
                     		#pragma omp parallel num_threads(thread_num)
                     	    {
                     	    //schedule(static) proc_bind(close)
-                            	int tid = omp_get_thread_num();
+                            	int tid = omp_get_thread_num();;
+                            	cadmium::dynamic::hpc_engine::pin_thread_to_core(tid);
 
-                                #pragma omp critical
-                            	{
-                            	    cadmium::dynamic::hpc_engine::pin_thread_to_core(tid);
-                    	        }
-
-                                //#pragma omp parallel for num_threads(thread_num) schedule(static) proc_bind(close)
                                 #pragma omp for schedule(static)
                     		    for(size_t i=0; i<_subcoordinators.size();i++) {
                     		        _subcoordinators[i]->state_transition(t);
                                 }
                             }
+*/
                         //}
                     }
 

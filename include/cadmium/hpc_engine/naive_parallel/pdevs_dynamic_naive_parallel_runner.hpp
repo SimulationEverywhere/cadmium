@@ -1,4 +1,7 @@
 /**
+ * Copyright (c) 2022, Guillermo Trabes
+ * Carleton University, Universidad Nacional de San Luis
+ *
  * Copyright (c) 2018, Damian Vicino, Laouen M. L. Belloli
  * Carleton University, Universite de Nice-Sophia Antipolis, Universidad de Buenos Aires
  * All rights reserved.
@@ -66,7 +69,7 @@ namespace cadmium {
                      * @brief set the dynamic parameters for the simulation
                      * @param init_time is the initial time of the simulation.
                      */
-                    explicit naive_parallel_runner(std::shared_ptr<cadmium::dynamic::modeling::coupled<TIME>> coupled_model, const TIME &init_time)
+                    explicit naive_parallel_runner(std::shared_ptr<cadmium::dynamic::modeling::coupled<TIME>> coupled_model)
                     : _top_coordinator(coupled_model) {
                     }
 
@@ -75,17 +78,17 @@ namespace cadmium {
                      * @param t is the limit time for the simulation.
                      * @return the TIME of the next event to happen when simulation stopped.
                      */
-                    TIME run_until(const TIME &t, const TIME &init_time, size_t _thread_number) {
+                    TIME run_until(const TIME &init_time, const TIME &t, int thread_number) {
 
                         #if !defined(NO_LOGGER)
                         LOGGER::template log<cadmium::logger::logger_global_time, cadmium::logger::run_global_time>(init_time);
                         LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Preparing model");
                         #endif
 
-                    	_top_coordinator.init(init_time);
-                    	_next = _top_coordinator.next_in_subcoordinators();
+                        _top_coordinator.init(init_time);
+                        _next = _top_coordinator.next_in_subcoordinators();
 
-                    	#if !defined(NO_LOGGER)
+                        #if !defined(NO_LOGGER)
                         LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Starting run");
                         #endif
 
@@ -94,9 +97,9 @@ namespace cadmium {
                             LOGGER::template log<cadmium::logger::logger_global_time, cadmium::logger::run_global_time>(_next);
                             #endif
 
-                            _top_coordinator.collect_outputs(_next, _thread_number);
+                            _top_coordinator.collect_outputs(_next, thread_number);
                             _top_coordinator.route_messages(_next);
-                            _top_coordinator.state_transition(_next, _thread_number);
+                            _top_coordinator.state_transition(_next, thread_number);
                             _next = _top_coordinator.next_in_subcoordinators();
                         }
                         #if !defined(NO_LOGGER)

@@ -24,24 +24,24 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CADMIUM_PDEVS_DYNAMIC_GPU_PARALLEL_RUNNER_HPP
-#define CADMIUM_PDEVS_DYNAMIC_GPU_PARALLEL_RUNNER_HPP
+#ifndef CADMIUM_PDEVS_DYNAMIC_CPU_PARALLEL_RUNNER_HPP
+#define CADMIUM_PDEVS_DYNAMIC_CPU_PARALLEL_RUNNER_HPP
 
 #include <cadmium/modeling/dynamic_coupled.hpp>
 #include <cadmium/modeling/dynamic_message_bag.hpp>
 #include <cadmium/logger/dynamic_common_loggers.hpp>
 #include <cadmium/logger/common_loggers.hpp>
-#include <cadmium/hpc_engine/gpu_parallel/pdevs_dynamic_gpu_parallel_coordinator.hpp>
-#include <cadmium/hpc_engine/gpu_parallel/pdevs_dynamic_gpu_parallel_engine_helpers.hpp>
-#include <cadmium/hpc_engine/gpu_parallel/pdevs_dynamic_gpu_parallel_engine.hpp>
+#include <cadmium/hpc_engine/cpu_parallel/pdevs_dynamic_cpu_parallel_coordinator.hpp>
+#include <cadmium/hpc_engine/cpu_parallel/pdevs_dynamic_cpu_parallel_engine_helpers.hpp>
+#include <cadmium/hpc_engine/cpu_parallel/pdevs_dynamic_cpu_parallel_engine.hpp>
 #include <omp.h>
-#include <cadmium/hpc_engine/gpu_parallel/locks.hpp>
+#include <cadmium/hpc_engine/cpu_parallel/locks.hpp>
 #include <cadmium/hpc_engine/parallel_helpers.hpp>
 
 namespace cadmium {
     namespace dynamic {
         namespace hpc_engine {
-            namespace gpu_parallel {
+            namespace cpu_parallel {
                 /**
                  * @brief The Runner class runs the simulation.
                  * The runner is in charge of setting up the coordinators and simulators, the initial
@@ -53,19 +53,16 @@ namespace cadmium {
                  * @param Logger what, where and how to log from the simulation
                  */
 
-               using namespace cadmium::dynamic::hpc_engine::gpu_parallel;
-
-
                 //by default state changes get verbatim formatted and logged to cout
                 template<typename TIME>
                 using default_logger=cadmium::logger::logger<cadmium::logger::logger_state, cadmium::dynamic::logger::formatter<TIME>, cadmium::logger::cout_sink_provider>;
 
                 //TODO: migrate specialization FEL behavior from CDBoost. At this point, there is no parametrized FEL.
                 template<class TIME, typename LOGGER=default_logger<TIME>>
-                class gpu_parallel_runner {
+                class cpu_parallel_runner {
                     TIME _next; //next scheduled event
 
-                    cadmium::dynamic::hpc_engine::gpu_parallel::gpu_parallel_coordinator<TIME, LOGGER> _top_coordinator; //this only works for coupled models.
+                    cadmium::dynamic::hpc_engine::cpu_parallel::cpu_parallel_coordinator<TIME, LOGGER> _top_coordinator; //this only works for coupled models.
 
                 public:
                     //contructors
@@ -73,7 +70,7 @@ namespace cadmium {
                      * @brief set the dynamic parameters for the simulation
                      * @param init_time is the initial time of the simulation.
                      */
-                    explicit gpu_parallel_runner(std::shared_ptr<cadmium::dynamic::modeling::coupled<TIME>> coupled_model, const TIME &init_time)
+                    explicit cpu_parallel_runner(std::shared_ptr<cadmium::dynamic::modeling::coupled<TIME>> coupled_model)
                      : _top_coordinator(coupled_model){
 /*
                         #if !defined(NO_LOGGER)
@@ -189,48 +186,20 @@ namespace cadmium {
                     TIME run_until(const TIME &t, const TIME &init_time, size_t _thread_number) {
 
                 	    #if !defined(NO_LOGGER)
-                	        LOGGER::template log<cadmium::logger::logger_global_time, cadmium::logger::run_global_time>(init_time);
-                            LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Preparing model");
-                            LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Starting run");
+                	    LOGGER::template log<cadmium::logger::logger_global_time, cadmium::logger::run_global_time>(init_time);
+                        LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Preparing model");
+                        LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::run_info>("Starting run");
                         #endif
 
-                        //#pragma omp extension unified_memory
-                        //#pragma omp requires unified_shared_memory
-                        //#pragma omp requires unified_address
-
-						//#pragma omp declare target
-                        //TIME init_time = init_time_cpu;
-                        //TIME t = t_cpu;
-						//#pragma omp end declare target
-
-
                         //create parallel region//
-
-                        //TIME t;
-                        //TIME init_time;
-
-						//#pragma omp target enter data map(to: t,init_time)
-                            typedef struct mystruct {
-                            char *p;
-                            int a, len;
-                            } mystruct_t;
-                            mystruct_t S;
-
-
-                        //#pragma omp parallel num_threads(_thread_number) shared(_next, init_time, t, _top_coordinator)
-                        //#pragma omp declare mapper(gpu_parallel_coordinator<TIME, LOGGER> s)
-						//#pragma omp declare mapper(mystruct_t s)
-
-                        #pragma omp target map(to:_top_coordinator) //map(to:init_time)
+                        #pragma omp parallel num_threads(_thread_number) shared(_next, init_time, t, _top_coordinator)
                         {
-
-                        	TIME t, init_time;
                             //each thread gets its id//
                             size_t tid = omp_get_thread_num();
 
                             //#pragma omp critical
                             //{
-                                //cadmium:dynamic::hpc_engine::pin_thread_to_core(tid);
+                            //    cadmium:dynamic::hpc_engine::pin_thread_to_core(tid);
                             //}
 
                             size_t n_subcoordinators =_top_coordinator.subcoordinators().size();
@@ -265,8 +234,8 @@ namespace cadmium {
                             /************** PARALLEL STEP 0.1 - EXECUTE TIME ADVANCE **************/
 
                             //init partial subcoordinators
-//                            _top_coordinator.init_subcoordinators(first_subcoordinators, last_subcoordinators, init_time);
-/*
+                            _top_coordinator.init_subcoordinators(first_subcoordinators, last_subcoordinators, init_time);
+
                             #pragma omp barrier
 
                             /************** END PARALLEL STEP 0.1 - COLLECT OUTPUTS **************/
@@ -274,8 +243,8 @@ namespace cadmium {
                             /************** PARALLEL STEP 0.2 - EXECUTE TIME ADVANCE **************/
 
                             //calculate time for next event
-//                            _local_next = _top_coordinator.next_in_subcoordinators(first_subcoordinators,last_subcoordinators);
-/*
+                            _local_next = _top_coordinator.next_in_subcoordinators(first_subcoordinators,last_subcoordinators);
+
                             #pragma omp barrier
 
                             //only 1 threads initializes shared minimum wuth local minimum
@@ -285,7 +254,7 @@ namespace cadmium {
                     	        _top_coordinator.set_next(_next);
     			            }
 	                        //sync threads
-	                        #pragma omp barrier
+//	                        #pragma omp barrier
 
                             //1 thread at the time updates final result//
                             #pragma omp critical
@@ -300,17 +269,17 @@ namespace cadmium {
 
                             /************** END PARALLEL STEP 0.2 - EXECUTE TIME ADVANCE **************/
 
-                            /************** END PARALLEL STEP 0 - INITIALIZATION **************/
-/*
+                            /************** PARALLEL STEP 0 - INITIALIZATION **************/
+
                             // simulation cycle loop
                             while (_next < t) {
 
-                                #pragma omp single
-	               	            {
-	               	                if(_top_coordinator.next() < _next){
-	               		                throw std::domain_error("Trying to obtain output when not internal event is scheduled");
-	               	                }
-	               		        }
+//                                #pragma omp single
+//	               	            {
+//	               	                if(_top_coordinator.next() < _next){
+//	               		                throw std::domain_error("Trying to obtain output when not internal event is scheduled");
+//	               	                }
+//	               		        }
 
                 		        //SEQUENTIAL PART - INITIAL LOG (IF NO_LOGGER IS NOT DEFINED)
                                 #if !defined(NO_LOGGER)
@@ -321,67 +290,67 @@ namespace cadmium {
                 			            LOGGER::template log<cadmium::logger::logger_message_routing, cadmium::logger::coor_routing_eoc_collect>(_next, _top_coordinator.get_model_id());
                 			        }
 	               		            //sync threads
-	               		            #pragma omp barrier
+//	               		            #pragma omp barrier
 	               		        #endif
 
 	               		        /************** PARALLEL STEP 1 - COLLECT OUTPUTS **************/
 	               		        //collect partial outputs
-//	               		        _top_coordinator.collect_outputs_in_subcoordinators(first_subcoordinators, last_subcoordinators, _next);
-/*
+	               		        _top_coordinator.collect_outputs_in_subcoordinators(first_subcoordinators, last_subcoordinators, _next);
+
                                 #pragma omp barrier
 
 	                            // ONLY 1 THREAD EXECUTES - collect outputs for external output couplings
-	                            #pragma omp single
-    	                        {
+//	                            #pragma omp single
+//    	                        {
                                     // Use the EOC mapping to compose current level output
-//                                    _top_coordinator._outbox = cadmium::dynamic::hpc_engine::gpu_parallel::collect_messages_by_eoc<TIME, LOGGER>(_top_coordinator.external_output_couplings());
+//                                    _top_coordinator._outbox = cadmium::dynamic::hpc_engine::cpu_parallel::collect_messages_by_eoc<TIME, LOGGER>(_top_coordinator.external_output_couplings());
                                     //clean outbox because messages have been routed
 //                                    _top_coordinator._outbox = cadmium::dynamic::message_bags();
-                                }
+//                                }
 
                                 //sync threads
-        			            #pragma omp barrier
+//        			            #pragma omp barrier
 
-                                #if !defined(NO_LOGGER)
-                                    #pragma omp single
-    	                            {
-    	                                LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::coor_info_advance>(_top_coordinator.last(), _next, _top_coordinator.get_model_id());
-    	                            }
+//                                #if !defined(NO_LOGGER)
+//                                    #pragma omp single
+//    	                            {
+//    	                                LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::coor_info_advance>(_top_coordinator.last(), _next, _top_coordinator.get_model_id());
+//    	                            }
     	                            //sync threads
-    	                            #pragma omp barrier
-                                #endif
+//    	                            #pragma omp barrier
+//                                #endif
 
 	                            /************** END PARALLEL STEP 1 - COLLECT OUTPUTS **************/
 
     	                        /************** PARALLEL STEP 2 - ROUTE MESSAGES **************/
 
-//                                _top_coordinator.route_internal_couplings_in_subcoordinators(first_internal_couplings, last_internal_couplings);
-/*
+                                _top_coordinator.route_internal_couplings_in_subcoordinators(first_internal_couplings, last_internal_couplings);
+
                                 #pragma omp barrier
 
-                                #pragma omp single
-	                            {
-                                    cadmium::dynamic::hpc_engine::gpu_parallel::route_external_input_coupled_messages_on_subcoordinators<TIME, LOGGER>(_top_coordinator.inbox(), _top_coordinator.external_input_couplings());
+//                                #pragma omp single
+//	                            {
+//                                    cadmium::dynamic::hpc_engine::cpu_parallel::route_external_input_coupled_messages_on_subcoordinators<TIME, LOGGER>(_top_coordinator.inbox(), _top_coordinator.external_input_couplings());
                                     //clean inbox because they were processed already
-                                    _top_coordinator._inbox = cadmium::dynamic::message_bags();
-                                }
-                                #pragma omp barrier
+//                                    _top_coordinator._inbox = cadmium::dynamic::message_bags();
+//                                }
+//                                #pragma omp barrier
 
 	                            /************** END PARALLEL STEP 2 - ROUTE MESSAGES **************/
 
 	                            /************** PARALLEL STEP 3 - STATE TRANSITION **************/
 
                                 /* parallel state transition execution */
-//                                _top_coordinator.state_transition_in_subcoordinators(first_subcoordinators, last_subcoordinators, _next);
-/*
+                                _top_coordinator.state_transition_in_subcoordinators(first_subcoordinators, last_subcoordinators, _next);
+
                                 //sync threads
         			            #pragma omp barrier
 
         			    	    /************** END PARALLEL STEP 3 - STATE TRANSITION **************/
 
                                 /************** PARALLEL STEP 4 - NEXT TIME **************/
-//                                _local_next = _top_coordinator.next_in_subcoordinators(first_subcoordinators,last_subcoordinators);
-/*
+                                _local_next = _top_coordinator.next_in_subcoordinators(first_subcoordinators,last_subcoordinators);
+
                                 #pragma omp barrier
 
                                 //only 1 threads initializes shared minimum wuth local minimum
@@ -405,7 +374,7 @@ namespace cadmium {
                                 #pragma omp barrier
     	                       /************** END PARALLEL STEP 4 - NEXT TIME **************/
 
-//	                        }//end simulation loop
+	                        }//end simulation loop
 
                         }//end parallel region
 

@@ -1,4 +1,7 @@
 /**
+ * Copyright (c) 2022, Guillermo Trabes
+ * Carleton University, Universidad Nacional de San Luis
+ *
  * Copyright (c) 2017, Laouen M. L. Belloli
  * Carleton University, Universidad de Buenos Aires
  * All rights reserved.

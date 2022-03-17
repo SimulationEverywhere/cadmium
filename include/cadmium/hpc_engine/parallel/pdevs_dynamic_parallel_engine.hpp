@@ -1,4 +1,7 @@
 /**
+ * Copyright (c) 2022, Guillermo Trabes
+ * Carleton University, Universidad Nacional de San Luis
+ *
  * Copyright (c) 2017, Laouen M. L. Belloli
  * Carleton University, Universidad de Buenos Aires
  * All rights reserved.
@@ -31,29 +34,30 @@
 
 namespace cadmium {
     namespace dynamic {
-        namespace parallel_engine {
+        namespace hpc_engine {
+            namespace parallel {
+                /**
+                 * @brief Abstract class to allow pointer polymorphism between dynamic::coordinator
+                 * and dynamic::atomic
+                 *
+                 * @tparam TIME
+                 */
+                template<typename TIME>
+                class parallel_engine {
+                public:
 
-            /**
-             * @brief Abstract class to allow pointer polymorphism between dynamic::coordinator
-             * and dynamic::atomic
-             *
-             * @tparam TIME
-             */
-            template<typename TIME>
-            class engine {
-            public:
+                    virtual std::string get_model_id() const = 0;
 
-                virtual std::string get_model_id() const = 0;
+                    virtual TIME next() const noexcept = 0;
 
-                virtual TIME next() const noexcept = 0;
+                    virtual cadmium::dynamic::message_bags& outbox() = 0;
 
-                virtual cadmium::dynamic::message_bags& outbox() = 0;
+                    virtual cadmium::dynamic::message_bags& inbox() = 0;
 
-                virtual cadmium::dynamic::message_bags& inbox() = 0;
+                    virtual ~parallel_engine(){}
 
-                virtual ~engine(){}
-
-            };
+                };
+            }
         }
     }
 }
