@@ -1,6 +1,9 @@
+//THIS NEEDS TO BE REFACTORED
+//THERE MUST BE A BETTER WAY
+
 /**
- * Copyright (c) 2017, Laouen M. L. Belloli
- * Carleton University, Universidad de Buenos Aires
+ * Copyright (c) 2017, Laouen M. L. Belloli, Damian Vicino
+ * Carleton University, Universidad de Buenos Aires, Universite de Nice-Sophia Antipolis
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,8 +27,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CADMIUM_DYNAMIC_ATOMIC_HPP
-#define CADMIUM_DYNAMIC_ATOMIC_HPP
+#ifndef CADMIUM_DYNAMIC_ASYNCHRONUS_ATOMIC_HPP
+#define CADMIUM_DYNAMIC_ASYNCHRONUS_ATOMIC_HPP
 
 #include <map>
 #include <boost/any.hpp>
@@ -41,7 +44,7 @@ namespace cadmium {
 
             /**
              * @brief atomic is a derived class from the base classes atomic_bastract and ATOMIC<TIME>
-             * this allow using any ATOMIC<TIME> valid class with pointers as an atomic_abstract
+             * this allow using any ATOMIC<TIME> valid class with pointers as an asynchronus_atomic_abstract
              * (first abase class) pointer.
              *
              * @details
@@ -53,12 +56,12 @@ namespace cadmium {
              * @tparam TIME a valid TIME class to use along with the atomic model class as ATOMIC<TIME>
              */
             template<template<typename T> class ATOMIC, typename TIME, typename... Args>
-            class atomic : public atomic_abstract<TIME>, public ATOMIC<TIME> {
+            class asynchronus_atomic : public asynchronus_atomic_abstract<TIME>, public ATOMIC<TIME> {
                 cadmium::dynamic::modeling::Ports _input_ports;
                 cadmium::dynamic::modeling::Ports _output_ports;
 
                 std::string _id;
-
+                
             public:
                 using model_type=ATOMIC<TIME>;
 
@@ -69,7 +72,7 @@ namespace cadmium {
                 using output_bags = typename make_message_bags<output_ports>::type;
                 using input_bags = typename make_message_bags<input_ports>::type;
 
-                atomic() {
+                asynchronus_atomic() {
                     #ifndef RT_ARM_MBED
                       static_assert(cadmium::concept::is_atomic<ATOMIC>::value, "This is not an atomic model");
                       cadmium::concept::pdevs::atomic_model_assert<ATOMIC>();
@@ -79,7 +82,10 @@ namespace cadmium {
                     _output_ports = cadmium::dynamic::modeling::create_dynamic_ports<output_ports>();
                 }
 
-                atomic(const std::string& model_id, Args&&... args) : ATOMIC<TIME>(std::forward<Args>(args)...) {
+                asynchronus_atomic(const std::string& model_id, Args&&... args) : 
+                AsyncEventSubject(model_id), 
+                ATOMIC<TIME>((AsyncEventSubject *)this, std::forward<Args>(args)...) {
+                    
                     #ifndef RT_ARM_MBED
                       static_assert(cadmium::concept::is_atomic<ATOMIC>::value, "This is not an atomic model");
                       cadmium::concept::pdevs::atomic_model_assert<ATOMIC>();
@@ -113,7 +119,7 @@ namespace cadmium {
                     return oss.str();
                 }
 
-                // This method must be declared to declare all atomic_abstract virtual methods are defined
+                // This method must be declared to declare all asynchronus_atomic_abstract virtual methods are defined
                 void internal_transition() override {
                     model_type::internal_transition();
                 }
@@ -153,4 +159,4 @@ namespace cadmium {
     }
 }
 
-#endif // CADMIUM_DYNAMIC_ATOMIC_HPP
+#endif // CADMIUM_DYNAMIC_ASYNCHRONUS_ATOMIC_HPP
