@@ -1,6 +1,7 @@
 /**
- * Copyright (c) 2013-2016, Damian Vicino
- * Carleton University, Universite de Nice-Sophia Antipolis
+ * Copyright (c) 2020, Román Cárdenas Rodríguez
+ * ARSLab - Carleton University
+ * GreenLSI - Polytechnic University of Madrid
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,20 +25,28 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * Test that a simulator of a valid atomic model provides the model type
- */
+#ifndef CADMIUM_CELLDEVS_HOYA_COUPLED_HPP
+#define CADMIUM_CELLDEVS_HOYA_COUPLED_HPP
 
-#include<tuple>
-#include<cadmium/basic_model/pdevs/accumulator.hpp>
-#include<cadmium/engine/pdevs_simulator.hpp>
+#include <cadmium/celldevs/coupled/grid_coupled.hpp>
+#include "cells/hoya_cell.hpp"
 
-template<typename TIME>
-using int_accumulator=cadmium::basic_models::pdevs::accumulator<int, TIME>;
+template <typename T>
+class hoya_coupled : public cadmium::celldevs::grid_coupled<T, sir, mc> {
+public:
 
-int main(){
-    using simulation_t = cadmium::engine::simulator<int_accumulator, float, cadmium::logger::not_logger>;
-    using model_t=simulation_t::model_type;
-    model_t model;
-    model.state = std::make_tuple(1, false);
-}
+    explicit hoya_coupled(std::string const &id) : grid_coupled<T, sir, mc>(id){}
+
+    template <typename X>
+    using cell_unordered = std::unordered_map<std::string,X>;
+
+    void add_grid_cell_json(std::string const &cell_type, cell_map<sir, mc> &map, std::string const &delay_id,
+                            cadmium::json const &config) override {
+        if (cell_type == "hoya") {
+            auto conf = config.get<vr>();
+            this->template add_cell<hoya_cell>(map, delay_id, conf);
+        } else throw std::bad_typeid();
+    }
+};
+
+#endif //CADMIUM_CELLDEVS_HOYA_COUPLED_HPP

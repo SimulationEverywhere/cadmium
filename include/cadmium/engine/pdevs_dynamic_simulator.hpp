@@ -24,6 +24,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifndef CADMIUM_PDEVS_DYNAMIC_SIMULATOR_HPP
+#define CADMIUM_PDEVS_DYNAMIC_SIMULATOR_HPP
+
 #include <cadmium/modeling/dynamic_model.hpp>
 #include <cadmium/modeling/dynamic_message_bag.hpp>
 #include <cadmium/engine/pdevs_dynamic_engine.hpp>
@@ -74,10 +77,16 @@ namespace cadmium {
                 }
 
                 #ifdef CADMIUM_EXECUTE_CONCURRENT
-                void init(TIME initial_time, boost::basic_thread_pool* threadpool) {
+                void init(TIME initial_time, boost::basic_thread_pool* threadpool) override {
                     this->init(initial_time);
                 }
                 #endif //CADMIUM_EXECUTE_CONCURRENT
+
+                #ifdef CPU_PARALLEL
+                void init(TIME initial_time, size_t thread_number) override {
+                    this->init(initial_time);
+                }
+                #endif //CPU_PARALLEL
 
                 std::string get_model_id() const override {
                     return _model->get_id();
@@ -88,7 +97,7 @@ namespace cadmium {
                 }
 
                 void collect_outputs(const TIME &t) override {
-                LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::sim_info_collect>(t, _model->get_id());
+                    LOGGER::template log<cadmium::logger::logger_info, cadmium::logger::sim_info_collect>(t, _model->get_id());
 
                     // Cleaning the inbox and producing outbox
                     _inbox = cadmium::dynamic::message_bags();
@@ -97,12 +106,12 @@ namespace cadmium {
                         throw std::domain_error("Trying to obtain output in a higher time than the next scheduled internal event");
                     } else if (_next == t) {
                         _outbox = _model->output();
+                        std::string messages_by_port = _model->messages_by_port_as_string(_outbox);
+                        LOGGER::template log<cadmium::logger::logger_messages, cadmium::logger::sim_messages_collect>(t, _model->get_id(), messages_by_port);
                     } else {
                         _outbox = cadmium::dynamic::message_bags();
                     }
 
-                    std::string messages_by_port = _model->messages_by_port_as_string(_outbox);
-                    LOGGER::template log<cadmium::logger::logger_messages, cadmium::logger::sim_messages_collect>(t, _model->get_id(), messages_by_port);
                 }
 
                 /**
@@ -166,8 +175,5 @@ namespace cadmium {
         }
     }
 }
-
-#ifndef CADMIUM_PDEVS_DYNAMIC_SIMULATOR_HPP
-#define CADMIUM_PDEVS_DYNAMIC_SIMULATOR_HPP
 
 #endif //CADMIUM_PDEVS_DYNAMIC_SIMULATOR_HPP

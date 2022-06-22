@@ -12,12 +12,15 @@ matrix:
 
   include:
     - os: linux
-      dist: xenial
+      dist: bionic
       env: 
       compiler: gcc
       addons:
           apt:
-              packages: lcov
+              update: true
+              packages: 
+              - cmake
+              - lcov
       before_install:
           # C++17
           - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
@@ -28,7 +31,7 @@ matrix:
           - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-8 90
 
     - os: osx
-      osx_image: xcode10
+      osx_image: xcode11.5
       env:
       before_install:
           - brew install lcov
@@ -49,4 +52,4 @@ matrix:
           - os: windows
 
 script:
-  - cmake -DCMAKE_BUILD_TYPE=Debug && cmake --build . && ctest -C Debug --output-on-failure
+  - cmake -DCMAKE_BUILD_TYPE=Debug && cmake --build . && ctest -C Debug --output-on-failure && mkdir ${HOME}/test-install && cmake --install . --prefix ${HOME}/test-install

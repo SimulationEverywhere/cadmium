@@ -95,6 +95,7 @@ namespace cadmium {
                 virtual std::string get_id() const = 0;
                 virtual cadmium::dynamic::modeling::Ports get_input_ports() const = 0;
                 virtual cadmium::dynamic::modeling::Ports get_output_ports() const = 0;
+                virtual ~model() {}
             };
 
             /**

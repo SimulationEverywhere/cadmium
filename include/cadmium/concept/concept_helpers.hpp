@@ -61,7 +61,7 @@ namespace cadmium {
             struct check_unique_elem_types_impl {
                 static constexpr bool value() {
                     using elem=typename std::tuple_element<S - 1, T>::type;
-                    std::get<elem>(T{});
+                    (void) std::get<elem>(T{});
                     return check_unique_elem_types_impl<T, S - 1>::value();
                 }
             };

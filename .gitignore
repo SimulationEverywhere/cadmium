@@ -58,3 +58,16 @@ test_executable*
 Testing
 Cadmium.build
 coverage.info
+
+# MacOS
+.DS_Store
+
+# Cell-DEVS examples log files
+example/celldevs/simulation_results/
+
+# JSON
+json/
+!include/cadmium/json
+
+# VSCode
+.vscode

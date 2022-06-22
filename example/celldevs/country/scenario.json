@@ -1,0 +1,42 @@
+{
+  "cells": {
+    "default": {
+      "delay": "transport",
+      "cell_type": "country",
+      "state": 0,
+      "config": 1,
+      "neighborhood": {}
+    },
+    "Spain": {
+      "state": 1,
+      "config": 4,
+      "neighborhood": {
+        "Portugal": 7,
+        "France":5,
+        "Andorra": -2
+      }
+    },
+    "Portugal":{
+      "delay": "inertial",
+      "neighborhood": {
+        "Spain": 7
+      }
+    },
+    "Andorra":{
+      "state": 2,
+      "cell_type": "small_country",
+      "config": "Adios",
+      "neighborhood": {
+        "Spain": 1,
+        "France": 1
+      }
+    },
+    "France": {
+      "state": 3,
+      "neighborhood": {
+          "Spain": 2,
+          "Andorra": -2
+      }
+    }
+  }
+}

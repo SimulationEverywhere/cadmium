@@ -1,6 +1,7 @@
 /**
- * Copyright (c) 2013-2016, Damian Vicino
- * Carleton University, Universite de Nice-Sophia Antipolis
+ * Copyright (c) 2020, Román Cárdenas Rodríguez
+ * ARSLab - Carleton University
+ * GreenLSI - Polytechnic University of Madrid
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,20 +25,13 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * Test that a simulator of a valid atomic model provides the model type
- */
+#ifndef CADMIUM_JSON_HPP
+#define CADMIUM_JSON_HPP
 
-#include<tuple>
-#include<cadmium/basic_model/pdevs/accumulator.hpp>
-#include<cadmium/engine/pdevs_simulator.hpp>
+#include <nlohmann/json.hpp>
 
-template<typename TIME>
-using int_accumulator=cadmium::basic_models::pdevs::accumulator<int, TIME>;
-
-int main(){
-    using simulation_t = cadmium::engine::simulator<int_accumulator, float, cadmium::logger::not_logger>;
-    using model_t=simulation_t::model_type;
-    model_t model;
-    model.state = std::make_tuple(1, false);
+namespace cadmium {
+    using json = nlohmann::json;  // TODO implement more generic methods (now, it is still very nlohmann-dependent)
 }
+
+#endif //CADMIUM_JSON_HPP
