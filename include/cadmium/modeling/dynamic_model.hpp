@@ -27,6 +27,8 @@
 #ifndef CADMIUM_ATOMIC_HPP
 #define CADMIUM_ATOMIC_HPP
 
+#include <iostream>
+#include <vector>
 #include <cadmium/modeling/dynamic_message_bag.hpp>
 #include <cadmium/engine/pdevs_dynamic_link.hpp>
 
@@ -107,6 +109,73 @@ namespace cadmium {
              */
             template<typename TIME>
             class atomic_abstract : public cadmium::dynamic::modeling::model {
+            public:
+                // Simulation purpose, because the model type are hidden, we need the model wrapper
+                // help for dealing with the model type dependant methods for message routing.
+                virtual std::string get_id() const override = 0;
+                virtual cadmium::dynamic::modeling::Ports get_input_ports() const override = 0;
+                virtual cadmium::dynamic::modeling::Ports get_output_ports() const override = 0;
+
+                // Logging purpose methods, also because the model type is needed for logging the
+                // state and message bags.
+                virtual std::string model_state_as_string() const = 0;
+                virtual std::string messages_by_port_as_string(cadmium::dynamic::message_bags outbox) const = 0;
+
+                // atomic model methods
+                virtual void internal_transition() = 0;
+                virtual void external_transition(TIME e, cadmium::dynamic::message_bags dynamic_bags) = 0;
+                virtual void confluence_transition(TIME e, cadmium::dynamic::message_bags dynamic_bags) = 0;
+                virtual dynamic::message_bags output() const = 0;
+                virtual TIME time_advance() const = 0;
+            };
+
+            class AsyncEventSubject {
+                std::vector <class AsyncEventObserver *> views;
+                std::string _id;
+            public:
+                AsyncEventSubject(std::string subId){
+                    _id = subId;
+                }
+                void attach(AsyncEventObserver *obs) {
+                    views.push_back(obs);
+                }
+                std::string getId() {
+                    return _id;
+                }
+                void notify();
+            };
+            
+            class AsyncEventObserver {
+                std::vector < class AsyncEventSubject * > sub;
+                
+            public:
+                AsyncEventObserver(AsyncEventSubject *s) {
+                    s->attach(this);
+                    sub.push_back(s);
+                }
+                
+                AsyncEventObserver(std::vector < class AsyncEventSubject * > s) {
+                    sub = s;
+                    for (unsigned int i = 0; i < sub.size(); i++)
+                        sub[i]->attach(this);
+                }
+
+                virtual void update() = 0;
+
+            protected:
+                bool interrupted;
+                std::vector <class AsyncEventSubject *> getSubject() {
+                    return sub;
+                }
+            };
+            
+            void AsyncEventSubject::notify() {
+                for (unsigned int i = 0; i < views.size(); i++)
+                    views[i]->update();
+            }
+
+            template<typename TIME>
+            class asynchronus_atomic_abstract : public cadmium::dynamic::modeling::model, public virtual cadmium::dynamic::modeling::AsyncEventSubject {
             public:
                 // Simulation purpose, because the model type are hidden, we need the model wrapper
                 // help for dealing with the model type dependant methods for message routing.
