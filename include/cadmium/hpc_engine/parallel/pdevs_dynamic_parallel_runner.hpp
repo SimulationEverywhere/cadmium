@@ -123,7 +123,11 @@ namespace cadmium {
 	               		        }
                             #endif
 
-                            #pragma omp for schedule(static)
+                            #if defined DYNAMiC
+                              #pragma omp for schedule(dynamic)
+                            #else
+                              #pragma omp for schedule(static)
+                            #endif
                             for(size_t i=0; i<n_subcoordinators;i++){
                                 subcoordinators[i]->init(init_time);
                             }
@@ -142,7 +146,12 @@ namespace cadmium {
 
                         	local_next = subcoordinators[0]->next();
 
-                        	#pragma omp for schedule(static) nowait
+                        	//#pragma omp for schedule(schedule) nowait
+                            #if defined DYNAMIC
+                              #pragma omp for schedule(dynamic) nowait
+                            #else
+                              #pragma omp for schedule(static) nowait
+                            #endif
                         	for(size_t i=1; i<n_subcoordinators;i++){
                         	    if(subcoordinators[i]->next()<local_next){
                         	        local_next = subcoordinators[i]->next();
@@ -195,7 +204,12 @@ namespace cadmium {
                         	    }
 */
 
-                                #pragma omp for schedule(static)
+                                //#pragma omp for schedule(schedule)
+                                #if defined DYNAMIC
+                                  #pragma omp for schedule(dynamic)
+                                #else
+                                  #pragma omp for schedule(static)
+                                #endif
                                 for(size_t i=0; i<n_subcoordinators;i++){
                                     subcoordinators[i]->collect_outputs(_next);
                         	    }
@@ -223,7 +237,12 @@ namespace cadmium {
 */
 
                         	    //Route internal couplings
-                                #pragma omp for schedule(static) //collapse(2)
+                                //#pragma omp for schedule(schedule) //collapse(2)
+                                #if defined DYNAMIC
+                                  #pragma omp for schedule(dynamic)
+                                #else
+                                  #pragma omp for schedule(static)
+                                #endif
                                 for(size_t i=0; i<n_internal_couplings; i++){
                                     for(size_t j=0; j<internal_couplings[i].second.size(); j++){
                                         auto& from_outbox = internal_couplings[i].first.first->outbox();
@@ -253,7 +272,12 @@ namespace cadmium {
                         	    }
 */
 
-                                #pragma omp for schedule(static)
+                                //#pragma omp for schedule(schedule)
+                                #if defined DYNAMIC
+                                  #pragma omp for schedule(dynamic)
+                                #else
+                                  #pragma omp for schedule(static)
+                                #endif
                         	    for(size_t i=0; i<n_subcoordinators;i++){
                         	    	subcoordinators[i]->state_transition(_next);
                         	    }
@@ -271,7 +295,12 @@ namespace cadmium {
 
                                 local_next = subcoordinators[0]->next();
 
-                                #pragma omp for schedule(static) nowait
+//                                #pragma omp for schedule(schedule) nowait
+                                #if defined DYNAMIC
+                                  #pragma omp for schedule(dynamic)
+                                #else
+                                  #pragma omp for schedule(static)
+                                #endif
                         	    for(size_t i=1; i<n_subcoordinators;i++){
                         	        if(subcoordinators[i]->next()<local_next){
                         	            local_next = subcoordinators[i]->next();

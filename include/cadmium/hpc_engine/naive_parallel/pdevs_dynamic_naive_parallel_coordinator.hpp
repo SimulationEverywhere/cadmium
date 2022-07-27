@@ -222,7 +222,7 @@ namespace cadmium {
                             	    cadmium::dynamic::hpc_engine::pin_thread_to_core(tid);
                     	        }
 
-                                //#pragma omp parallel for num_threads(thread_num) schedule(static) proc_bind(close)
+//                                #pragma omp parallel for num_threads(thread_num) schedule(static) proc_bind(close)
                                 #pragma omp for schedule(static)
                     		    for(size_t i=0; i<_subcoordinators.size();i++) {
                     		        _subcoordinators[i]->collect_outputs(t);
@@ -302,13 +302,13 @@ namespace cadmium {
                             	    cadmium::dynamic::hpc_engine::pin_thread_to_core(tid);
                     	        }
 
-                                //#pragma omp parallel for num_threads(thread_num) schedule(static) proc_bind(close)
+//                                #pragma omp parallel for num_threads(thread_num) schedule(static) proc_bind(close)
                                 #pragma omp for schedule(static)
                     		    for(size_t i=0; i<_subcoordinators.size();i++) {
                     		        _subcoordinators[i]->state_transition(t);
                                 }
                             }
-                        //}
+//                        }
                     }
 
                     /**
