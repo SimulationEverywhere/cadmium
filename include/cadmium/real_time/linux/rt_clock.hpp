@@ -39,7 +39,6 @@ static long MILI_TO_MICRO  = (1000);
 #ifndef MISSED_DEADLINE_TOLERANCE
   #define MISSED_DEADLINE_TOLERANCE -1
 #endif
-extern volatile bool interrupted;
 namespace cadmium {
     namespace embedded {
 
@@ -126,6 +125,7 @@ namespace cadmium {
             
             execution_timer.stop();
             if(interrupted) {
+			  interrupted = false;
               return delay_us - execution_timer.read_us();
             }
             return delay_us;
@@ -134,7 +134,9 @@ namespace cadmium {
 
        public:
 
-          rt_clock(std::vector < class cadmium::dynamic::modeling::AsyncEventSubject * > sub) : cadmium::dynamic::modeling::AsyncEventObserver(sub) {}
+          rt_clock(std::vector < class cadmium::dynamic::modeling::AsyncEventSubject * > sub) : cadmium::dynamic::modeling::AsyncEventObserver(sub) {
+			  interrupted = false;
+		  }
 
             /**
              * @brief wait_for delays simulation by given time
