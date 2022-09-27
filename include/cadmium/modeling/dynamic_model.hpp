@@ -163,7 +163,7 @@ namespace cadmium {
                 virtual void update() = 0;
 
             protected:
-                bool interrupted;
+                volatile bool interrupted;
                 std::vector <class AsyncEventSubject *> getSubject() {
                     return sub;
                 }
