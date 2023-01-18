@@ -2,6 +2,8 @@
     #define RT_DEVS
 #elif RT_LINUX
     #define RT_DEVS
+#elif RT_WIN
+    #define RT_DEVS
 #endif
 
 #include <cadmium/modeling/coupling.hpp>

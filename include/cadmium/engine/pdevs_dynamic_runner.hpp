@@ -1,4 +1,7 @@
 /**
+ * 2021 - Ezequiel Pecker-Marcosig
+ * Universidad de Buenos Aires
+ * 
  * Copyright (c) 2018, Damian Vicino, Laouen M. L. Belloli
  * Carleton University, Universite de Nice-Sophia Antipolis, Universidad de Buenos Aires
  * All rights reserved.
@@ -39,6 +42,8 @@
     #include <cadmium/real_time/arm_mbed/rt_clock.hpp>
 #elif RT_LINUX
     #include <cadmium/real_time/linux/rt_clock.hpp>
+#elif RT_WIN
+    #include <cadmium/real_time/win/rt_clock.hpp>
 #endif
 
 #ifdef RT_DEVS
