@@ -71,3 +71,6 @@ json/
 
 # VSCode
 .vscode
+
+# Visual Studio
+.vs
