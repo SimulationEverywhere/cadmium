@@ -28,12 +28,12 @@
 #ifndef CADMIUM_PDEVS_ACCUMULATOR_HPP
 #define CADMIUM_PDEVS_ACCUMULATOR_HPP
 
-#include<limits>
-
 #include<cadmium/modeling/ports.hpp>
 #include<cadmium/modeling/message_bag.hpp>
 #include<cadmium/logger/tuple_to_ostream.hpp> // included to allow the accumulator state to use the << operator
 
+#include<limits>
+#include<stdexcept>
 
 namespace cadmium::basic_models::pdevs {
 

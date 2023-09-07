@@ -31,8 +31,9 @@
 #include<cadmium/modeling/message_bag.hpp>
 #include<cadmium/basic_model/pdevs/accumulator.hpp>
 #include<cadmium/concept/concept_helpers.hpp>
-#include<cmath>
 
+#include<cmath>
+#include<stdexcept>
 
 BOOST_AUTO_TEST_SUITE( pdevs_basic_models_suite )
     BOOST_AUTO_TEST_SUITE( pdevs_accumulator_suite )

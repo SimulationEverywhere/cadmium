@@ -28,14 +28,14 @@
 #ifndef CADMIUM_DEVS_ACCUMULATOR_HPP
 #define CADMIUM_DEVS_ACCUMULATOR_HPP
 
-#include<limits>
-#include<variant>
-
 #include<cadmium/modeling/ports.hpp>
 #include<cadmium/modeling/message_box.hpp>
 #include<cadmium/logger/tuple_to_ostream.hpp> // included to allow the accumulator state to use the << operator
-#include "../../modeling/message_box.hpp"
+#include<cadmium/modeling/message_box.hpp>
 
+#include<limits>
+#include<variant>
+#include<stdexcept>
 
 namespace cadmium::basic_models::devs {
 

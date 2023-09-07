@@ -27,9 +27,12 @@
 #ifndef CADMIUM_DEVS_PASSIVE_HPP
 #define CADMIUM_DEVS_PASSIVE_HPP
 
+
 #include<cadmium/modeling/ports.hpp>
 #include<cadmium/modeling/message_box.hpp>
+
 #include<limits>
+#include<stdexcept>
 
 namespace cadmium::basic_models::devs {
 

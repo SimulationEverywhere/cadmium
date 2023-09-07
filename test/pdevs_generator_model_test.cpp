@@ -32,6 +32,8 @@
 #include<cadmium/basic_model/pdevs/generator.hpp>
 #include<cadmium/concept/concept_helpers.hpp>
 
+#include<stdexcept>
+
 BOOST_AUTO_TEST_SUITE( pdevs_basic_models_suite )
     BOOST_AUTO_TEST_SUITE( pdevs_generator_suite )
 

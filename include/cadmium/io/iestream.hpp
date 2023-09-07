@@ -29,10 +29,10 @@
 
 #include <cadmium/modeling/ports.hpp>
 #include <cadmium/modeling/message_bag.hpp>
-#include <limits>
 
+#include<limits>
+#include<stdexcept>
 #include <stddef.h>
-
 #include <string>
 #include <fstream>
 
