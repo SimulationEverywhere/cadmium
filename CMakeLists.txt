@@ -29,6 +29,16 @@ endif()
 
 add_library(cadmium INTERFACE)
 
+add_library(cadmium::cadmium ALIAS cadmium)
+
+target_include_directories(cadmium INTERFACE
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+        )
+
+target_compile_features(cadmium INTERFACE cxx_std_17)
+
+
 include_directories(include ${Boost_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/json/single_include )
 add_subdirectory(json)
 
@@ -141,21 +151,24 @@ foreach (exampleSrc ${Examples})
     target_link_libraries(${exampleName} PUBLIC ${Boost_LIBRARIES})
 endforeach (exampleSrc)
 
+#CMake packaging to allow other projects to include cadmium
+message("packaging cadmium to be consumed")
 include(GNUInstallDirs)
 
 install(
     DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/cadmium/
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/cadmium)
 
-#CMake packaging to allow other projects to include cadmium
+
 include(CMakePackageConfigHelpers)
 
+install(TARGETS cadmium EXPORT cadmium)
 
-message("packaging cadmium to be consumed")
-configure_package_config_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/cadmiumConfig.cmake.in
-    ${CMAKE_BINARY_DIR}/cadmiumConfig.cmake
-    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/cadmium)
+install(EXPORT cadmium
+        DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/cadmium"
+        NAMESPACE cadmium::
+        FILE cadmiumConfig.cmake
+        )
 
 write_basic_package_version_file(
     ${CMAKE_BINARY_DIR}/cadmiumConfigVersion.cmake
@@ -164,7 +177,6 @@ write_basic_package_version_file(
 
 install(
     FILES
-    ${CMAKE_BINARY_DIR}/cadmiumConfig.cmake
     ${CMAKE_BINARY_DIR}/cadmiumConfigVersion.cmake
     DESTINATION
     ${CMAKE_INSTALL_LIBDIR}/cmake/cadmium)
