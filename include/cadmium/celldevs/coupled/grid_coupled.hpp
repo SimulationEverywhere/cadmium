@@ -28,10 +28,7 @@
 #ifndef CADMIUM_CELLDEVS_GRID_COUPLED_HPP
 #define CADMIUM_CELLDEVS_GRID_COUPLED_HPP
 
-#include <string>
-#include <utility>
-#include <vector>
-#include <unordered_map>
+
 #include <cadmium/modeling/ports.hpp>
 #include <cadmium/modeling/dynamic_model.hpp>
 #include <cadmium/modeling/dynamic_model_translator.hpp>
@@ -40,6 +37,14 @@
 #include <cadmium/celldevs/utils/utils.hpp>
 #include <cadmium/celldevs/utils/grid_utils.hpp>
 #include <cadmium/json/json.hpp>
+
+#include<limits>
+#include<stdexcept>
+#include <string>
+#include <utility>
+#include <vector>
+#include <unordered_map>
+
 
 
 namespace cadmium::celldevs {

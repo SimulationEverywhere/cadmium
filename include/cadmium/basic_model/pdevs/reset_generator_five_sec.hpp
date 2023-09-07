@@ -31,7 +31,9 @@
 #include<cadmium/modeling/ports.hpp>
 #include<cadmium/modeling/message_bag.hpp>
 #include<cadmium/basic_model/pdevs/accumulator.hpp>
+
 #include<limits>
+#include<stdexcept>
 
 
 namespace cadmium::basic_models::pdevs {

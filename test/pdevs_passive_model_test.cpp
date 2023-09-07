@@ -28,9 +28,12 @@
 #define BOOST_TEST_DYN_LINK
 #include<boost/test/unit_test.hpp>
 
-#include<cmath>
+
 #include<cadmium/basic_model/pdevs/passive.hpp>
 #include<cadmium/concept/concept_helpers.hpp>
+
+#include<cmath>
+#include<stdexcept>
 
 
 BOOST_AUTO_TEST_SUITE( pdevs_basic_models_suite )

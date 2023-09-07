@@ -21,8 +21,8 @@
 #include <string>
 #include <chrono>
 #include <algorithm>
-#include <limits>
 #include <random>
+#include<stdexcept>
 
 #ifdef RT_ARM_MBED
   //This class will interface with a digital input pin.

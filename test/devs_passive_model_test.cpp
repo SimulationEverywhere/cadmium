@@ -29,9 +29,11 @@
 
 #include<boost/test/unit_test.hpp>
 
-#include<cmath>
 #include<cadmium/basic_model/devs/passive.hpp>
 #include<cadmium/concept/concept_helpers.hpp>
+
+#include<cmath>
+#include<stdexcept>
 
 
 BOOST_AUTO_TEST_SUITE(devs_basic_models_suite)
